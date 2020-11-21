@@ -1,0 +1,14 @@
+[user]
+	name = Memorysaver
+	email = mfa1484@gmail.com
+
+[commit]
+	template = ~/.gitmessage
+	gpgsign = true
+
+[push]
+	default = current
+
+[github]
+	user = memorysaver
+

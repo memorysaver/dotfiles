@@ -11,6 +11,8 @@ fi
 
 # symlinks for dotfiles
 ln -sfv "$HOME/.dotfiles/.spacemacs" ~
+ln -sfv "$HOME/.dotfiles/git/.gitconfig" ~
+ln -sfv "$HOME/.dotfiles/git/.gitmessage" ~
 
 # change origin to push dotfiles
 cd ~/.dotfiles
