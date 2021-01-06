@@ -62,9 +62,11 @@ values."
 
      ;; Program Languages support
      (python :variables
+             python-backend 'lsp
+             python-lsp-server 'pyright
              python-test-runner 'pytest
              python-sort-imports-on-save t
-             python-enable-yapf-format-on-save t)
+             python-format-on-save t)
      (typescript :variables
                  typescript-fmt-on-save t)
      )
