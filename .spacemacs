@@ -67,6 +67,11 @@ values."
              python-test-runner 'pytest
              python-sort-imports-on-save t
              python-format-on-save t)
+     (javascript :variables
+                 javascript-import-tool 'import-js
+                 javascript-fmt-tool 'prettier
+                 javascript-fmt-on-save t
+                 javascript-backend 'lsp)
      (typescript :variables
                  typescript-fmt-on-save t)
      )
