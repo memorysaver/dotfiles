@@ -11,6 +11,7 @@ fi
 
 # symlinks for dotfiles
 ln -sfv "$HOME/.dotfiles/.spacemacs" ~
+ln -sfv "$HOME/.dotfiles/.zshrc" ~
 ln -sfv "$HOME/.dotfiles/git/.gitconfig" ~
 ln -sfv "$HOME/.dotfiles/git/.gitmessage" ~
 
