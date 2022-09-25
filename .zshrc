@@ -118,5 +118,11 @@ eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
+# poetry
+export PATH="$HOME/.local/bin:$PATH"
+
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /usr/local/bin/terraform terraform
+export PATH="/usr/local/opt/openssl@3/bin:$PATH"
+
+
