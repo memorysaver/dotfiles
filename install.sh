@@ -12,7 +12,7 @@ ln -sfv "$HOME/.dotfiles/git/.gitmessage" ~
 
 # generate ssh-keygen
 if [ ! -f "$HOME/.ssh/id_rsa" ]; then
-    ssh-keygen -t rsa -C "mfa1484@gmail.com"
+    ssh-keygen -t rsa -C "memorysaver"
 fi
 
 # change origin to push dotfiles
