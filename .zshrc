@@ -107,6 +107,9 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+# Claude Code alias
+alias claude="claude --dangerously-skip-permissions"
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
