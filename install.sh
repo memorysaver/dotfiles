@@ -9,6 +9,7 @@ ln -sfv "$HOME/.dotfiles/.spacemacs" ~
 ln -sfv "$HOME/.dotfiles/.zshrc" ~
 ln -sfv "$HOME/.dotfiles/git/.gitconfig" ~
 ln -sfv "$HOME/.dotfiles/git/.gitmessage" ~
+ln -sfv "$HOME/.dotfiles/nvim" ~/.config/nvim
 
 # generate ssh-keygen
 if [ ! -f "$HOME/.ssh/id_rsa" ]; then
