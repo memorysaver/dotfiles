@@ -11,6 +11,14 @@ ln -sfv "$HOME/.dotfiles/git/.gitconfig" ~
 ln -sfv "$HOME/.dotfiles/git/.gitmessage" ~
 ln -sfv "$HOME/.dotfiles/nvim" ~/.config/nvim
 
+# setup claude commands directory and symlinks
+mkdir -p ~/.claude/commands
+for file in "$HOME/.dotfiles/claude/commands"/*; do
+  if [ -f "$file" ]; then
+    ln -sfv "$file" ~/.claude/commands/
+  fi
+done
+
 # generate ssh-keygen
 if [ ! -f "$HOME/.ssh/id_rsa" ]; then
     ssh-keygen -t rsa -C "memorysaver"
