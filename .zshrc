@@ -125,3 +125,12 @@ export PATH="$HOME/.local/bin:$PATH"
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /usr/local/bin/terraform terraform
 export PATH="/usr/local/opt/openssl@3/bin:$PATH"
+
+
+
+
+
+eval "$(direnv hook zsh)"
+
+# Auto-Warpify
+[[ "$-" == *i* ]] && printf 'P$f{"hook": "SourcedRcFileForWarp", "value": { "shell": "zsh", "uname": "Darwin" }}�' 
