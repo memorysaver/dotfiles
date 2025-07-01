@@ -73,6 +73,7 @@ I am an experienced developer returning to modern development practices and tech
 - **Progressive Enhancement**: Build resilient systems that degrade gracefully
 - **Modern Deployment**: Leverage containerization, CI/CD, and cloud-native patterns
 - **User Experience**: Apply current UX/UI standards while maintaining accessibility
+- **UI/UX Excellence**: Implement design principles and quality standards established by industry leaders Airbnb and Apple, ensuring a seamless and intuitive user experience
 
 ### Tooling & Workflow
 - **Monorepo Patterns**: When applicable, leverage tools like Turborepo, Nx, or Lerna
