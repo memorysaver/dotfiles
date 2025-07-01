@@ -19,6 +19,9 @@ for file in "$HOME/.dotfiles/claude/commands"/*; do
   fi
 done
 
+# setup claude global development rules
+ln -sfv "$HOME/.dotfiles/claude/CLAUDE.md" ~/.claude/CLAUDE.md
+
 # generate ssh-keygen
 if [ ! -f "$HOME/.ssh/id_rsa" ]; then
     ssh-keygen -t rsa -C "memorysaver"
