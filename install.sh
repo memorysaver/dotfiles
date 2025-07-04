@@ -12,6 +12,10 @@ ln -sfv "$HOME/.dotfiles/git/.gitconfig" ~
 ln -sfv "$HOME/.dotfiles/git/.gitmessage" ~
 ln -sfv "$HOME/.dotfiles/nvim" ~/.config/nvim
 
+# setup lazygit config
+mkdir -p "$HOME/Library/Application Support/lazygit"
+ln -sfv "$HOME/.dotfiles/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
+
 # setup claude commands directory and symlinks
 mkdir -p ~/.claude/commands
 for file in "$HOME/.dotfiles/claude/commands"/*; do

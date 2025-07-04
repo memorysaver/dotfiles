@@ -89,11 +89,7 @@ source $ZSH/oh-my-zsh.sh
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+export EDITOR='nvim'
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -123,27 +119,23 @@ ccdev() {
     
     # Create 3 columns
     tmux split-window -h -c "$(pwd)"   # Creates 2 columns
-    tmux split-window -h -c "$(pwd)"   # Creates 3 columns
-    
-    # Focus on vim pane
-    tmux select-pane -t "$session_name.0"
     
     # Now split the middle column (pane 2) vertically
-    tmux select-pane -t "$session_name.1"
+    tmux select-pane -t "$session_name.0"
     tmux split-window -v -c "$(pwd)"
     
     # Set up the 4-pane layout: 0=right, 1=left, 2=middle-top, 3=middle-bottom
     sleep 0.1
     
     # Resize panes for optimal development layout
-    tmux resize-pane -t "$session_name.0" -x 25%  # lazygit pane 25% width
-    tmux resize-pane -t "$session_name.1" -x 35%  # nvim pane 50% width
-    tmux resize-pane -t "$session_name.3" -y 40%  # claude pane 30% height
+    tmux resize-pane -t "$session_name.0" -x 60%  # lazygit pane 25% width
+    # tmux resize-pane -t "$session_name.1" -x 35%  # nvim pane 50% width
+    tmux resize-pane -t "$session_name.1" -y 40%  # claude pane 30% height
     
     tmux send-keys -t "$session_name.0" 'lazygit' Enter
-    tmux send-keys -t "$session_name.3" 'claude --dangerously-skip-permissions' Enter
-    tmux send-keys -t "$session_name.2" 'echo "run dev server here"' Enter
-    tmux send-keys -t "$session_name.1" 'nvim' Enter
+    tmux send-keys -t "$session_name.2" 'claude --dangerously-skip-permissions' Enter
+    tmux send-keys -t "$session_name.1" 'echo "run dev server here"' Enter
+    # tmux send-keys -t "$session_name.1" 'nvim' Enter
     
     # Focus on claude code pane
     tmux select-pane -t "$session_name.3"
