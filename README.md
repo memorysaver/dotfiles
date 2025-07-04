@@ -25,3 +25,37 @@ ssh -T git@github.com
 git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
 apt-get install emacs
 ```
+
+### Configure tmux
+
+Modern tmux configuration with ergonomic key bindings and visual improvements:
+
+```bash
+# Configuration is managed in dotfiles
+ln -sf ~/.dotfiles/.tmux.conf ~/.tmux.conf
+
+# Reload configuration in existing tmux session
+tmux source-file ~/.tmux.conf
+```
+
+**Key Features:**
+- Prefix key: `Ctrl+a` (instead of `Ctrl+b`)
+- Split panes: `Ctrl+a |` (horizontal) and `Ctrl+a -` (vertical)
+- Navigate panes: `Alt+arrows` or `Ctrl+a hjkl`
+- Reload config: `Ctrl+a r`
+- Mouse support enabled
+- Tokyo Night color scheme
+
+### Claude Code Development Environment
+
+The `ccdev` function creates a tmux development environment optimized for Claude Code:
+
+```bash
+# Launch development environment
+ccdev [session-name]
+
+# If no session name provided, uses current directory name
+ccdev my-project
+```
+
+Creates a multi-pane workspace with Neovim, development server, Claude Code CLI, and Lazygit automatically configured and ready to use.
