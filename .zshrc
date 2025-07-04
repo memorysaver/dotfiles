@@ -138,7 +138,7 @@ ccdev() {
     # tmux send-keys -t "$session_name.1" 'nvim' Enter
     
     # Focus on claude code pane
-    tmux select-pane -t "$session_name.3"
+    tmux select-pane -t "$session_name.2"
     
     # Attach
     tmux attach-session -t "$session_name"
