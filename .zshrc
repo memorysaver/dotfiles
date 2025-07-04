@@ -110,6 +110,38 @@ source $ZSH/oh-my-zsh.sh
 # Claude Code alias
 alias claude="claude --dangerously-skip-permissions"
 
+# Simple dev environment function
+dev() {
+    local session_name="dev"
+    
+    # Kill existing session if it exists
+    tmux kill-session -t "$session_name" 2>/dev/null
+    
+    # Create new session with first pane
+    tmux new-session -d -s "$session_name" -c "$(pwd)"
+    
+    # Create 3 columns
+    tmux split-window -h -c "$(pwd)"   # Creates 2 columns
+    tmux split-window -h -c "$(pwd)"   # Creates 3 columns
+    
+    # Focus on vim pane
+    tmux select-pane -t "dev.0"
+    
+    # Now split the middle column (pane 2) vertically
+    tmux select-pane -t "dev.1"
+    tmux split-window -v -c "$(pwd)"
+    
+    # Set up the 4-pane layout: 0=right, 1=left, 2=middle-top, 3=middle-bottom
+    sleep 0.1
+    tmux send-keys -t "$session_name.0" 'lazygit' Enter
+    tmux send-keys -t "$session_name.3" 'claude --dangerously-skip-permissions' Enter
+    tmux send-keys -t "$session_name.2" 'echo "run dev server here"' Enter
+    tmux send-keys -t "$session_name.1" 'nvim' Enter
+    
+    # Attach
+    tmux attach-session -t "$session_name"
+}
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
