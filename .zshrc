@@ -134,6 +134,12 @@ ccdev() {
     
     # Set up the 4-pane layout: 0=right, 1=left, 2=middle-top, 3=middle-bottom
     sleep 0.1
+    
+    # Resize panes for optimal development layout
+    tmux resize-pane -t "$session_name.0" -x 25%  # lazygit pane 25% width
+    tmux resize-pane -t "$session_name.1" -x 35%  # nvim pane 50% width
+    tmux resize-pane -t "$session_name.3" -y 40%  # claude pane 30% height
+    
     tmux send-keys -t "$session_name.0" 'lazygit' Enter
     tmux send-keys -t "$session_name.3" 'claude --dangerously-skip-permissions' Enter
     tmux send-keys -t "$session_name.2" 'echo "run dev server here"' Enter
