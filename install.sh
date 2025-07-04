@@ -27,6 +27,13 @@ done
 # setup claude global development rules
 ln -sfv "$HOME/.dotfiles/claude/CLAUDE.md" ~/.claude/CLAUDE.md
 
+# install rust toolchain
+if ! command -v rustc &> /dev/null; then
+    echo "Installing Rust..."
+    curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
+    source "$HOME/.cargo/env"
+fi
+
 # generate ssh-keygen
 if [ ! -f "$HOME/.ssh/id_rsa" ]; then
     ssh-keygen -t rsa -C "memorysaver"
