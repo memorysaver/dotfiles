@@ -179,3 +179,10 @@ eval "$(direnv hook zsh)"
 
 # Auto-Warpify
 [[ "$-" == *i* ]] && printf 'P$f{"hook": "SourcedRcFileForWarp", "value": { "shell": "zsh", "uname": "Darwin" }}�' 
+
+# bun completions
+[ -s "/Users/memorysaver/.bun/_bun" ] && source "/Users/memorysaver/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
