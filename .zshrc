@@ -109,6 +109,7 @@ source $ZSH/oh-my-zsh.sh
 
 # Claude Code alias
 alias claude="claude --dangerously-skip-permissions"
+alias ccusage="ccusage blocks --live"
 
 # Claude Code development environment function
 ccdev() {
