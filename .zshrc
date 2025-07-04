@@ -110,9 +110,9 @@ source $ZSH/oh-my-zsh.sh
 # Claude Code alias
 alias claude="claude --dangerously-skip-permissions"
 
-# Simple dev environment function
-dev() {
-    local session_name="dev"
+# Claude Code development environment function
+ccdev() {
+    local session_name="${1:-$(basename $(pwd) | sed 's/[^a-zA-Z0-9]/_/g')}"
     
     # Kill existing session if it exists
     tmux kill-session -t "$session_name" 2>/dev/null
@@ -125,10 +125,10 @@ dev() {
     tmux split-window -h -c "$(pwd)"   # Creates 3 columns
     
     # Focus on vim pane
-    tmux select-pane -t "dev.0"
+    tmux select-pane -t "$session_name.0"
     
     # Now split the middle column (pane 2) vertically
-    tmux select-pane -t "dev.1"
+    tmux select-pane -t "$session_name.1"
     tmux split-window -v -c "$(pwd)"
     
     # Set up the 4-pane layout: 0=right, 1=left, 2=middle-top, 3=middle-bottom
