@@ -130,8 +130,10 @@ _create_dev_tmux_session() {
     sleep 0.1
     
     # Resize panes for optimal development layout
-    tmux resize-pane -t "$session_name.0" -x 60%  # lazygit pane width
-    tmux resize-pane -t "$session_name.1" -y 40%  # dev server pane height
+    tmux resize-pane -t "$session_name.0" -x 55%  # lazygit pane width
+    tmux resize-pane -t "$session_name.0" -y 50%  # lazygit pane height
+    tmux resize-pane -t "$session_name.1" -y 50%  # dev pane height
+    tmux resize-pane -t "$session_name.2" -x 45%  # AI Development Tool width
     
     # Launch applications
     tmux send-keys -t "$session_name.0" 'lazygit' Enter

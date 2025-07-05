@@ -52,6 +52,10 @@ tmux source-file ~/.tmux.conf
 
 The `ccdev` function creates a tmux development environment optimized for Claude Code:
 
+# Install Claude Code first
+npm install -g @anthropic-ai/claude-code
+
+
 ```bash
 # Launch Claude development environment
 ccdev [session-name]
@@ -66,7 +70,7 @@ The `gdev` function creates a tmux development environment with Gemini CLI:
 
 ```bash
 # Install Gemini CLI first
-npm install -g @google/generative-ai-cli
+npm install -g @google/gemini-cli
 
 # Launch Gemini development environment
 gdev [session-name]
@@ -78,13 +82,17 @@ The `opendev` function creates a tmux development environment with OpenCode CLI:
 
 ```bash
 # Install OpenCode CLI first
-npm install -g @opencode/cli
+curl -fsSL https://opencode.ai/install | bash
+
+# or Using Homebrew on macOS
+
+brew install sst/tap/opencode
 
 # Launch OpenCode development environment
 opendev [session-name]
 ```
 
 All environments create a multi-pane workspace with:
-- **Left pane (60% width)**: Lazygit for version control
-- **Bottom-right pane (40% height)**: Development server
-- **Top-right pane (60% height)**: AI assistant (Claude, Gemini, or OpenCode)
+- **Top-Left pane (55% width)**: Lazygit for version control
+- **Bottom-left pane (55% width)**: Development server
+- **Right pane (45% width)**: AI assistant (Claude, Gemini, or OpenCode)
