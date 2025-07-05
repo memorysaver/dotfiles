@@ -13,15 +13,20 @@ if [ ! -f "$MCP_CONFIG" ]; then
     exit 1
 fi
 
-# Add each MCP server from the config file
-echo "Adding cloudflare-doc MCP server..."
-claude mcp add-json --scope user cloudflare-doc '{"command": "npx", "args": ["mcp-remote", "https://docs.mcp.cloudflare.com/sse"]}'
+# Check if jq is available
+if ! command -v jq &> /dev/null; then
+    echo "Error: jq is required but not installed. Please install jq first."
+    exit 1
+fi
 
-echo "Adding context7 MCP server..."
-claude mcp add-json --scope user context7 '{"command": "npx", "args": ["-y", "@upstash/context7-mcp"]}'
-
-echo "Adding browsermcp MCP server..."
-claude mcp add-json --scope user browsermcp '{"command": "npx", "args": ["@browsermcp/mcp@latest"]}'
+# Loop through each MCP server in the config file
+jq -r '.mcpServers | to_entries[] | @json' "$MCP_CONFIG" | while read -r server; do
+    name=$(echo "$server" | jq -r '.key')
+    config=$(echo "$server" | jq -c '.value')
+    
+    echo "Adding $name MCP server..."
+    claude mcp add-json --scope user "$name" "$config"
+done
 
 echo "MCP servers setup complete!"
 echo "Run 'claude mcp list' to verify installation."
