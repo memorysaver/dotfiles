@@ -5,6 +5,12 @@
 
 echo "Setting up Claude Code MCP servers..."
 
+# Remove existing MCP auth cache to allow re-authentication
+if [ -d "$HOME/.mcp-auth" ]; then
+    echo "Removing existing MCP auth cache..."
+    rm -rf "$HOME/.mcp-auth"
+fi
+
 # Path to MCP config file in dotfiles
 MCP_CONFIG="$HOME/.dotfiles/claude/mcp-servers.json"
 
