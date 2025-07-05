@@ -107,9 +107,11 @@ export EDITOR='nvim'
 alias claude="claude --dangerously-skip-permissions"
 alias ccusage="ccusage blocks --live"
 
-# Claude Code development environment function
-ccdev() {
-    local session_name="${1:-$(basename $(pwd) | sed 's/[^a-zA-Z0-9]/_/g')}"
+# Modular tmux development environment function
+_create_dev_tmux_session() {
+    local ai_tool_command="$1"
+    local ai_tool_name="${2:-AI}"
+    local session_name="${3:-$(basename $(pwd) | sed 's/[^a-zA-Z0-9]/_/g')}"
     
     # Kill existing session if it exists
     tmux kill-session -t "$session_name" 2>/dev/null
@@ -117,31 +119,45 @@ ccdev() {
     # Create new session with first pane
     tmux new-session -d -s "$session_name" -c "$(pwd)"
     
-    # Create 3 columns
-    tmux split-window -h -c "$(pwd)"   # Creates 2 columns
+    # Create layout: split horizontally first
+    tmux split-window -h -c "$(pwd)"
     
-    # Now split the middle column (pane 2) vertically
+    # Split the left pane vertically
     tmux select-pane -t "$session_name.0"
     tmux split-window -v -c "$(pwd)"
     
-    # Set up the 4-pane layout: 0=right, 1=left, 2=middle-top, 3=middle-bottom
+    # Layout: pane 0 (lazygit), pane 1 (dev server), pane 2 (AI tool)
     sleep 0.1
     
     # Resize panes for optimal development layout
-    tmux resize-pane -t "$session_name.0" -x 60%  # lazygit pane 25% width
-    # tmux resize-pane -t "$session_name.1" -x 35%  # nvim pane 50% width
-    tmux resize-pane -t "$session_name.1" -y 40%  # claude pane 30% height
+    tmux resize-pane -t "$session_name.0" -x 60%  # lazygit pane width
+    tmux resize-pane -t "$session_name.1" -y 40%  # dev server pane height
     
+    # Launch applications
     tmux send-keys -t "$session_name.0" 'lazygit' Enter
-    tmux send-keys -t "$session_name.2" 'claude --dangerously-skip-permissions' Enter
     tmux send-keys -t "$session_name.1" 'echo "run dev server here"' Enter
-    # tmux send-keys -t "$session_name.1" 'nvim' Enter
+    tmux send-keys -t "$session_name.2" "$ai_tool_command" Enter
     
-    # Focus on claude code pane
+    # Focus on AI tool pane
     tmux select-pane -t "$session_name.2"
     
-    # Attach
+    # Attach to session
     tmux attach-session -t "$session_name"
+}
+
+# Claude Code development environment
+ccdev() {
+    _create_dev_tmux_session "claude --dangerously-skip-permissions" "Claude" "$1"
+}
+
+# Gemini CLI development environment
+gdev() {
+    _create_dev_tmux_session "gemini" "Gemini" "$1"
+}
+
+# OpenCode CLI development environment
+opendev() {
+    _create_dev_tmux_session "opencode" "OpenCode" "$1"
 }
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.

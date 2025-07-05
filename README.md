@@ -46,16 +46,45 @@ tmux source-file ~/.tmux.conf
 - Mouse support enabled
 - Tokyo Night color scheme
 
-### Claude Code Development Environment
+### AI-Powered Development Environments
+
+#### Claude Code Development Environment
 
 The `ccdev` function creates a tmux development environment optimized for Claude Code:
 
 ```bash
-# Launch development environment
+# Launch Claude development environment
 ccdev [session-name]
 
 # If no session name provided, uses current directory name
 ccdev my-project
 ```
 
-Creates a multi-pane workspace with Neovim, development server, Claude Code CLI, and Lazygit automatically configured and ready to use.
+#### Gemini CLI Development Environment
+
+The `gdev` function creates a tmux development environment with Gemini CLI:
+
+```bash
+# Install Gemini CLI first
+npm install -g @google/generative-ai-cli
+
+# Launch Gemini development environment
+gdev [session-name]
+```
+
+#### OpenCode CLI Development Environment
+
+The `opendev` function creates a tmux development environment with OpenCode CLI:
+
+```bash
+# Install OpenCode CLI first
+npm install -g @opencode/cli
+
+# Launch OpenCode development environment
+opendev [session-name]
+```
+
+All environments create a multi-pane workspace with:
+- **Left pane (60% width)**: Lazygit for version control
+- **Bottom-right pane (40% height)**: Development server
+- **Top-right pane (60% height)**: AI assistant (Claude, Gemini, or OpenCode)
