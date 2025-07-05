@@ -52,8 +52,11 @@ tmux source-file ~/.tmux.conf
 
 The `ccdev` function creates a tmux development environment optimized for Claude Code:
 
+
+```bash
 # Install Claude Code first
 npm install -g @anthropic-ai/claude-code
+```
 
 
 ```bash
