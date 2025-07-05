@@ -4,13 +4,6 @@
   "model": "github-copilot/gemini-2.5-pro",
   "autoshare": false,
   "autoupdate": true,
-  "keybinds": {
-    "submit": "cmd+enter",
-    "cancel": "escape",
-    "new_chat": "cmd+n",
-    "clear_chat": "cmd+k",
-    "toggle_sidebar": "cmd+b"
-  },
   "mcp": {
     "cloudflare-doc": {
       "type": "local",
