@@ -53,6 +53,10 @@ ln -sfv "$HOME/.dotfiles/claude/mcp-servers.json" ~/.claude/mcp-servers.json
 mkdir -p ~/.config/opencode
 ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
 
+# setup Gemini CLI config
+mkdir -p ~/.gemini
+ln -sfv "$HOME/.dotfiles/gemini-cli/settings.json" "$HOME/.gemini/settings.json"
+
 # install rust toolchain
 if ! command -v rustc &> /dev/null; then
     echo "Installing Rust..."
