@@ -49,6 +49,10 @@ ln -sfv "$HOME/.dotfiles/claude/superclaude/CLAUDE.md" ~/.claude/CLAUDE.md
 # symlink MCP servers config
 ln -sfv "$HOME/.dotfiles/claude/mcp-servers.json" ~/.claude/mcp-servers.json
 
+# setup OpenCode config
+mkdir -p ~/.config/opencode
+ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
+
 # install rust toolchain
 if ! command -v rustc &> /dev/null; then
     echo "Installing Rust..."
