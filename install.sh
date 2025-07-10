@@ -4,11 +4,12 @@ if [ ! -d "$HOME/.dotfiles" ]; then
   git clone https://github.com/memorysaver/dotfiles.git ~/.dotfiles
 fi
 
-# initialize and update git submodules (for SuperClaude)
+# initialize and update git submodules (for SuperClaude and claude-code-requirements-builder)
 cd ~/.dotfiles
 git submodule update --init --recursive
 # Also pull latest changes if already initialized
 git submodule update --remote claude/superclaude
+git submodule update --remote claude/claude-code-requirements-builder
 
 # symlinks for dotfiles
 ln -sfv "$HOME/.dotfiles/.spacemacs" ~
@@ -42,6 +43,13 @@ for file in "$HOME/.dotfiles/claude/commands"/*; do
     ln -sfv "$file" ~/.claude/commands/
   fi
 done
+
+# setup symlinks for claude-code-requirements-builder commands
+if [ -d "$HOME/.dotfiles/claude/claude-code-requirements-builder/commands" ]; then
+  for cmd in requirements-current requirements-end requirements-list requirements-remind requirements-start requirements-status; do
+    ln -sfv "$HOME/.dotfiles/claude/claude-code-requirements-builder/commands/${cmd}.md" ~/.claude/commands/${cmd}.md
+  done
+fi
 
 # setup SuperClaude's CLAUDE.md (always use their latest configuration)
 ln -sfv "$HOME/.dotfiles/claude/superclaude/CLAUDE.md" ~/.claude/CLAUDE.md
