@@ -1,8 +1,245 @@
 # dotfiles
 [![Built with Spacemacs](https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg)](http://spacemacs.org)
 
+## Prerequisites
+
+Before running the dotfiles installation script, you need to install the following tools and dependencies:
+
+### 1. Core System Tools
+
+#### Homebrew (macOS Package Manager)
+```bash
+# Install Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# For Apple Silicon Macs (M1/M2/M3/M4), add to PATH
+echo 'export PATH=/opt/homebrew/bin:$PATH' >> ~/.zshrc
+source ~/.zshrc
+
+# Verify installation
+brew --version
+```
+
+#### Git
+```bash
+# macOS (via Homebrew)
+brew install git
+
+# Ubuntu/Debian
+sudo apt update && sudo apt install git
+
+# Verify installation
+git --version
+```
+
+#### Zsh & Oh-My-Zsh
+```bash
+# Install Zsh
+# macOS
+brew install zsh
+
+# Ubuntu/Debian
+sudo apt install zsh
+
+# Make Zsh default shell
+chsh -s $(which zsh)
+
+# Install Oh-My-Zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Install Powerlevel10k theme
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
+# Install essential plugins
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```
+
+### 2. Development Languages & Runtimes
+
+#### Node.js & npm
+```bash
+# Install nvm (Node Version Manager)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+source ~/.zshrc
+
+# Install latest LTS Node.js
+nvm install --lts
+nvm use --lts
+
+# Verify installation
+node --version
+npm --version
+```
+
+#### Rust & Cargo
+```bash
+# Install Rust via rustup
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# Verify installation
+rustc --version
+cargo --version
+```
+
+#### Python & Pyenv & Poetry & UV
+```bash
+# Install pyenv
+curl https://pyenv.run | bash
+
+# Install Poetry via pipx
+sudo apt install pipx  # Ubuntu/Debian
+pipx install poetry
+
+# Configure Poetry
+poetry config virtualenvs.in-project true
+poetry config virtualenvs.prefer-active-python true
+
+# Install UV (extremely fast Python package manager)
+# Using standalone installer (recommended)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or using pipx
+pipx install uv
+
+# Or using Homebrew on macOS
+brew install uv
+
+# Verify installation
+pyenv --version
+poetry --version
+uv --version
+```
+
+### 3. Development Tools
+
+#### tmux
+```bash
+# macOS
+brew install tmux
+
+# Ubuntu/Debian
+sudo apt install tmux
+
+# Verify installation
+tmux -V
+```
+
+#### Lazygit
+```bash
+# macOS
+brew install lazygit
+
+# Ubuntu/Debian
+sudo add-apt-repository ppa:lazygit-team/daily
+sudo apt update
+sudo apt install lazygit
+
+# Verify installation
+lazygit --version
+```
+
+#### Neovim
+```bash
+# macOS
+brew install neovim
+
+# Ubuntu/Debian
+sudo apt install neovim
+
+# Verify installation
+nvim --version
+```
+
+#### Direnv
+```bash
+# macOS
+brew install direnv
+
+# Ubuntu/Debian
+sudo apt install direnv
+
+# Add to shell configuration
+echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
+source ~/.zshrc
+
+# Verify installation
+direnv --version
+```
+
+#### Terraform
+```bash
+# macOS
+brew install terraform
+
+# Ubuntu/Debian
+wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
+
+# Verify installation
+terraform --version
+```
+
+### 4. AI Development Tools
+
+#### Claude Code
+```bash
+# Install Claude Code globally
+npm install -g @anthropic-ai/claude-code
+
+# Verify installation
+claude --version
+```
+
+#### Gemini CLI
+```bash
+# Install Gemini CLI
+npm install -g @google/gemini-cli
+
+# Verify installation
+gemini --version
+```
+
+#### OpenCode CLI
+```bash
+# Install OpenCode CLI
+curl -fsSL https://opencode.ai/install | bash
+
+# Or using Homebrew on macOS
+brew install sst/tap/opencode
+
+# Verify installation
+opencode --version
+```
+
+### 5. Optional Tools
+
+#### Emacs (for Spacemacs)
+```bash
+# macOS
+brew install emacs
+
+# Ubuntu/Debian
+sudo apt install emacs
+
+# Verify installation
+emacs --version
+```
+
+#### Bun (JavaScript Runtime)
+```bash
+# Install Bun
+curl -fsSL https://bun.sh/install | bash
+
+# Verify installation
+bun --version
+```
+
 ## Installation Guide
-### Run Installation scrips
+
+After installing all prerequisites, run the dotfiles installation script:
 
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/install.sh)"
