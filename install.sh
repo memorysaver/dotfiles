@@ -57,6 +57,9 @@ ln -sfv "$HOME/.dotfiles/claude/superclaude/CLAUDE.md" ~/.claude/CLAUDE.md
 # symlink MCP servers config
 ln -sfv "$HOME/.dotfiles/claude/mcp-servers.json" ~/.claude/mcp-servers.json
 
+# symlink Claude Code settings
+ln -sfv "$HOME/.dotfiles/claude/settings.json" ~/.claude/settings.json
+
 # setup OpenCode config
 mkdir -p ~/.config/opencode
 ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
