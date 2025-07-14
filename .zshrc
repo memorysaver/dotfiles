@@ -104,7 +104,6 @@ export EDITOR='nvim'
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # Claude Code alias
-alias claude="claude --dangerously-skip-permissions"
 alias ccusage="ccusage blocks --live"
 
 # Modular tmux development environment function
