@@ -196,3 +196,8 @@ eval "$(direnv hook zsh)"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
+
+# opencode
+export PATH=/Users/memorysaver/.opencode/bin:$PATH
+
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"

@@ -34,5 +34,6 @@
     "cloudflare-workder-binding",
     "browsermcp",
     "puppeteer"
-  ]
+  ],
+  "model": "sonnet"
 }
