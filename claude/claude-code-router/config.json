@@ -1,0 +1,19 @@
+{
+  "LOG": false,
+  "OPENAI_API_KEY": "",
+  "OPENAI_BASE_URL": "",
+  "OPENAI_MODEL": "",
+  "Providers": [
+    {
+      "name": "groq",
+      "api_base_url": "https://api.groq.com/openai/v1/chat/completions",
+      "api_key": "YOUR_GROQ_API_KEY",
+      "models": [
+        "moonshotai/kimi-k2-instruct": {"max_tokens": 8192}
+      ]
+    }
+  ],
+  "Router": {
+    "default": "groq,moonshotai/kimi-k2-instruct"
+  }
+}
