@@ -1,0 +1,27 @@
+## Codex CLI configuration
+# Customize Codex CLI behavior via this config file.
+# See https://github.com/openai/codex/blob/main/codex-rs/config.md for options.
+
+# The default model (override as needed):
+# model = "gpt-4.1"
+model_provider = "openai"
+model = "gpt-4.1"
+
+[model_providers.groq]
+name = "groq"
+base_url = "https://api.groq.com/openai/v1"
+env_key = "GROQ_API_KEY"
+approval_policy = "never"
+
+[model_providers.openrouter]
+name = "openrouter"
+base_url="https://openrouter.ai/api/v1"
+env_key = "OPENROUTER_API_KEY"
+approval_policy = "never"
+
+[profiles.k2]
+model_provider = "openrouter"
+model = "moonshotai/kimi-k2"
+
+
+

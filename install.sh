@@ -68,6 +68,10 @@ ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
 mkdir -p ~/.gemini
 ln -sfv "$HOME/.dotfiles/gemini-cli/settings.json" "$HOME/.gemini/settings.json"
 
+# setup Codex CLI config
+mkdir -p ~/.codex
+ln -sfv "$HOME/.dotfiles/openai-codex/config.toml" ~/.codex/config.toml
+
 # install rust toolchain
 if ! command -v rustc &> /dev/null; then
     echo "Installing Rust..."

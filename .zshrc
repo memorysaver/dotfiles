@@ -161,6 +161,15 @@ opendev() {
     _create_dev_tmux_session "opencode" "OpenCode" "$1"
 }
 
+# OpenAI Codex CLI development environment
+codexdev() {
+    if [[ -z "$1" ]]; then
+        _create_dev_tmux_session "codex" "Codex"
+    else
+        _create_dev_tmux_session "codex --profile \"$1\"" "Codex" "$1"
+    fi
+}
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

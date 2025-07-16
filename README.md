@@ -296,6 +296,10 @@ ln -sf ~/.dotfiles/.tmux.conf ~/.tmux.conf
 
 # Reload configuration in existing tmux session
 tmux source-file ~/.tmux.conf
+
+# Codex CLI configuration
+mkdir -p ~/.codex
+ln -sf ~/.dotfiles/openai-codex/config.toml ~/.codex/config.toml
 ```
 
 **Key Features:**
@@ -353,6 +357,18 @@ brew install sst/tap/opencode
 
 # Launch OpenCode development environment
 opendev [session-name]
+```
+
+#### OpenAI Codex CLI Development Environment
+
+The `codexdev` function creates a tmux development environment with the OpenAI Codex CLI:
+
+```bash
+# Install OpenAI Codex CLI first
+npm install -g @openai/codex
+
+# Launch Codex development environment
+codexdev [session-name]
 ```
 
 All environments create a multi-pane workspace with:
