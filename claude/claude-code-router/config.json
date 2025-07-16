@@ -5,15 +5,25 @@
   "OPENAI_MODEL": "",
   "Providers": [
     {
+      "name": "openrouter",
+      "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
+      "api_key": "YOUR_OPENROUTER_API_KEY",
+      "models": [
+        "moonshotai/kimi-k2-instruct"
+      ]
+    },
+    {
       "name": "groq",
       "api_base_url": "https://api.groq.com/openai/v1/chat/completions",
       "api_key": "YOUR_GROQ_API_KEY",
       "models": [
-        "moonshotai/kimi-k2-instruct": {"max_tokens": 8192}
+        "moonshotai/kimi-k2-instruct",
       ]
     }
   ],
   "Router": {
-    "default": "groq,moonshotai/kimi-k2-instruct"
+    "default": "groq,moonshotai/kimi-k2-instruct",
+    "fast": "groq,moonshotai/kimi-k2-instruct",
+    "reasoning": "groq,moonshotai/kimi-k2-instruct"
   }
 }
