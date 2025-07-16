@@ -33,7 +33,8 @@
     "cloudflare-doc",
     "cloudflare-workder-binding",
     "browsermcp",
-    "puppeteer"
+    "puppeteer",
+    "gemini-cli"
   ],
   "model": "sonnet"
 }

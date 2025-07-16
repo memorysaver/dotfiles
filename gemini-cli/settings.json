@@ -5,19 +5,23 @@
   "mcpServers": {
     "cloudflare-doc": {
       "command": "npx",
-      "args": ["mcp-remote", "https://docs.mcp.cloudflare.com/sse"]
-    },
-    "cloudflare-workder-binding": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://bindings.mcp.cloudflare.com/sse"]
+      "args": [
+        "mcp-remote",
+        "https://docs.mcp.cloudflare.com/sse"
+      ]
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
     },
     "browsermcp": {
       "command": "npx",
-      "args": ["@browsermcp/mcp@latest"]
+      "args": [
+        "@browsermcp/mcp@latest"
+      ]
     },
     "sequential-thinking": {
       "command": "npx",
@@ -28,7 +32,10 @@
     },
     "puppeteer": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
     }
   },
   "usageStatisticsEnabled": true
