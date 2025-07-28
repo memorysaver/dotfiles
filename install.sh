@@ -4,11 +4,10 @@ if [ ! -d "$HOME/.dotfiles" ]; then
   git clone https://github.com/memorysaver/dotfiles.git ~/.dotfiles
 fi
 
-# initialize and update git submodules (for SuperClaude and claude-code-requirements-builder)
+# initialize and update git submodules (for claude-code-requirements-builder)
 cd ~/.dotfiles
 git submodule update --init --recursive
 # Also pull latest changes if already initialized
-git submodule update --remote claude/superclaude
 git submodule update --remote claude/claude-code-requirements-builder
 
 # symlinks for dotfiles
@@ -30,11 +29,6 @@ fi
 mkdir -p "$HOME/Library/Application Support/lazygit"
 ln -sfv "$HOME/.dotfiles/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
 
-# setup SuperClaude (install or update)
-echo "Setting up SuperClaude..."
-cd "$HOME/.dotfiles/claude/superclaude"
-./install.sh --force
-cd ~/.dotfiles
 
 # setup claude commands directory and symlinks for personal commands
 mkdir -p ~/.claude/commands
@@ -51,8 +45,6 @@ if [ -d "$HOME/.dotfiles/claude/claude-code-requirements-builder/commands" ]; th
   done
 fi
 
-# setup SuperClaude's CLAUDE.md (always use their latest configuration)
-ln -sfv "$HOME/.dotfiles/claude/superclaude/CLAUDE.md" ~/.claude/CLAUDE.md
 
 # symlink MCP servers config
 ln -sfv "$HOME/.dotfiles/claude/mcp-servers.json" ~/.claude/mcp-servers.json
