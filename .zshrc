@@ -209,4 +209,10 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # opencode
 export PATH=/Users/memorysaver/.opencode/bin:$PATH
 
+# API Keys from 1Password (only if op CLI is available)
+if command -v op &> /dev/null; then
+    export GROQ_API_KEY=$(op read op://Personal/Dev-API-KEY/groq-api-key)
+    export OPENROUTER_API_KEY=$(op read op://Personal/Dev-API-KEY/openrouter-api-key)
+fi
+
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"

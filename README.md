@@ -237,6 +237,28 @@ brew install sst/tap/opencode
 opencode --version
 ```
 
+#### 1Password CLI (Environment Variable Injection)
+```bash
+# Install 1Password CLI
+# macOS
+brew install 1password-cli
+
+# Ubuntu/Debian
+curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
+echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | sudo tee /etc/apt/sources.list.d/1password.list
+sudo apt update && sudo apt install 1password-cli
+
+# Verify installation
+op --version
+
+# Sign in to your 1Password account
+op signin
+
+# The dotfiles automatically inject API keys from 1Password:
+# - GROQ_API_KEY from op://Personal/Dev-API-KEY/groq-api-key
+# - OPENROUTER_API_KEY from op://Personal/Dev-API-KEY/openrouter-api-key
+```
+
 ### 5. Optional Tools
 
 #### Emacs (for Spacemacs)

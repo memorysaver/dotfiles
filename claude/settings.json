@@ -26,6 +26,7 @@
       "mcp__context7__get-library-docs"
     ]
   },
+  "model": "sonnet",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "sequential-thinking",
@@ -36,5 +37,8 @@
     "puppeteer",
     "gemini-cli"
   ],
-  "model": "sonnet"
+  "feedbackSurveyState": {
+    "lastShownTime": 1754042257468
+  },
+  "$schema": "https://json.schemastore.org/claude-code-settings.json"
 }
