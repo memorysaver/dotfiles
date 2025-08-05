@@ -106,6 +106,24 @@ export EDITOR='nvim'
 # Claude Code alias
 alias ccusage="ccusage blocks --live"
 
+# Claude Code Router with dynamic config generation and tmux integration
+ccrcode() {
+    # Get API keys from 1Password CLI
+    local openrouter_key=$(op read op://Personal/Dev-API-KEY/openrouter-api-key)
+    local groq_key=$(op read op://Personal/Dev-API-KEY/groq-api-key)
+    
+    # Ensure ~/.claude-code-router directory exists
+    mkdir -p $HOME/.claude-code-router
+    
+    # Generate config.json from template with API key injection
+    sed -e "s/OPENROUTER_API_KEY_PLACEHOLDER/$openrouter_key/g" \
+        -e "s/GROQ_API_KEY_PLACEHOLDER/$groq_key/g" \
+        "$HOME/.dotfiles/claude/claude-code-router/config.json" > "$HOME/.claude-code-router/config.json"
+    
+    # Launch with tmux development environment
+    _create_dev_tmux_session "ccr code" "CCR" "$1"
+}
+
 # Modular tmux development environment function
 _create_dev_tmux_session() {
     local ai_tool_command="$1"

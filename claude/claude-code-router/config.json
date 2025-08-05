@@ -7,23 +7,33 @@
     {
       "name": "openrouter",
       "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
-      "api_key": "YOUR_OPENROUTER_API_KEY",
+      "api_key": "OPENROUTER_API_KEY_PLACEHOLDER",
       "models": [
-        "moonshotai/kimi-k2-instruct"
-      ]
+        "moonshotai/kimi-k2"
+      ],
+      "transformer": {
+        "request_transform": {
+          "max_tokens": 16384
+        }
+      }
     },
     {
       "name": "groq",
       "api_base_url": "https://api.groq.com/openai/v1/chat/completions",
-      "api_key": "YOUR_GROQ_API_KEY",
+      "api_key": "GROQ_API_KEY_PLACEHOLDER",
       "models": [
-        "moonshotai/kimi-k2-instruct",
-      ]
+        "moonshotai/kimi-k2-instruct"
+      ],
+      "transformer": {
+        "request_transform": {
+          "max_tokens": 16384
+        }
+      }
     }
   ],
   "Router": {
-    "default": "groq,moonshotai/kimi-k2-instruct",
-    "fast": "groq,moonshotai/kimi-k2-instruct",
-    "reasoning": "groq,moonshotai/kimi-k2-instruct"
+    "default": "openrouter,moonshotai/kimi-k2",
+    "fast": "openrouter,moonshotai/kimi-k2",
+    "reasoning": "openrouter,moonshotai/kimi-k2"
   }
 }

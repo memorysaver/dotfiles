@@ -254,9 +254,15 @@ op --version
 # Sign in to your 1Password account
 op signin
 
-# The dotfiles automatically inject API keys from 1Password:
-# - GROQ_API_KEY from op://Personal/Dev-API-KEY/groq-api-key
-# - OPENROUTER_API_KEY from op://Personal/Dev-API-KEY/openrouter-api-key
+# Store your API keys in 1Password with these paths:
+# - GROQ_API_KEY at op://Personal/Dev-API-KEY/groq-api-key
+# - OPENROUTER_API_KEY at op://Personal/Dev-API-KEY/openrouter-api-key
+
+# Test API key retrieval
+op read op://Personal/Dev-API-KEY/groq-api-key
+op read op://Personal/Dev-API-KEY/openrouter-api-key
+
+# The dotfiles automatically inject these keys into Claude Code Router configuration
 ```
 
 ### 5. Optional Tools
@@ -338,12 +344,17 @@ ln -sf ~/.dotfiles/openai-codex/config.toml ~/.codex/config.toml
 
 The `ccdev` function creates a tmux development environment optimized for Claude Code:
 
+#### Claude Code Router Development Environment
+
+The `ccrcode` function creates a tmux development environment with Claude Code Router, featuring dynamic config generation with 1Password API key injection.
+
+**Prerequisites:** Requires 1Password CLI for API key management (see installation instructions above).
+
 
 ```bash
 # Install Claude Code first
 npm install -g @anthropic-ai/claude-code
 ```
-
 
 ```bash
 # Launch Claude development environment
@@ -351,6 +362,22 @@ ccdev [session-name]
 
 # If no session name provided, uses current directory name
 ccdev my-project
+```
+
+```bash
+# Install Claude Code Router first
+npm install -g @musistudio/claude-code-router
+```
+
+```bash
+# Launch Claude Code Router development environment
+ccrcode [session-name]
+
+# Automatically generates config with API keys from 1Password
+# Uses: op read op://Personal/Dev-API-KEY/openrouter-api-key
+#       op read op://Personal/Dev-API-KEY/groq-api-key
+# If no session name provided, uses current directory name
+ccrcode my-project
 ```
 
 #### Gemini CLI Development Environment
