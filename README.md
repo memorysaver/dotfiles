@@ -216,6 +216,31 @@ npm install -g @anthropic-ai/claude-code
 claude --version
 ```
 
+#### LiteLLM Proxy (OpenRouter Integration)
+```bash
+# No installation needed - uses uvx for isolated execution
+# Set up your OpenRouter API key at: https://openrouter.ai/keys
+
+# Quick start - launches Claude Code with OpenRouter models
+cclitellm                                    # Uses default qwen3-coder
+cclitellm openrouter/anthropic/claude-3-5-sonnet   # Use specific model
+
+# Development environment with tmux
+cclitedev                                    # Default model in tmux
+cclitedev openrouter/meta-llama/llama-3.2-90b-vision-instruct  # Specific model
+
+# Manual proxy management
+litellm-start    # Start LiteLLM proxy in background
+litellm-stop     # Stop LiteLLM proxy
+```
+
+**Features:**
+- **Wildcard Routing**: Supports all OpenRouter models without specific configuration
+- **Background Operation**: Runs in tmux session `litellm-server` for non-blocking operation
+- **Auto-Start**: `cclitellm`/`cclitedev` commands automatically start proxy if needed
+- **Model Flexibility**: Choose from 100+ models (Anthropic, Meta, Google, Qwen, etc.)
+- **See**: `~/.dotfiles/litellm/README.md` for detailed configuration and model examples
+
 #### Gemini CLI
 ```bash
 # Install Gemini CLI
@@ -343,6 +368,34 @@ ln -sf ~/.dotfiles/openai-codex/config.toml ~/.codex/config.toml
 #### Claude Code Development Environment
 
 The `ccdev` function creates a tmux development environment optimized for Claude Code:
+
+#### Claude Code + LiteLLM Development Environment
+
+The `cclitellm` and `cclitedev` functions provide Claude Code integration with OpenRouter models via LiteLLM proxy:
+
+```bash
+# Direct launch with auto-proxy start
+cclitellm                                    # Default qwen3-coder model
+cclitellm openrouter/anthropic/claude-3-5-sonnet   # Specific model
+
+# Development environment in tmux
+cclitedev                                    # Default model
+cclitedev openrouter/google/gemini-2.0-flash-thinking-exp my-session
+
+# Features:
+# - Auto-starts LiteLLM proxy if not running
+# - Background tmux operation (litellm-server session)
+# - Health checks and automatic recovery
+# - Access to 100+ OpenRouter models
+# - View logs: tmux attach -t litellm-server
+```
+
+**Popular Model Examples:**
+- `openrouter/qwen/qwen3-coder` (default, good for coding)
+- `openrouter/anthropic/claude-3-5-sonnet` (high quality)
+- `openrouter/meta-llama/llama-3.2-90b-vision-instruct` (vision capable)
+- `openrouter/google/gemini-2.0-flash-thinking-exp` (fast reasoning)
+- `openrouter/deepseek/deepseek-coder` (specialized coding)
 
 #### Claude Code Router Development Environment
 

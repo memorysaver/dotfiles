@@ -103,8 +103,55 @@ export EDITOR='nvim'
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# Claude Code alias
+# Claude Code aliases
 alias ccusage="ccusage blocks --live"
+# Claude Code + LiteLLM with auto-start check
+cclitellm() {
+    local model="${1:-openrouter/qwen/qwen3-coder}"
+    
+    # Ensure LiteLLM is running
+    _ensure_litellm_running || return 1
+    
+    # Launch Claude Code with LiteLLM configuration
+    eval "$(_create_claude_litellm_command "$model")"
+}
+
+# Shared function to ensure LiteLLM proxy is running
+_ensure_litellm_running() {
+    # Check if LiteLLM proxy is running on port 4000
+    if ! curl -s http://localhost:4000/health > /dev/null 2>&1; then
+        echo "🔄 LiteLLM proxy not running, starting it..."
+        litellm-start
+        
+        # If litellm-start fails, exit
+        if [ $? -ne 0 ]; then
+            echo "❌ Failed to start LiteLLM proxy"
+            return 1
+        fi
+        
+        # Wait for LiteLLM to be ready
+        echo "⏳ Waiting for LiteLLM proxy to start..."
+        local attempts=0
+        while ! curl -s http://localhost:4000/health > /dev/null 2>&1; do
+            sleep 2
+            attempts=$((attempts + 1))
+            if [ $attempts -gt 15 ]; then
+                echo "❌ LiteLLM proxy failed to start within 30 seconds"
+                return 1
+            fi
+        done
+        echo "✅ LiteLLM proxy is ready!"
+    else
+        echo "✅ LiteLLM proxy already running"
+    fi
+    return 0
+}
+
+# Create Claude Code command with LiteLLM configuration
+_create_claude_litellm_command() {
+    local model="${1:-openrouter/qwen/qwen3-coder}"
+    echo "ANTHROPIC_AUTH_TOKEN=sk-1234 ANTHROPIC_BASE_URL=http://localhost:4000 ANTHROPIC_MODEL=$model ANTHROPIC_SMALL_FAST_MODEL=$model claude --dangerously-skip-permissions"
+}
 
 # Claude Code Router with dynamic config generation and tmux integration
 ccrcode() {
@@ -122,6 +169,21 @@ ccrcode() {
     
     # Launch with tmux development environment
     _create_dev_tmux_session "ccr code" "CCR" "$1"
+}
+
+# Claude Code + LiteLLM development environment with configurable model
+cclitedev() {
+    local model="${1:-openrouter/qwen/qwen3-coder}"  # Default to qwen3-coder
+    local session_name="${2:-$(basename $(pwd) | sed 's/[^a-zA-Z0-9]/_/g')}"
+    
+    echo "🤖 Using model: $model"
+    
+    # Ensure LiteLLM is running
+    _ensure_litellm_running || return 1
+    
+    # Create Claude Code command with specified model and launch in tmux
+    local claude_command="$(_create_claude_litellm_command "$model")"
+    _create_dev_tmux_session "$claude_command" "LiteLLM-$(echo $model | cut -d'/' -f3)" "$session_name"
 }
 
 # Modular tmux development environment function
@@ -187,6 +249,95 @@ codexdev() {
         _create_dev_tmux_session "codex --profile \"$1\"" "Codex" "$1"
     fi
 }
+
+# LiteLLM Proxy Management
+litellm-start() {
+    local runtime_dir="$HOME/.litellm"
+    local templates_dir="$HOME/.dotfiles/litellm"
+    
+    # Create runtime directory
+    mkdir -p "$runtime_dir"
+    
+    # Check if templates directory exists
+    if [[ ! -d "$templates_dir" ]]; then
+        echo "❌ Templates directory not found: $templates_dir"
+        return 1
+    fi
+    
+    # Copy template files (excluding .env.template to avoid overwriting existing .env)
+    echo "📋 Copying template files to $runtime_dir..."
+    cp "$templates_dir"/config.yaml "$runtime_dir/" 2>/dev/null
+    cp "$templates_dir"/README.md "$runtime_dir/" 2>/dev/null
+    
+    # Handle .env file - only create if it doesn't exist
+    if [[ ! -f "$runtime_dir/.env" ]]; then
+        if [[ -f "$templates_dir/.env.template" ]]; then
+            cp "$templates_dir/.env.template" "$runtime_dir/.env"
+            echo "📝 Created .env from template"
+        else
+            echo "❌ No .env.template found in $templates_dir"
+            return 1
+        fi
+    else
+        echo "✅ Using existing .env file"
+    fi
+    
+    # Source environment variables
+    source "$runtime_dir/.env"
+    
+    # Check if API key still contains placeholder or is empty
+    if [[ "$OPENROUTER_API_KEY" == *"sk-or-v1-…"* ]] || [[ -z "$OPENROUTER_API_KEY" ]] || [[ "$OPENROUTER_API_KEY" == "sk-or-v1-…" ]]; then
+        echo "🚩 Please replace the placeholder in $runtime_dir/.env:"
+        echo "   Current: OPENROUTER_API_KEY=\"sk-or-v1-…\" # 🚩"
+        echo "   Replace with your actual key from: https://openrouter.ai/keys"
+        echo ""
+        echo "💡 Would you like me to open the file for editing? (y/n)"
+        read -q "?> " && echo && ${EDITOR:-nano} "$runtime_dir/.env"
+        return 1
+    fi
+    
+    # Validate API key format
+    if [[ ! "$OPENROUTER_API_KEY" =~ ^sk-or-v1- ]]; then
+        echo "⚠️  Warning: API key doesn't match expected OpenRouter format (should start with 'sk-or-v1-')"
+        echo "   Current key: ${OPENROUTER_API_KEY:0:20}..."
+        echo "   Continuing anyway, but this might cause authentication errors"
+    fi
+    
+    # Start LiteLLM in tmux session
+    echo "🚀 Starting LiteLLM proxy on port ${LITELLM_PORT:-4000}..."
+    echo "   Config: $runtime_dir/config.yaml"
+    echo "   API Key: ${OPENROUTER_API_KEY:0:15}... (✓ configured)"
+    echo "   Running in tmux session 'litellm-server'..."
+    
+    # Kill existing litellm-server session if it exists
+    tmux kill-session -t "litellm-server" 2>/dev/null || true
+    
+    # Create new tmux session for LiteLLM server
+    tmux new-session -d -s "litellm-server" -c "$runtime_dir"
+    
+    # Set environment variable in the tmux session and start LiteLLM
+    tmux send-keys -t "litellm-server" "export OPENROUTER_API_KEY='$OPENROUTER_API_KEY'" Enter
+    tmux send-keys -t "litellm-server" "uvx 'litellm[proxy]@latest' --config config.yaml --port ${LITELLM_PORT:-4000} --host 0.0.0.0" Enter
+    
+    echo "✅ LiteLLM server started in background tmux session"
+    echo "   View logs: tmux attach -t litellm-server"
+    echo "   Detach from logs: Ctrl+B, then D"
+}
+
+litellm-stop() {
+    echo "🛑 Stopping LiteLLM proxy..."
+    
+    # Kill the tmux session
+    if tmux kill-session -t "litellm-server" 2>/dev/null; then
+        echo "✅ LiteLLM tmux session 'litellm-server' stopped"
+    else
+        echo "ℹ️  No 'litellm-server' tmux session found"
+    fi
+    
+    # Fallback: kill any remaining litellm processes
+    pkill -f "litellm.*--config.*config.yaml" 2>/dev/null && echo "✅ Killed remaining LiteLLM processes" || true
+}
+
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source ~/powerlevel10k/powerlevel10k.zsh-theme

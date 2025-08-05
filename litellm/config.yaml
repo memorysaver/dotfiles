@@ -1,0 +1,17 @@
+model_list:
+  - model_name: "anthropic/*"
+    litellm_params:
+      model: "openrouter/*"
+      max_tokens: 65536
+      repetition_penalty: 1.05
+      temperature: 0.7
+      top_k: 20
+      top_p: 0.8
+  - model_name: "openrouter/*"
+    litellm_params:
+      model: "openrouter/*"
+      max_tokens: 65536
+      repetition_penalty: 1.05
+      temperature: 0.7
+      top_k: 20
+      top_p: 0.8
