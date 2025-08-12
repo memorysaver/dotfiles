@@ -52,6 +52,12 @@ ln -sfv "$HOME/.dotfiles/claude/mcp-servers.json" ~/.claude/mcp-servers.json
 # symlink Claude Code settings
 ln -sfv "$HOME/.dotfiles/claude/settings.json" ~/.claude/settings.json
 
+# setup Claude statusline script
+if [ -f "$HOME/.dotfiles/claude/statusline.sh" ]; then
+  chmod +x "$HOME/.dotfiles/claude/statusline.sh"
+  ln -sfv "$HOME/.dotfiles/claude/statusline.sh" ~/.claude/statusline.sh
+fi
+
 # setup OpenCode config
 mkdir -p ~/.config/opencode
 ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
