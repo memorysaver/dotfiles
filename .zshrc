@@ -105,6 +105,8 @@ export EDITOR='nvim'
 
 # Claude Code aliases
 alias ccusage="ccusage blocks --live"
+# AI Tools update alias - parallel updates
+alias tool-update="npm install -g @anthropic-ai/claude-code & npm install -g @google/gemini-cli & curl -fsSL https://opencode.ai/install | bash & npm install -g @openai/codex & wait && echo '✅ All AI tools updated!'"
 # Claude Code + LiteLLM with auto-start check
 cclitellm() {
     local model="${1:-openrouter/qwen/qwen3-coder}"
