@@ -303,6 +303,28 @@ litellm-start() {
         echo "   Continuing anyway, but this might cause authentication errors"
     fi
     
+    # Check and validate GROQ_API_KEY
+    if [[ "$GROQ_API_KEY" == *"gsk_…"* ]] || [[ -z "$GROQ_API_KEY" ]] || [[ "$GROQ_API_KEY" == "gsk_…" ]]; then
+        echo "🚩 Groq API key not configured in $runtime_dir/.env:"
+        echo "   Current: GROQ_API_KEY=\"gsk_…\" # 🚩"
+        echo "   Replace with your actual key from: https://console.groq.com/keys"
+        echo "   ⚠️  Groq models will not work without this key"
+    elif [[ ! "$GROQ_API_KEY" =~ ^gsk_ ]]; then
+        echo "⚠️  Warning: Groq API key doesn't match expected format (should start with 'gsk_')"
+        echo "   Current key: ${GROQ_API_KEY:0:15}..."
+    fi
+    
+    # Check and validate CEREBRAS_API_KEY
+    if [[ "$CEREBRAS_API_KEY" == *"csk-…"* ]] || [[ -z "$CEREBRAS_API_KEY" ]] || [[ "$CEREBRAS_API_KEY" == "csk-…" ]]; then
+        echo "🚩 Cerebras API key not configured in $runtime_dir/.env:"
+        echo "   Current: CEREBRAS_API_KEY=\"csk-…\" # 🚩"
+        echo "   Replace with your actual key from: https://cloud.cerebras.ai/"
+        echo "   ⚠️  Cerebras models will not work without this key"
+    elif [[ ! "$CEREBRAS_API_KEY" =~ ^csk- ]]; then
+        echo "⚠️  Warning: Cerebras API key doesn't match expected format (should start with 'csk-')"
+        echo "   Current key: ${CEREBRAS_API_KEY:0:15}..."
+    fi
+    
     # Start LiteLLM in tmux session
     echo "🚀 Starting LiteLLM proxy on port ${LITELLM_PORT:-4000}..."
     echo "   Config: $runtime_dir/config.yaml"
@@ -315,8 +337,10 @@ litellm-start() {
     # Create new tmux session for LiteLLM server
     tmux new-session -d -s "litellm-server" -c "$runtime_dir"
     
-    # Set environment variable in the tmux session and start LiteLLM
+    # Set environment variables in the tmux session and start LiteLLM
     tmux send-keys -t "litellm-server" "export OPENROUTER_API_KEY='$OPENROUTER_API_KEY'" Enter
+    tmux send-keys -t "litellm-server" "export GROQ_API_KEY='$GROQ_API_KEY'" Enter
+    tmux send-keys -t "litellm-server" "export CEREBRAS_API_KEY='$CEREBRAS_API_KEY'" Enter
     tmux send-keys -t "litellm-server" "uvx 'litellm[proxy]@latest' --config config.yaml --port ${LITELLM_PORT:-4000} --host 0.0.0.0" Enter
     
     echo "✅ LiteLLM server started in background tmux session"

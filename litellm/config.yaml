@@ -15,3 +15,11 @@ model_list:
       temperature: 0.7
       top_k: 20
       top_p: 0.8
+  - model_name: "groq/*"
+    litellm_params:
+      model: "groq/*"
+      api_key: "os.environ/GROQ_API_KEY"
+  - model_name: "cerebras/*"
+    litellm_params:
+      model: "cerebras/*"
+      api_key: "os.environ/CEREBRAS_API_KEY"
