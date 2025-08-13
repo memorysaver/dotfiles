@@ -1,8 +1,5 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.sh"
-  },
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(rg:*)",
@@ -41,8 +38,11 @@
     "puppeteer",
     "gemini-cli"
   ],
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
-  },
-  "$schema": "https://json.schemastore.org/claude-code-settings.json"
+  }
 }
