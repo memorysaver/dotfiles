@@ -70,31 +70,57 @@ def play_audio(audio_path):
     print("Failed to play audio - no suitable audio backend found", file=sys.stderr)
     return False
 
-def extract_work_summary(input_data):
-    """Extract meaningful work summary from stop hook data"""
-    # Get session info
-    session_id = input_data.get('session_id', 'unknown')
-    prompts = input_data.get('prompts', [])
-    
-    # Get the most recent prompt for context
-    if prompts:
-        last_prompt = prompts[-1][:50] + "..." if len(prompts[-1]) > 50 else prompts[-1]
-        return f"Completed: {last_prompt}"
-    
+def get_last_prompt_from_cache(input_data):
+    """Get the last prompt from Claude's global cache with session fallback"""
+    try:
+        claude_dir = Path.home() / '.claude'
+        
+        # Try session-specific cache first if session_id available
+        session_id = input_data.get('session_id')
+        if session_id and session_id != 'unknown':
+            session_cache = claude_dir / 'prompts' / f'{session_id}.txt'
+            if session_cache.exists():
+                with open(session_cache, 'r') as f:
+                    last_prompt = f.read().strip()
+                    if last_prompt:
+                        return format_completion_message(last_prompt)
+        
+        # Fallback to simple cache
+        simple_cache = claude_dir / 'last_prompt.txt'
+        if simple_cache.exists():
+            with open(simple_cache, 'r') as f:
+                last_prompt = f.read().strip()
+                if last_prompt:
+                    return format_completion_message(last_prompt)
+                    
+    except Exception:
+        pass
     return "Task completed successfully! ✅"
+
+def format_completion_message(prompt):
+    """Format the completion message with proper truncation"""
+    if len(prompt) > 50:
+        return f"Completed: {prompt[:50]}..."
+    else:
+        return f"Completed: {prompt}"
 
 def main():
     try:
         # Read JSON input from Claude Code
         input_data = json.loads(sys.stdin.read()) if not sys.stdin.isatty() else {}
         
-        # Debug: Log what we actually receive from Claude Code
-        debug_log = Path.home() / '.dotfiles' / 'claude' / 'hooks' / 'stop_debug.json'
-        with open(debug_log, 'w') as f:
-            json.dump(input_data, f, indent=2)
+        # Optional debug logging (redirected to Claude's debug directory)
+        try:
+            debug_dir = Path.home() / '.claude' / 'debug'
+            debug_dir.mkdir(exist_ok=True)
+            debug_log = debug_dir / 'stop_debug.json'
+            with open(debug_log, 'w') as f:
+                json.dump(input_data, f, indent=2)
+        except Exception:
+            pass  # Don't fail if debug logging fails
         
-        # Extract work summary
-        work_summary = extract_work_summary(input_data)
+        # Get work summary from prompt cache
+        work_summary = get_last_prompt_from_cache(input_data)
         
         # Determine audio file path
         dotfiles_path = Path.home() / '.dotfiles'

@@ -64,6 +64,26 @@ def main():
         prompt = input_data.get('prompt', '')
         session_id = input_data.get('session_id', 'unknown')
         
+        # Cache the prompt for the stop hook to use later in Claude's global directory
+        if prompt:
+            claude_dir = Path.home() / '.claude'
+            claude_dir.mkdir(exist_ok=True)  # Ensure .claude directory exists
+            
+            # Use session-specific cache if session_id available
+            if session_id and session_id != 'unknown':
+                prompts_dir = claude_dir / 'prompts'
+                prompts_dir.mkdir(exist_ok=True)
+                cache_file = prompts_dir / f'{session_id}.txt'
+            else:
+                # Fallback to simple cache
+                cache_file = claude_dir / 'last_prompt.txt'
+            
+            try:
+                with open(cache_file, 'w') as f:
+                    f.write(prompt)
+            except Exception:
+                pass  # Don't fail if cache write fails
+        
         # Determine audio file path
         dotfiles_path = Path.home() / '.dotfiles'
         soundtrack_path = dotfiles_path / 'soundtrack' / 'work-work.mp3'
