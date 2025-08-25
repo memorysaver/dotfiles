@@ -38,6 +38,21 @@ def play_audio_fallback(audio_path):
     except (ImportError, Exception):
         return False
 
+def show_macos_notification(title, message, subtitle=None):
+    """Show native macOS notification"""
+    try:
+        cmd = ['osascript', '-e']
+        applescript = f'display notification "{message}" with title "{title}"'
+        if subtitle:
+            applescript += f' subtitle "{subtitle}"'
+        
+        subprocess.Popen(cmd + [applescript], 
+                        stdout=subprocess.DEVNULL, 
+                        stderr=subprocess.DEVNULL)
+        return True
+    except Exception:
+        return False
+
 def play_audio(audio_path):
     """Play audio with platform-specific methods and fallbacks"""
     if not audio_path.exists():
@@ -55,20 +70,41 @@ def play_audio(audio_path):
     print("Failed to play audio - no suitable audio backend found", file=sys.stderr)
     return False
 
+def extract_work_summary(input_data):
+    """Extract meaningful work summary from stop hook data"""
+    # Get session info
+    session_id = input_data.get('session_id', 'unknown')
+    prompts = input_data.get('prompts', [])
+    
+    # Get the most recent prompt for context
+    if prompts:
+        last_prompt = prompts[-1][:50] + "..." if len(prompts[-1]) > 50 else prompts[-1]
+        return f"Completed: {last_prompt}"
+    
+    return "Task completed successfully! ✅"
+
 def main():
     try:
         # Read JSON input from Claude Code
         input_data = json.loads(sys.stdin.read()) if not sys.stdin.isatty() else {}
         
+        # Extract work summary
+        work_summary = extract_work_summary(input_data)
+        
         # Determine audio file path
         dotfiles_path = Path.home() / '.dotfiles'
         soundtrack_path = dotfiles_path / 'soundtrack' / 'work-complete.mp3'
         
-        # Play completion sound
-        success = play_audio(soundtrack_path)
+        # Play completion sound & show notification
+        audio_success = play_audio(soundtrack_path)
+        notification_success = show_macos_notification(
+            "Claude Code", 
+            work_summary, 
+            "Work Complete"
+        )
         
-        if success:
-            print("✅ Task completed!", file=sys.stdout)
+        if audio_success or notification_success:
+            print(f"✅ {work_summary}", file=sys.stdout)
         
         # Always exit successfully to not interfere with Claude Code
         sys.exit(0)
