@@ -88,6 +88,11 @@ def main():
         # Read JSON input from Claude Code
         input_data = json.loads(sys.stdin.read()) if not sys.stdin.isatty() else {}
         
+        # Debug: Log what we actually receive from Claude Code
+        debug_log = Path.home() / '.dotfiles' / 'claude' / 'hooks' / 'stop_debug.json'
+        with open(debug_log, 'w') as f:
+            json.dump(input_data, f, indent=2)
+        
         # Extract work summary
         work_summary = extract_work_summary(input_data)
         
