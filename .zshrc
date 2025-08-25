@@ -404,5 +404,15 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # opencode
 export PATH=/Users/memorysaver/.opencode/bin:$PATH
 
+# Claude Code hooks symlinks
+[ -d "$HOME/.dotfiles/claude/hooks" ] && {
+    mkdir -p ~/.claude/hooks 2>/dev/null
+    ln -sf ~/.dotfiles/claude/hooks/session_start.py ~/.claude/hooks/ 2>/dev/null
+    ln -sf ~/.dotfiles/claude/hooks/stop.py ~/.claude/hooks/ 2>/dev/null  
+    ln -sf ~/.dotfiles/claude/hooks/user_prompt_submit.py ~/.claude/hooks/ 2>/dev/null
+    ln -sf ~/.dotfiles/claude/hooks/notification.py ~/.claude/hooks/ 2>/dev/null
+    ln -sf ~/.dotfiles/claude/hooks/pre_tool_use.py ~/.claude/hooks/ 2>/dev/null
+}
+
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
