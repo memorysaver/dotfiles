@@ -420,5 +420,11 @@ export PATH=/Users/memorysaver/.opencode/bin:$PATH
     ln -sf ~/.dotfiles/claude/commands/rule2hook.md ~/.claude/commands/ 2>/dev/null
 }
 
+# Claude Code output-styles symlinks
+[ -d "$HOME/.dotfiles/claude/output-styles" ] && {
+    mkdir -p ~/.claude 2>/dev/null
+    ln -sf ~/.dotfiles/claude/output-styles ~/.claude/output-styles 2>/dev/null
+}
+
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
