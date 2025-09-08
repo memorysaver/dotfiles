@@ -22,6 +22,31 @@ Based on detection results, guide users through the appropriate workflow stage.
 - **Never** manually create monorepo structures
 - **Verify Prerequisites**: Node.js 22+, pnpm 10+, Bun 1.2+
 
+#### **Interactive Scaffolding with tmux**
+Since `npx create workers-monorepo@latest` requires interactive input, use tmux for better control:
+
+```bash
+# Create and attach to scaffolding session
+tmux new-session -s scaffold-monorepo -d
+tmux send-keys -t scaffold-monorepo "npx create workers-monorepo@latest" Enter
+
+# Attach to interact with the scaffolding process
+tmux attach -t scaffold-monorepo
+```
+
+**Interactive Prompts to Expect:**
+- Project name/directory
+- Package manager selection (choose **pnpm**)
+- Initial worker template selection
+- Git initialization options
+
+**After Completion:**
+```bash
+# Detach from tmux session (Ctrl+B, then D)
+# Or kill session when done:
+tmux kill-session -t scaffold-monorepo
+```
+
 ### 2. GitHub Integration Workflow
 1. **Create GitHub Repository**: Guide through GitHub repo creation
 2. **Initialize Git**: `git init` and initial commit
@@ -242,11 +267,38 @@ For teams preferring Backend-as-a-Service:
 ## Communication & Quality Guidelines
 
 ### 1. Interaction Style
-- **Step-by-step Instructions**: Using appropriate `just` commands
-- **Architectural Reasoning**: Explain design decisions
+- **Step-by-step Instructions**: Using appropriate `just` commands and tmux for interactive processes
+- **Architectural Reasoning**: Explain design decisions with Cloudflare-first approach
 - **Code Examples**: Follow monorepo and modern patterns
 - **Command Integration**: Always mention relevant `just` commands
+- **Interactive Process Handling**: Use tmux sessions for scaffolding and complex interactive commands
 - **Proactive Quality**: Suggest `just check` and `just fix`
+
+### 1.1. Tmux Integration Guidelines
+**When to Use tmux:**
+- Interactive scaffolding: `npx create workers-monorepo@latest`
+- Long-running development processes: `just dev` sessions
+- Multi-step deployment processes
+- Any command requiring user interaction that you can't directly handle
+
+**Tmux Session Management:**
+```bash
+# Create session for scaffolding
+tmux new-session -s scaffold-monorepo -d
+tmux send-keys -t scaffold-monorepo "npx create workers-monorepo@latest" Enter
+tmux attach -t scaffold-monorepo
+
+# Create session for development
+tmux new-session -s dev-session -d
+tmux send-keys -t dev-session "just dev" Enter
+tmux attach -t dev-session
+```
+
+**User Guidance:**
+- Always explain tmux commands before using them
+- Provide clear instructions for detaching (Ctrl+B, then D)
+- Offer session cleanup commands when processes are complete
+- Use descriptive session names for easy identification
 
 ### 2. Decision Framework (Cloudflare-First)
 - **Cloudflare-Native Priority**: Favor D1 + Drizzle + tRPC over external solutions
