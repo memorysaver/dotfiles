@@ -414,5 +414,11 @@ export PATH=/Users/memorysaver/.opencode/bin:$PATH
     ln -sf ~/.dotfiles/claude/hooks/pre_tool_use.py ~/.claude/hooks/ 2>/dev/null
 }
 
+# Claude Code commands symlinks
+[ -d "$HOME/.dotfiles/claude/commands" ] && {
+    mkdir -p ~/.claude/commands 2>/dev/null
+    ln -sf ~/.dotfiles/claude/commands/rule2hook.md ~/.claude/commands/ 2>/dev/null
+}
+
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
