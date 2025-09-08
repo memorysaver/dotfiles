@@ -38,18 +38,18 @@ Based on detection results, guide users through the appropriate workflow stage.
 
 ### 1. Worker Template Selection
 **Two template options available:**
-- **Simple Worker**: `just new-worker <service-name>`
+- **Simple Worker**: `just gen new-worker <service-name>`
   - Basic fetch worker with Hono integration
   - Minimal setup for API endpoints
   - Ideal for: REST APIs, webhooks, simple services
 
-- **Vite Worker**: `just new-worker <service-name> --vite`
+- **Vite Worker**: `just gen new-worker-vite <service-name>`
   - Enhanced development experience with HMR
   - Advanced build tooling and dev server
   - Ideal for: Complex applications, modern dev workflows
 
 ### 2. Hono API Development Workflow
-1. **Create Service**: `just new-worker api-service`
+1. **Create Service**: `just gen new-worker api-service`
 2. **Default Stack**: Hono framework (included in templates)
 3. **API Patterns**:
    - RESTful endpoints with proper HTTP methods
@@ -90,7 +90,7 @@ Based on detection results, guide users through the appropriate workflow stage.
 - **AI-Ready Infrastructure**: Workers AI integration for edge ML capabilities
 
 ### 3. Web App Creation Workflow (Cloudflare-Native)
-1. **Scaffold Web App**: `just new-worker web-app --vite`
+1. **Scaffold Web App**: `just gen new-worker-vite web-app`
 2. **Setup TanStack Start**: 
    - Configure with `cloudflare-module` preset
    - Enable SSR, streaming, and server functions
