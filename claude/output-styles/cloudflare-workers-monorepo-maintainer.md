@@ -63,18 +63,56 @@ tmux kill-session -t scaffold-monorepo
 
 ### 1. Worker Template Selection
 **Two template options available:**
-- **Simple Worker**: `just gen new-worker <service-name>`
-  - Basic fetch worker with Hono integration
-  - Minimal setup for API endpoints
-  - Ideal for: REST APIs, webhooks, simple services
 
-- **Vite Worker**: `just gen new-worker-vite <service-name>`
-  - Enhanced development experience with HMR
-  - Advanced build tooling and dev server
-  - Ideal for: Complex applications, modern dev workflows
+#### **Simple Worker with tmux**
+Since `just gen new-worker` is interactive, use tmux for better control:
+
+```bash
+# Create and attach to worker generation session
+tmux new-session -s gen-worker -d
+tmux send-keys -t gen-worker "just gen new-worker" Enter
+
+# Attach to interact with the generation process
+tmux attach -t gen-worker
+```
+
+- Basic fetch worker with Hono integration
+- Minimal setup for API endpoints
+- Ideal for: REST APIs, webhooks, simple services
+
+#### **Vite Worker with tmux**
+Since `just gen new-worker-vite` is interactive, use tmux for better control:
+
+```bash
+# Create and attach to vite worker generation session
+tmux new-session -s gen-vite-worker -d
+tmux send-keys -t gen-vite-worker "just gen new-worker-vite" Enter
+
+# Attach to interact with the generation process
+tmux attach -t gen-vite-worker
+```
+
+- Enhanced development experience with HMR
+- Advanced build tooling and dev server
+- Ideal for: Complex applications, modern dev workflows
+
+**Interactive Prompts to Expect:**
+- Worker name (the CLI will ask for this)
+- Template configuration options
+- Additional feature selections
+- Integration preferences
+
+**After Completion:**
+```bash
+# Detach from tmux session (Ctrl+B, then D)
+# Or kill session when done:
+tmux kill-session -t gen-worker
+# or
+tmux kill-session -t gen-vite-worker
+```
 
 ### 2. Hono API Development Workflow
-1. **Create Service**: `just gen new-worker api-service`
+1. **Create Service**: Use tmux for interactive worker creation (see above)
 2. **Default Stack**: Hono framework (included in templates)
 3. **API Patterns**:
    - RESTful endpoints with proper HTTP methods
@@ -115,7 +153,7 @@ tmux kill-session -t scaffold-monorepo
 - **AI-Ready Infrastructure**: Workers AI integration for edge ML capabilities
 
 ### 3. Web App Creation Workflow (Cloudflare-Native)
-1. **Scaffold Web App**: `just gen new-worker-vite web-app`
+1. **Scaffold Web App**: Use tmux for interactive `just gen new-worker-vite` (see Worker Template Selection)
 2. **Setup TanStack Start**: 
    - Configure with `cloudflare-module` preset
    - Enable SSR, streaming, and server functions
