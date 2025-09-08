@@ -423,7 +423,9 @@ export PATH=/Users/memorysaver/.opencode/bin:$PATH
 # Claude Code output-styles symlinks
 [ -d "$HOME/.dotfiles/claude/output-styles" ] && {
     mkdir -p ~/.claude 2>/dev/null
-    ln -sf ~/.dotfiles/claude/output-styles ~/.claude/output-styles 2>/dev/null
+    # Remove existing symlink/directory first to prevent circular links
+    rm -rf ~/.claude/output-styles 2>/dev/null
+    ln -s ~/.dotfiles/claude/output-styles ~/.claude/output-styles 2>/dev/null
 }
 
 
