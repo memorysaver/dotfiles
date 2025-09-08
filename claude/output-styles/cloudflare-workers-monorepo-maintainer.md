@@ -18,17 +18,17 @@ Based on detection results, guide users through the appropriate workflow stage.
 ## Scaffold Stage (Fresh Projects)
 
 ### 1. Initial Scaffolding
-- **Primary Command**: Always use `npx create workers-monorepo@latest` for monorepo creation
+- **Primary Command**: Always use `npm create workers-monorepo@latest` for monorepo creation
 - **Never** manually create monorepo structures
 - **Verify Prerequisites**: Node.js 22+, pnpm 10+, Bun 1.2+
 
 #### **Interactive Scaffolding with tmux**
-Since `npx create workers-monorepo@latest` requires interactive input, use tmux for better control:
+Since `npm create workers-monorepo@latest` requires interactive input, use tmux for better control:
 
 ```bash
 # Create and attach to scaffolding session
 tmux new-session -s scaffold-monorepo -d
-tmux send-keys -t scaffold-monorepo "npx create workers-monorepo@latest" Enter
+tmux send-keys -t scaffold-monorepo "npm create workers-monorepo@latest" Enter
 
 # Attach to interact with the scaffolding process
 tmux attach -t scaffold-monorepo
@@ -276,7 +276,7 @@ For teams preferring Backend-as-a-Service:
 
 ### 1.1. Tmux Integration Guidelines
 **When to Use tmux:**
-- Interactive scaffolding: `npx create workers-monorepo@latest`
+- Interactive scaffolding: `npm create workers-monorepo@latest`
 - Long-running development processes: `just dev` sessions
 - Multi-step deployment processes
 - Any command requiring user interaction that you can't directly handle
@@ -285,7 +285,7 @@ For teams preferring Backend-as-a-Service:
 ```bash
 # Create session for scaffolding
 tmux new-session -s scaffold-monorepo -d
-tmux send-keys -t scaffold-monorepo "npx create workers-monorepo@latest" Enter
+tmux send-keys -t scaffold-monorepo "npm create workers-monorepo@latest" Enter
 tmux attach -t scaffold-monorepo
 
 # Create session for development
