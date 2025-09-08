@@ -26,12 +26,18 @@ Based on detection results, guide users through the appropriate workflow stage.
 Since `npm create workers-monorepo@latest` requires interactive input, use tmux for better control:
 
 ```bash
-# Create and attach to scaffolding session
-tmux new-session -s scaffold-monorepo -d
-tmux send-keys -t scaffold-monorepo "npm create workers-monorepo@latest" Enter
+# Create scaffolding session in detached mode
+tmux new-session -s scaffold-monorepo -d "npm create workers-monorepo@latest"
 
-# Attach to interact with the scaffolding process
-tmux attach -t scaffold-monorepo
+# Monitor progress without attaching
+tmux capture-pane -t scaffold-monorepo -p | tail -20
+
+# Check if process is still running
+tmux list-sessions | grep scaffold-monorepo
+
+# For interactive prompts, send responses via send-keys
+# tmux send-keys -t scaffold-monorepo "project-name" Enter
+# tmux send-keys -t scaffold-monorepo "pnpm" Enter
 ```
 
 **Interactive Prompts to Expect:**
@@ -42,8 +48,10 @@ tmux attach -t scaffold-monorepo
 
 **After Completion:**
 ```bash
-# Detach from tmux session (Ctrl+B, then D)
-# Or kill session when done:
+# Verify completion and capture final output
+tmux capture-pane -t scaffold-monorepo -p | tail -50
+
+# Kill session when done
 tmux kill-session -t scaffold-monorepo
 ```
 
@@ -68,12 +76,14 @@ tmux kill-session -t scaffold-monorepo
 Since `just gen new-worker` is interactive, use tmux for better control:
 
 ```bash
-# Create and attach to worker generation session
-tmux new-session -s gen-worker -d
-tmux send-keys -t gen-worker "just gen new-worker" Enter
+# Create worker generation session in detached mode
+tmux new-session -s gen-worker -d "just gen new-worker"
 
-# Attach to interact with the generation process
-tmux attach -t gen-worker
+# Monitor progress without attaching
+tmux capture-pane -t gen-worker -p | tail -20
+
+# Send responses to interactive prompts
+# tmux send-keys -t gen-worker "worker-name" Enter
 ```
 
 - Basic fetch worker with Hono integration
@@ -84,12 +94,14 @@ tmux attach -t gen-worker
 Since `just gen new-worker-vite` is interactive, use tmux for better control:
 
 ```bash
-# Create and attach to vite worker generation session
-tmux new-session -s gen-vite-worker -d
-tmux send-keys -t gen-vite-worker "just gen new-worker-vite" Enter
+# Create vite worker generation session in detached mode
+tmux new-session -s gen-vite-worker -d "just gen new-worker-vite"
 
-# Attach to interact with the generation process
-tmux attach -t gen-vite-worker
+# Monitor progress without attaching
+tmux capture-pane -t gen-vite-worker -p | tail -20
+
+# Send responses to interactive prompts
+# tmux send-keys -t gen-vite-worker "worker-name" Enter
 ```
 
 - Enhanced development experience with HMR
@@ -104,8 +116,12 @@ tmux attach -t gen-vite-worker
 
 **After Completion:**
 ```bash
-# Detach from tmux session (Ctrl+B, then D)
-# Or kill session when done:
+# Verify completion and capture final output
+tmux capture-pane -t gen-worker -p | tail -50
+# or for vite worker:
+tmux capture-pane -t gen-vite-worker -p | tail -50
+
+# Kill sessions when done
 tmux kill-session -t gen-worker
 # or
 tmux kill-session -t gen-vite-worker
@@ -319,24 +335,32 @@ For teams preferring Backend-as-a-Service:
 - Multi-step deployment processes
 - Any command requiring user interaction that you can't directly handle
 
-**Tmux Session Management:**
+**Tmux Session Management (Non-Attachment Pattern):**
 ```bash
-# Create session for scaffolding
-tmux new-session -s scaffold-monorepo -d
-tmux send-keys -t scaffold-monorepo "npm create workers-monorepo@latest" Enter
-tmux attach -t scaffold-monorepo
+# Create session for scaffolding (detached with command)
+tmux new-session -s scaffold-monorepo -d "npm create workers-monorepo@latest"
+
+# Monitor progress without attaching
+tmux capture-pane -t scaffold-monorepo -p | tail -20
+
+# Check if session is still active
+tmux list-sessions | grep scaffold-monorepo
+
+# Send responses to interactive prompts
+tmux send-keys -t scaffold-monorepo "response" Enter
 
 # Create session for development
-tmux new-session -s dev-session -d
-tmux send-keys -t dev-session "just dev" Enter
-tmux attach -t dev-session
+tmux new-session -s dev-session -d "just dev"
+tmux capture-pane -t dev-session -p | tail -30
 ```
 
 **User Guidance:**
 - Always explain tmux commands before using them
-- Provide clear instructions for detaching (Ctrl+B, then D)
+- Use `tmux capture-pane -p` to read output instead of attaching
+- Provide session monitoring patterns for long-running processes
 - Offer session cleanup commands when processes are complete
 - Use descriptive session names for easy identification
+- Avoid direct attachment unless absolutely necessary for complex interaction
 
 ### 2. Decision Framework (Cloudflare-First)
 - **Cloudflare-Native Priority**: Favor D1 + Drizzle + tRPC over external solutions
