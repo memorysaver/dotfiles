@@ -5,7 +5,8 @@
 # The default model (override as needed):
 # model = "gpt-4.1"
 model_provider = "openai"
-model = "gpt-4.1"
+model = "gpt-5-codex"
+sandbox_mode = "workspace-write"
 
 [model_providers.groq]
 name = "groq"
@@ -23,5 +24,11 @@ approval_policy = "never"
 model_provider = "openrouter"
 model = "moonshotai/kimi-k2"
 
+# MCP (Model Context Protocol) servers
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
 
-
+[mcp_servers.sequential-thinking]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]

@@ -66,9 +66,15 @@ ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
 mkdir -p ~/.gemini
 ln -sfv "$HOME/.dotfiles/gemini-cli/settings.json" "$HOME/.gemini/settings.json"
 
-# setup Codex CLI config
+# setup Codex CLI config (copy only if not exists, then sync updates)
 mkdir -p ~/.codex
-ln -sfv "$HOME/.dotfiles/openai-codex/config.toml" ~/.codex/config.toml
+if [ ! -f ~/.codex/config.toml ]; then
+  cp "$HOME/.dotfiles/openai-codex/config.toml" ~/.codex/config.toml
+  echo "Copied initial Codex config from dotfiles"
+else
+  echo "Codex config exists - syncing updates from dotfiles"
+  python3 "$HOME/.dotfiles/scripts/sync-codex-config.py"
+fi
 
 # install rust toolchain
 if ! command -v rustc &> /dev/null; then
