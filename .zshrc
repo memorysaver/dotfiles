@@ -243,12 +243,12 @@ opendev() {
     _create_dev_tmux_session "opencode" "OpenCode" "$1"
 }
 
-# OpenAI Codex CLI development environment
+# OpenAI Codex CLI development environment with enhanced defaults
 codexdev() {
     if [[ -z "$1" ]]; then
-        _create_dev_tmux_session "codex" "Codex"
+        _create_dev_tmux_session "codex -m gpt-5-codex -c model_reasoning_effort=\"high\" -c model_reasoning_summary_format=experimental --search --dangerously-bypass-approvals-and-sandbox" "Codex-Enhanced"
     else
-        _create_dev_tmux_session "codex --profile \"$1\"" "Codex" "$1"
+        _create_dev_tmux_session "codex --profile \"$1\" -c model_reasoning_effort=\"high\" -c model_reasoning_summary_format=experimental --search --dangerously-bypass-approvals-and-sandbox" "Codex-Enhanced" "$1"
     fi
 }
 
