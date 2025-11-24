@@ -430,3 +430,20 @@ export PATH=/Users/memorysaver/.opencode/bin:$PATH
 
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+
+# pnpm
+export PNPM_HOME="/Users/memorysaver/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+# sst
+export PATH=/Users/memorysaver/.sst/bin:$PATH
+
+# add Pulumi to the PATH
+export PATH=$PATH:/Users/memorysaver/.pulumi/bin
+
+# Added by Antigravity
+export PATH="/Users/memorysaver/.antigravity/antigravity/bin:$PATH"

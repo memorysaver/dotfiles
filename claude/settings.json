@@ -27,7 +27,7 @@
       "mcp__context7__get-library-docs"
     ]
   },
-  "model": "sonnet",
+  "model": "haiku",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "sequential-thinking",
@@ -95,6 +95,7 @@
     "type": "command",
     "command": "~/.claude/statusline.sh"
   },
+  "alwaysThinkingEnabled": false,
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
   }

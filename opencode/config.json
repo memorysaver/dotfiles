@@ -5,24 +5,9 @@
   "autoshare": false,
   "autoupdate": true,
   "mcp": {
-    "cloudflare-doc": {
-      "type": "local",
-      "command": ["npx", "mcp-remote", "https://docs.mcp.cloudflare.com/sse"],
-      "enabled": true
-    },
-    "cloudflare-worker-binding": {
-      "type": "local",
-      "command": ["npx", "mcp-remote", "https://bindings.mcp.cloudflare.com/sse"],
-      "enabled": true
-    },
     "context7": {
       "type": "local",
       "command": ["npx", "-y", "@upstash/context7-mcp"],
-      "enabled": true
-    },
-    "browsermcp": {
-      "type": "local",
-      "command": ["npx", "@browsermcp/mcp@latest"],
       "enabled": true
     },
     "sequential-thinking": {
@@ -30,9 +15,9 @@
       "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": true
     },
-    "puppeteer": {
+    "chrome-devtools": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-puppeteer"],
+      "command": ["npx", "chrome-devtools-mcp@latest"],
       "enabled": true
     }
   },

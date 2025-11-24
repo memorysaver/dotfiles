@@ -1,20 +1,13 @@
 {
   "mcpServers": {
-    "cloudflare-doc": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://docs.mcp.cloudflare.com/sse"]
-    },
-    "cloudflare-workder-binding": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://bindings.mcp.cloudflare.com/sse"]
-    },
     "context7": {
+      "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
-    },
-    "browsermcp": {
-      "command": "npx",
-      "args": ["@browsermcp/mcp@latest"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {}
     },
     "sequential-thinking": {
       "command": "npx",
@@ -23,10 +16,9 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ]
     },
-    "puppeteer": {
+    "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+      "args": ["chrome-devtools-mcp@latest"]
     }
-
   }
 }

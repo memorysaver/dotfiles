@@ -32,3 +32,7 @@ args = ["-y", "@upstash/context7-mcp"]
 [mcp_servers.sequential-thinking]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
