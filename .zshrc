@@ -235,7 +235,7 @@ ccdev() {
 
 # Gemini CLI development environment
 gdev() {
-    _create_dev_tmux_session "gemini" "Gemini" "$1"
+    _create_dev_tmux_session "gemini --yolo" "Gemini" "$1"
 }
 
 # OpenCode CLI development environment
