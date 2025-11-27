@@ -105,8 +105,42 @@ export EDITOR='nvim'
 
 # Claude Code aliases
 alias ccusage="ccusage blocks --live"
-# AI Tools update alias - parallel updates
-alias tool-update="npm install -g @anthropic-ai/claude-code & npm install -g @google/gemini-cli & curl -fsSL https://opencode.ai/install | bash & npm install -g @openai/codex & wait && echo '✅ All AI tools updated!'"
+
+# AI Tools update function with error handling
+tool-update() {
+    local failed=0
+
+    echo "🔄 Updating AI tools..."
+    echo ""
+
+    # Claude Code (official method - 2025)
+    echo "📦 Installing Claude Code..."
+    curl -fsSL https://claude.ai/install.sh | bash || { echo "❌ Claude Code failed"; failed=$((failed+1)); }
+    echo ""
+
+    # Gemini CLI
+    echo "📦 Installing Gemini CLI..."
+    npm install -g @google/gemini-cli || { echo "❌ Gemini CLI failed"; failed=$((failed+1)); }
+    echo ""
+
+    # OpenCode (official method)
+    echo "📦 Installing OpenCode..."
+    curl -fsSL https://opencode.ai/install | bash || { echo "❌ OpenCode failed"; failed=$((failed+1)); }
+    echo ""
+
+    # Codex CLI
+    echo "📦 Installing Codex CLI..."
+    npm install -g @openai/codex || { echo "❌ Codex failed"; failed=$((failed+1)); }
+    echo ""
+
+    if [ $failed -eq 0 ]; then
+        echo "✅ All AI tools updated successfully!"
+        return 0
+    else
+        echo "⚠️  $failed tool(s) failed to update"
+        return 1
+    fi
+}
 # Claude Code + LiteLLM with auto-start check
 cclitellm() {
     local model="${1:-openrouter/qwen/qwen3-coder}"
@@ -401,9 +435,6 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 
-# opencode
-export PATH=/Users/memorysaver/.opencode/bin:$PATH
-
 # Claude Code hooks symlinks
 [ -d "$HOME/.dotfiles/claude/hooks" ] && {
     mkdir -p ~/.claude/hooks 2>/dev/null
@@ -447,3 +478,6 @@ export PATH=$PATH:/Users/memorysaver/.pulumi/bin
 
 # Added by Antigravity
 export PATH="/Users/memorysaver/.antigravity/antigravity/bin:$PATH"
+
+# opencode
+export PATH=/Users/memorysaver/.opencode/bin:$PATH
