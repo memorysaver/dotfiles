@@ -252,7 +252,7 @@ _create_dev_tmux_session() {
     
     # Launch applications
     tmux send-keys -t "$session_name.0" 'lazygit' Enter
-    tmux send-keys -t "$session_name.1" 'echo "run dev server here"' Enter
+    tmux send-keys -t "$session_name.1" 'opencode' Enter
     tmux send-keys -t "$session_name.2" "$ai_tool_command" Enter
     
     # Focus on AI tool pane
