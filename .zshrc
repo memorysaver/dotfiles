@@ -267,6 +267,9 @@ ccdev() {
     _create_dev_tmux_session "claude --dangerously-skip-permissions" "Claude" "$1"
 }
 
+# Claude Code with skipped permissions (no tmux)
+alias ccyolo='claude --dangerously-skip-permissions'
+
 # Gemini CLI development environment
 gdev() {
     _create_dev_tmux_session "gemini --yolo" "Gemini" "$1"
