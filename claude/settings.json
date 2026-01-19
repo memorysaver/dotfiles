@@ -98,7 +98,7 @@
     "example-skills@anthropic-agent-skills": true,
     "context-management@looplia-skills": true,
     "typescript-lsp@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true
+    "superpowers@superpowers-marketplace": true
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
