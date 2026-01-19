@@ -120,14 +120,15 @@ tool-update() {
     echo "🔄 Updating AI tools..."
     echo ""
 
-    # Claude Code (official method - 2025)
+    # Check bun is installed (required for Codex CLI)
+    if ! command -v bun &> /dev/null; then
+        echo "❌ bun is not installed. Install it first: curl -fsSL https://bun.sh/install | bash"
+        return 1
+    fi
+
+    # Claude Code (official method)
     echo "📦 Installing Claude Code..."
     curl -fsSL https://claude.ai/install.sh | bash || { echo "❌ Claude Code failed"; failed=$((failed+1)); }
-    echo ""
-
-    # Gemini CLI
-    echo "📦 Installing Gemini CLI..."
-    npm install -g @google/gemini-cli || { echo "❌ Gemini CLI failed"; failed=$((failed+1)); }
     echo ""
 
     # OpenCode (official method)
@@ -135,9 +136,9 @@ tool-update() {
     curl -fsSL https://opencode.ai/install | bash || { echo "❌ OpenCode failed"; failed=$((failed+1)); }
     echo ""
 
-    # Codex CLI
+    # Codex CLI (using bun)
     echo "📦 Installing Codex CLI..."
-    npm install -g @openai/codex || { echo "❌ Codex failed"; failed=$((failed+1)); }
+    bun install -g @openai/codex || { echo "❌ Codex failed"; failed=$((failed+1)); }
     echo ""
 
     if [ $failed -eq 0 ]; then
@@ -276,11 +277,6 @@ ccdev() {
 
 # Claude Code with skipped permissions (no tmux)
 alias ccyolo='claude --dangerously-skip-permissions'
-
-# Gemini CLI development environment
-gdev() {
-    _create_dev_tmux_session "gemini --yolo" "Gemini" "$1"
-}
 
 # OpenCode CLI development environment
 opendev() {

@@ -241,15 +241,6 @@ litellm-stop     # Stop LiteLLM proxy
 - **Model Flexibility**: Choose from 100+ models (Anthropic, Meta, Google, Qwen, etc.)
 - **See**: `~/.dotfiles/litellm/README.md` for detailed configuration and model examples
 
-#### Gemini CLI
-```bash
-# Install Gemini CLI
-npm install -g @google/gemini-cli
-
-# Verify installation
-gemini --version
-```
-
 #### OpenCode CLI
 ```bash
 # Install OpenCode CLI
@@ -433,18 +424,6 @@ ccrcode [session-name]
 ccrcode my-project
 ```
 
-#### Gemini CLI Development Environment
-
-The `gdev` function creates a tmux development environment with Gemini CLI:
-
-```bash
-# Install Gemini CLI first
-npm install -g @google/gemini-cli
-
-# Launch Gemini development environment
-gdev [session-name]
-```
-
 #### OpenCode CLI Development Environment
 
 The `opendev` function creates a tmux development environment with OpenCode CLI:
@@ -466,8 +445,8 @@ opendev [session-name]
 The `codexdev` function creates a tmux development environment with the OpenAI Codex CLI:
 
 ```bash
-# Install OpenAI Codex CLI first
-npm install -g @openai/codex
+# Install OpenAI Codex CLI first (requires bun)
+bun install -g @openai/codex
 
 # Launch Codex development environment
 codexdev [session-name]
@@ -476,4 +455,4 @@ codexdev [session-name]
 All environments create a multi-pane workspace with:
 - **Top-Left pane (55% width)**: Lazygit for version control
 - **Bottom-left pane (55% width)**: Development server
-- **Right pane (45% width)**: AI assistant (Claude, Gemini, or OpenCode)
+- **Right pane (45% width)**: AI assistant (Claude, OpenCode, or Codex)

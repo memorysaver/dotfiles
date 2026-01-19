@@ -62,10 +62,6 @@ fi
 mkdir -p ~/.config/opencode
 ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
 
-# setup Gemini CLI config
-mkdir -p ~/.gemini
-ln -sfv "$HOME/.dotfiles/gemini-cli/settings.json" "$HOME/.gemini/settings.json"
-
 # setup Codex CLI config (copy only if not exists, then sync updates)
 mkdir -p ~/.codex
 if [ ! -f ~/.codex/config.toml ]; then
