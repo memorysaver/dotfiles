@@ -27,6 +27,7 @@
       "mcp__context7__get-library-docs"
     ]
   },
+  "model": "opus",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "sequential-thinking",
@@ -100,11 +101,11 @@
     "typescript-lsp@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
     "agent-browser@agent-browser": true,
-    "search-and-research@looplia-skills": true
+    "search-and-research@looplia-skills": true,
+    "mgrep@Mixedbread-Grep": true
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
-  },
-  "model": "opus"
+  }
 }
