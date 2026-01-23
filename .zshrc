@@ -487,3 +487,30 @@ export PATH="/Users/memorysaver/.antigravity/antigravity/bin:$PATH"
 
 # opencode
 export PATH=/Users/memorysaver/.opencode/bin:$PATH
+
+# Claude Code Subscription Auth for Looplia
+# Automatically extract OAuth token from macOS Keychain if logged in
+export_claude_code_token() {
+    # Check if user is logged into Claude Code by testing keychain access
+    if ! security find-generic-password -s "Claude Code-credentials" -w >/dev/null 2>&1; then
+        echo "⚠️  Claude Code not logged in. Run 'claude login' first."
+        return 1
+    fi
+
+    # Extract token from Keychain
+    local token
+    token=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null | jq -r '.claudeAiOauth.accessToken' 2>/dev/null)
+
+    if [[ -z "$token" ]] || [[ "$token" == "null" ]]; then
+        echo "❌ Failed to extract Claude Code OAuth token from Keychain"
+        return 1
+    fi
+
+    export CLAUDE_CODE_OAUTH_TOKEN="$token"
+    echo "✅ CLAUDE_CODE_OAUTH_TOKEN set from Keychain"
+}
+
+# Auto-export on shell startup (silent, only if logged in)
+if security find-generic-password -s "Claude Code-credentials" -w >/dev/null 2>&1; then
+    export CLAUDE_CODE_OAUTH_TOKEN=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null | jq -r '.claudeAiOauth.accessToken' 2>/dev/null)
+fi

@@ -99,10 +99,12 @@
     "context-management@looplia-skills": true,
     "typescript-lsp@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
-    "agent-browser@agent-browser": true
+    "agent-browser@agent-browser": true,
+    "search-and-research@looplia-skills": true
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
-  }
+  },
+  "model": "opus"
 }
