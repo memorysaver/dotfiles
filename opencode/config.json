@@ -10,11 +10,6 @@
       "command": ["npx", "-y", "@upstash/context7-mcp"],
       "enabled": true
     },
-    "sequential-thinking": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "enabled": true
-    },
     "chrome-devtools": {
       "type": "local",
       "command": ["npx", "chrome-devtools-mcp@latest"],
