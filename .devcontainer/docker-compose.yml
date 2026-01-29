@@ -1,0 +1,33 @@
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+      - ../claude:/home/dev/.claude:rw
+      - ../opencode/config.json:/home/dev/.config/opencode/config.json:rw
+      - ../openai-codex/config.toml:/home/dev/.codex/config.toml:rw
+      - opencode-data:/home/dev/.local/share/opencode
+      - uv-cache:/home/dev/.cache/uv
+      - uv-data:/home/dev/.local/share/uv
+      - bun-cache:/home/dev/.bun
+      - npm-cache:/home/dev/.npm
+    environment:
+      OPENCODE_CONFIG: /home/dev/.config/opencode/config.json
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "4096:4096"
+    tty: true
+    stdin_open: true
+
+volumes:
+  opencode-data:
+  uv-cache:
+  uv-data:
+  bun-cache:
+  npm-cache:
