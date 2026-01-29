@@ -26,7 +26,7 @@ WORKDIR /workspace
 
 ENV BUN_INSTALL=/home/dev/.bun
 ENV UV_NO_MODIFY_PATH=1
-ENV PATH="/home/dev/.local/bin:/home/dev/.bun/bin:/usr/local/bin:${PATH}"
+ENV PATH="/home/dev/.local/bin:/home/dev/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl -fsSL https://bun.sh/install | bash
