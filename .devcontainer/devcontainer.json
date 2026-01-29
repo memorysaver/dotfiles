@@ -6,6 +6,7 @@
   "service": "dev",
   "workspaceFolder": "/workspace",
   "remoteUser": "node",
+  "overrideCommand": false,
   "shutdownAction": "stopCompose",
   "features": {
     "ghcr.io/devcontainers/features/sshd:1": {
