@@ -7,6 +7,11 @@
   "workspaceFolder": "/workspace",
   "remoteUser": "dev",
   "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
+  },
   "forwardPorts": [
     4096
   ],
