@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   less \
   man-db \
   nano \
+  openssh-client \
+  openssh-server \
   procps \
   python3 \
   python3-pip \
