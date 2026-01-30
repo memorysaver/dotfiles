@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   man-db \
   nano \
   openssh-client \
-  openssh-server \
   procps \
   python3 \
   python3-pip \
@@ -36,9 +35,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   wget \
   zsh \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN ssh-keygen -A
-
 RUN mkdir -p /usr/local/share/npm-global && \
   chown -R node:node /usr/local/share
 
@@ -86,14 +82,9 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl -fsSL https://bun.sh/install | bash
 
 COPY init-firewall.sh /usr/local/bin/
-COPY ssh-init.sh /usr/local/share/ssh-init.sh
 USER root
-RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/share/ssh-init.sh && \
-  mkdir -p /var/run/sshd && \
+RUN chmod +x /usr/local/bin/init-firewall.sh && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
-  echo "node ALL=(root) NOPASSWD: /etc/init.d/ssh" > /etc/sudoers.d/node-ssh && \
-  chmod 0440 /etc/sudoers.d/node-firewall /etc/sudoers.d/node-ssh
+  chmod 0440 /etc/sudoers.d/node-firewall
 USER node
-
-ENTRYPOINT ["/usr/local/share/ssh-init.sh"]
 CMD ["sleep", "infinity"]

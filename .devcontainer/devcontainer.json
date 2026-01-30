@@ -8,11 +8,6 @@
   "remoteUser": "node",
   "overrideCommand": false,
   "shutdownAction": "stopCompose",
-  "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {
-      "version": "latest"
-    }
-  },
   "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
   "waitFor": "postStartCommand",
   "containerEnv": {
