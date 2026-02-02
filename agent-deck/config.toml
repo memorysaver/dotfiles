@@ -11,7 +11,7 @@ theme = "dark"
 [claude]
   command = ""
   config_dir = ""
-  dangerous_mode = false
+  dangerous_mode = true
   env_file = ""
 
 [gemini]
@@ -36,7 +36,7 @@ theme = "dark"
   remove_orphans = true
 
 [mcp_pool]
-  enabled = false
+  enabled = true
   auto_start = false
   port_start = 0
   port_end = 0
@@ -48,7 +48,7 @@ theme = "dark"
   socket_wait_timeout = 0
 
 [updates]
-  auto_update = false
+  auto_update = true
   check_enabled = true
   check_interval_hours = 24
   notify_in_cli = true
@@ -72,3 +72,8 @@ theme = "dark"
 
 [maintenance]
   enabled = false
+
+[mcps.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+description = "Library documentation lookup"
