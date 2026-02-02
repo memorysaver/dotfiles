@@ -1,0 +1,74 @@
+# Agent Deck Configuration
+# Edit this file or use Settings (press S) in the TUI
+
+default_tool = "claude"
+theme = "dark"
+
+[tools]
+
+[mcps]
+
+[claude]
+  command = ""
+  config_dir = ""
+  dangerous_mode = false
+  env_file = ""
+
+[gemini]
+  yolo_mode = false
+  default_model = ""
+  env_file = ""
+
+[worktree]
+  default_location = ""
+  auto_cleanup = false
+
+[global_search]
+  enabled = true
+  tier = "auto"
+  memory_limit_mb = 0
+  recent_days = 90
+  index_rate_limit = 0
+
+[logs]
+  max_size_mb = 10
+  max_lines = 10000
+  remove_orphans = true
+
+[mcp_pool]
+  enabled = false
+  auto_start = false
+  port_start = 0
+  port_end = 0
+  start_on_demand = false
+  shutdown_on_exit = false
+  fallback_to_stdio = true
+  show_pool_status = false
+  pool_all = false
+  socket_wait_timeout = 0
+
+[updates]
+  auto_update = false
+  check_enabled = true
+  check_interval_hours = 24
+  notify_in_cli = true
+
+[preview]
+  [preview.analytics]
+
+[experiments]
+  directory = ""
+  date_prefix = false
+  default_tool = ""
+
+[notifications]
+  enabled = false
+  max_shown = 0
+
+[instances]
+
+[shell]
+  init_script = ""
+
+[maintenance]
+  enabled = false
