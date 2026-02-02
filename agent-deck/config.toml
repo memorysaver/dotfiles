@@ -20,8 +20,8 @@ theme = "dark"
   env_file = ""
 
 [worktree]
-  default_location = ""
-  auto_cleanup = false
+  default_location = "subdirectory"
+  auto_cleanup = true
 
 [global_search]
   enabled = true
