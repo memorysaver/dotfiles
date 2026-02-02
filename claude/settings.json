@@ -100,7 +100,8 @@
     "superpowers@superpowers-marketplace": true,
     "agent-browser@agent-browser": true,
     "search-and-research@looplia-skills": true,
-    "mgrep@Mixedbread-Grep": true
+    "mgrep@Mixedbread-Grep": true,
+    "agent-deck@asheshgoplani-agent-deck": true
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
