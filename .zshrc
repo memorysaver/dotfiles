@@ -514,3 +514,4 @@ export_claude_code_token() {
 if security find-generic-password -s "Claude Code-credentials" -w >/dev/null 2>&1; then
     export CLAUDE_CODE_OAUTH_TOKEN=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null | jq -r '.claudeAiOauth.accessToken' 2>/dev/null)
 fi
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
