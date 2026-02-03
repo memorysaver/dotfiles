@@ -60,7 +60,8 @@ fi
 
 # setup OpenCode config
 mkdir -p ~/.config/opencode
-ln -sfv "$HOME/.dotfiles/opencode/config.json" ~/.config/opencode/config.json
+ln -sfv "$HOME/.dotfiles/opencode/opencode.json" ~/.config/opencode/opencode.json
+ln -sfv "$HOME/.dotfiles/opencode/oh-my-opencode.json" ~/.config/opencode/oh-my-opencode.json
 
 # setup Codex CLI config (copy only if not exists, then sync updates)
 mkdir -p ~/.codex
