@@ -95,13 +95,17 @@
     "ralph-loop@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "example-skills@anthropic-agent-skills": true,
-    "context-management@looplia-skills": true,
     "typescript-lsp@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
     "agent-browser@agent-browser": true,
-    "search-and-research@looplia-skills": true,
     "mgrep@Mixedbread-Grep": true,
-    "agent-deck@asheshgoplani-agent-deck": true
+    "agent-deck@asheshgoplani-agent-deck": true,
+    "search-and-research@looplia-skills": true,
+    "context-management@looplia-skills": true
+  },
+  "teammateMode": "tmux",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
