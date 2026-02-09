@@ -17,7 +17,7 @@
   },
   "plugin": [
     "oh-my-opencode@latest",
-    "opencode-antigravity-auth@1.4.3"
+    "opencode-antigravity-auth@1.4.6"
   ],
   "provider": {
     "google": {

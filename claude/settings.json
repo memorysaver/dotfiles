@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(rg:*)",
@@ -103,11 +106,8 @@
     "search-and-research@looplia-skills": true,
     "context-management@looplia-skills": true
   },
-  "teammateMode": "tmux",
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
   "alwaysThinkingEnabled": true,
+  "teammateMode": "tmux",
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
   }
