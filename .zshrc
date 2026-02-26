@@ -276,7 +276,7 @@ ccdev() {
 }
 
 # Claude Code with skipped permissions (no tmux)
-alias ccyolo='claude --dangerously-skip-permissions --worktree --tmux'
+alias ccyolo='claude --dangerously-skip-permissions -w --tmux'
 
 # OpenCode CLI development environment
 opendev() {
