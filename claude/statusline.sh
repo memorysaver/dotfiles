@@ -35,8 +35,9 @@ DURATION_MS="${_F[8]}"
 CTX_SIZE="${_F[9]}"
 VERSION="${_F[10]}"
 
-# Git info with 5s cache (branch + worktree name)
-_GIT_CACHE="/tmp/statusline-git-cache"
+# Git info with 5s cache (branch + worktree name + repo name)
+_git_cache_key=$(printf '%s' "$DIR" | cksum | cut -d' ' -f1)
+_GIT_CACHE="/tmp/statusline-git-cache-${_git_cache_key}"
 _GIT_TTL=5
 _git_info() {
   local now
@@ -44,28 +45,36 @@ _git_info() {
   if [[ -f "$_GIT_CACHE" ]]; then
     local cached_time cached_data
     IFS= read -r cached_data < "$_GIT_CACHE"
-    cached_time="${cached_data%%	*}"
-    cached_data="${cached_data#*	}"
+    cached_time="${cached_data%%$'\x1f'*}"
+    cached_data="${cached_data#*$'\x1f'}"
     if (( now - cached_time < _GIT_TTL )); then
       echo "$cached_data"
       return
     fi
   fi
-  local branch="" worktree=""
-  if git rev-parse --git-dir >/dev/null 2>&1; then
-    branch=$(git branch --show-current 2>/dev/null)
+  local branch="" worktree="" repo_name=""
+  if git -C "$DIR" rev-parse --git-dir >/dev/null 2>&1; then
+    branch=$(git -C "$DIR" branch --show-current 2>/dev/null)
     # Detect worktree: if .git is a file (not dir), we're in a linked worktree
     local git_dir
-    git_dir=$(git rev-parse --git-dir 2>/dev/null)
+    git_dir=$(git -C "$DIR" rev-parse --git-dir 2>/dev/null)
     if [[ "$git_dir" == */.git/worktrees/* ]]; then
       worktree="${git_dir##*/worktrees/}"
+      # Derive repo name from git_dir: /path/to/repo/.git/worktrees/name → repo
+      local repo_path="${git_dir%/.git/worktrees/*}"
+      repo_name="${repo_path##*/}"
+    else
+      # Normal repo: use toplevel directory name
+      local toplevel
+      toplevel=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null)
+      repo_name="${toplevel##*/}"
     fi
   fi
-  printf '%s\t%s\t%s' "$now" "$branch" "$worktree" > "$_GIT_CACHE"
-  printf '%s\t%s' "$branch" "$worktree"
+  printf '%s\x1f%s\x1f%s\x1f%s' "$now" "$branch" "$worktree" "$repo_name" > "$_GIT_CACHE"
+  printf '%s\x1f%s\x1f%s' "$branch" "$worktree" "$repo_name"
 }
 
-IFS=$'\t' read -r BRANCH WORKTREE < <(_git_info)
+IFS=$'\x1f' read -r BRANCH WORKTREE REPO_NAME < <(_git_info)
 
 # Context color: green <70%, yellow 70-89%, red 90%+
 if (( PCT >= 90 )); then
@@ -89,7 +98,8 @@ if [[ -n "$BRANCH" ]]; then
     BRANCH_FMT="\033[35m${BRANCH}\033[0m(\033[2mno worktree\033[0m)"
   fi
 fi
-PATH_FMT="\033[34m${DIR##*/}\033[0m"
+FOLDER="${REPO_NAME:-${DIR##*/}}"
+PATH_FMT="\033[34m${FOLDER}\033[0m"
 [[ -n "$BRANCH_FMT" ]] && PATH_FMT="${PATH_FMT}/${BRANCH_FMT}"
 
 VIM_FMT=""
