@@ -275,8 +275,10 @@ ccdev() {
     _create_dev_tmux_session "claude --dangerously-skip-permissions" "Claude" "$1"
 }
 
-# Claude Code with skipped permissions (no tmux)
-alias ccyolo='claude --dangerously-skip-permissions -w --tmux'
+# Claude Code with skipped permissions
+alias ccyolo='claude --dangerously-skip-permissions'
+alias ccyolow='claude --dangerously-skip-permissions -w'
+alias ccyolotw='claude --dangerously-skip-permissions -w --tmux'
 
 # OpenCode CLI development environment
 opendev() {
