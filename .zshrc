@@ -5,12 +5,6 @@ autoload -Uz compinit
 compinit
 # OPENSPEC:END
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -22,7 +16,6 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-# ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -407,9 +400,6 @@ litellm-stop() {
 }
 
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-source ~/powerlevel10k/powerlevel10k.zsh-theme
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 
 # https://github.com/pyenv/pyenv/issues/1948
@@ -517,3 +507,8 @@ if security find-generic-password -s "Claude Code-credentials" -w >/dev/null 2>&
     export CLAUDE_CODE_OAUTH_TOKEN=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null | jq -r '.claudeAiOauth.accessToken' 2>/dev/null)
 fi
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+# Starship prompt
+mkdir -p ~/.config 2>/dev/null
+ln -sf ~/.dotfiles/starship/starship.toml ~/.config/starship.toml
+eval "$(starship init zsh)"
