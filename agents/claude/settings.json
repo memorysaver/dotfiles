@@ -29,7 +29,6 @@
       "mcp__context7__get-library-docs"
     ]
   },
-  "model": "opus",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "context7"
@@ -66,16 +65,13 @@
     "code-review@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
-    "example-skills@anthropic-agent-skills": true,
     "typescript-lsp@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
     "agent-browser@agent-browser": true,
-    "mgrep@Mixedbread-Grep": true,
-    "agent-deck@asheshgoplani-agent-deck": true,
-    "search-and-research@looplia-skills": true,
-    "context-management@looplia-skills": true
+    "mgrep@Mixedbread-Grep": true
   },
   "alwaysThinkingEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
   "teammateMode": "tmux",
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468

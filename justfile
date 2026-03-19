@@ -108,6 +108,20 @@ unlink:
     "$HOME/.config/opencode/oh-my-opencode.json"
     "$HOME/.envrc"
   )
+  # Lazygit (OS-dependent path)
+  if [ "$(uname)" = "Darwin" ]; then
+    links+=("$HOME/Library/Application Support/lazygit/config.yml")
+  else
+    links+=("$HOME/.config/lazygit/config.yml")
+  fi
+  # Claude hooks
+  for hook in "$HOME/.claude/hooks/"*; do
+    [ -L "$hook" ] && links+=("$hook")
+  done
+  # Claude commands
+  for cmd in "$HOME/.claude/commands/"*; do
+    [ -L "$cmd" ] && links+=("$cmd")
+  done
   for link in "${links[@]}"; do
     [ -L "$link" ] && rm "$link" && ok "Removed $link"
   done

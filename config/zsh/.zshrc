@@ -52,7 +52,11 @@ tool-update() {
   echo "Updating AI tools..."
   curl -fsSL https://claude.ai/install.sh | bash || { echo "Claude Code failed"; failed=$((failed+1)); }
   curl -fsSL https://opencode.ai/install | bash || { echo "OpenCode failed"; failed=$((failed+1)); }
-  has bun && bun install -g @openai/codex || { echo "Codex failed"; failed=$((failed+1)); }
+  if command -v bun &>/dev/null; then
+    bun install -g @openai/codex || { echo "Codex failed"; failed=$((failed+1)); }
+  else
+    echo "Bun not found — skipping Codex update"
+  fi
   [ $failed -eq 0 ] && echo "All AI tools updated!" || echo "$failed tool(s) failed"
 }
 
