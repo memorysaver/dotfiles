@@ -64,7 +64,8 @@
     "ralph-loop@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "mgrep@Mixedbread-Grep": true,
-    "superpowers@superpowers-marketplace": true
+    "superpowers@superpowers-marketplace": true,
+    "skill-creator@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
