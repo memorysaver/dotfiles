@@ -31,7 +31,7 @@ _create_dev_tmux_session() {
 
 # Claude Code dev environment
 ccdev() {
-  _create_dev_tmux_session "claude --dangerously-skip-permissions" "Claude" "$1"
+  _create_dev_tmux_session "claude --dangerously-skip-permissions --rc" "Claude" "$1"
 }
 
 # OpenCode dev environment

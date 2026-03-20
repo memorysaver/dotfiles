@@ -42,9 +42,9 @@ fi
 
 # --- Aliases ---
 alias ccusage="ccusage blocks --live"
-alias ccyolo='claude --dangerously-skip-permissions'
-alias ccyolow='claude --dangerously-skip-permissions -w'
-alias ccyolotw='claude --dangerously-skip-permissions -w --tmux'
+alias ccyolo='claude --dangerously-skip-permissions --rc'
+alias ccyolow='claude --dangerously-skip-permissions --rc -w'
+alias ccyolotw='claude --dangerously-skip-permissions --rc -w --tmux'
 
 # --- AI Tools update ---
 tool-update() {
