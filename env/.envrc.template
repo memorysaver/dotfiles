@@ -1,0 +1,22 @@
+# direnv per-project template
+# Copy this file to your project root and customize:
+#   cp ~/.dotfiles/env/.envrc.template ~/my-project/.envrc
+#   cd ~/my-project && direnv allow
+
+# Load variables from a local .env file
+dotenv_if_exists
+
+# Or load specific env files
+# dotenv .env.local
+
+# Source another .envrc (e.g., shared team config)
+# source_env ~/.dotfiles/env/.envrc.shared
+
+# Set project-specific layout (auto-activates virtualenvs, etc.)
+# layout python
+# layout node
+# layout ruby
+
+# Export project-specific variables
+# export DATABASE_URL="postgres://localhost/mydb"
+# export DEBUG=1

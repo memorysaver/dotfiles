@@ -53,7 +53,7 @@ just setup
 │   └── pi/
 └── env/                  # Environment config
     ├── .env.example
-    └── .envrc
+    └── .envrc.template
 ```
 
 ## Just Recipes
@@ -68,13 +68,20 @@ just --list   # Show all available recipes
 
 ## Environment Variables
 
+direnv uses per-project `.envrc` files. A template is provided:
+
 ```bash
-cp ~/.dotfiles/env/.env.example ~/.env
-# Fill in your API keys, then:
-direnv allow ~
+# Copy the template into any project
+cp ~/.dotfiles/env/.envrc.template ~/my-project/.envrc
+# Customize it, then allow:
+cd ~/my-project && direnv allow
 ```
 
-Keys loaded automatically via direnv when you open a shell.
+For API keys, copy the example env file into your project and use `dotenv_if_exists` in your `.envrc`:
+
+```bash
+cp ~/.dotfiles/env/.env.example ~/my-project/.env
+```
 
 ## Docker Dev Sandbox
 

@@ -83,9 +83,6 @@ link:
   ensure_symlink "{{dotfiles}}/agents/opencode/opencode.json" "$HOME/.config/opencode/opencode.json"
   ensure_symlink "{{dotfiles}}/agents/opencode/oh-my-opencode.json" "$HOME/.config/opencode/oh-my-opencode.json"
 
-  # Direnv (global)
-  ensure_symlink "{{dotfiles}}/env/.envrc" "$HOME/.envrc"
-
   ok "All symlinks created"
 
 # Unlink all symlinks (for clean removal)
@@ -106,7 +103,6 @@ unlink:
     "$HOME/.codex/config.toml"
     "$HOME/.config/opencode/opencode.json"
     "$HOME/.config/opencode/oh-my-opencode.json"
-    "$HOME/.envrc"
   )
   # Lazygit (OS-dependent path)
   if [ "$(uname)" = "Darwin" ]; then
