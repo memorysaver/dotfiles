@@ -28,8 +28,11 @@ if ! has glab; then
   case "$DOTFILES_OS" in
     macos) brew install glab ;;
     linux)
-      # Install via official script
-      curl -fsSL https://raw.githubusercontent.com/profclems/glab/trunk/scripts/install.sh | sudo sh
+      GLAB_VERSION=$(curl -s "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
+      ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
+      curl -Lo /tmp/glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/${GLAB_VERSION}/downloads/glab_${GLAB_VERSION#v}_linux_${ARCH}.tar.gz"
+      sudo tar xf /tmp/glab.tar.gz -C /usr/local/bin --strip-components=1 bin/glab
+      rm /tmp/glab.tar.gz
       ;;
   esac
 else
@@ -46,7 +49,8 @@ if ! has yq; then
     macos) brew install yq ;;
     linux)
       YQ_VERSION=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest" | grep -Po '"tag_name": "\K[^"]*')
-      curl -Lo /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+      ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
+      sudo curl -Lo /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}"
       sudo chmod +x /usr/local/bin/yq
       ;;
   esac
@@ -71,7 +75,7 @@ fi
 if ! has agent-browser; then
   info "Installing agent-browser..."
   if has npm; then
-    npm install -g @anthropic-ai/agent-browser
+    npm install -g @anthropic-ai/agent-browser || warn "agent-browser not available on npm — skipping"
   else
     warn "npm not found — skipping agent-browser"
   fi
@@ -83,7 +87,7 @@ fi
 if ! has portless; then
   info "Installing portless..."
   if has npm; then
-    npm install -g @anthropic-ai/portless
+    npm install -g @anthropic-ai/portless || warn "portless not available on npm — skipping"
   else
     warn "npm not found — skipping portless"
   fi

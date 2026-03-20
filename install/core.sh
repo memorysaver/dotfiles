@@ -34,10 +34,14 @@ else
 fi
 
 # --- Starship prompt ---
-ensure_installed starship starship starship
-# Linux fallback if not in apt:
-if ! has starship && [ "$DOTFILES_OS" = "linux" ]; then
-  curl -sS https://starship.rs/install.sh | sh -s -- -y
+if ! has starship; then
+  info "Installing starship..."
+  case "$DOTFILES_OS" in
+    macos) brew install starship ;;
+    linux) curl -sS https://starship.rs/install.sh | sh -s -- -y ;;
+  esac
+else
+  ok "starship already installed"
 fi
 
 # --- tmux ---
@@ -53,7 +57,8 @@ if ! has lazygit; then
     macos) brew install lazygit ;;
     linux)
       LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-      curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+      ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
+      curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_${ARCH}.tar.gz"
       sudo tar xf /tmp/lazygit.tar.gz -C /usr/local/bin lazygit
       rm /tmp/lazygit.tar.gz
       ;;

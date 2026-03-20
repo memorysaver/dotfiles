@@ -76,6 +76,31 @@ direnv allow ~
 
 Keys loaded automatically via direnv when you open a shell.
 
+## Docker Dev Sandbox
+
+Test the full setup in an isolated Linux container without touching your host machine.
+
+```bash
+# Build the image (runs all install scripts + verifies symlinks/commands)
+bash docker/docker-test.sh
+
+# Build and drop into a zsh shell
+bash docker/docker-test.sh --run
+
+# Force a clean rebuild (no cache)
+bash docker/docker-test.sh --no-cache
+
+# Launch a shell into an existing image
+docker run --rm -it memorysaver-dev
+
+# Run in background and attach multiple shells
+docker run -d --name dev memorysaver-dev sleep infinity
+docker exec -it dev zsh
+docker stop dev && docker rm dev
+```
+
+The build itself runs `verify.sh` which checks all 15 symlinks and 20 commands — if anything is broken, the build fails.
+
 ## Key Tools
 
 - **Shell**: zsh + oh-my-zsh + starship prompt
