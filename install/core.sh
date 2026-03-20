@@ -19,19 +19,19 @@ fi
 # --- Zsh plugins ---
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
-  info "Installing zsh-autosuggestions..."
-  git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-else
-  ok "zsh-autosuggestions already installed"
-fi
+zsh_plugins=(
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
 
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
-  info "Installing zsh-syntax-highlighting..."
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-else
-  ok "zsh-syntax-highlighting already installed"
-fi
+for plugin in "${zsh_plugins[@]}"; do
+  if [ ! -d "$ZSH_CUSTOM/plugins/$plugin" ]; then
+    info "Installing $plugin..."
+    git clone --depth=1 "https://github.com/zsh-users/$plugin" "$ZSH_CUSTOM/plugins/$plugin"
+  else
+    ok "$plugin already installed"
+  fi
+done
 
 # --- Starship prompt ---
 if ! has starship; then
