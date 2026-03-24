@@ -65,7 +65,39 @@
     "typescript-lsp@claude-plugins-official": true,
     "mgrep@Mixedbread-Grep": true,
     "superpowers@superpowers-marketplace": true,
-    "skill-creator@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "project-scaffold@agentic-engineering-patterns": true,
+    "development-workflow@agentic-engineering-patterns": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      },
+      "autoUpdate": true
+    },
+    "agent-browser": {
+      "source": {
+        "source": "github",
+        "repo": "vercel-labs/agent-browser"
+      },
+      "autoUpdate": true
+    },
+    "Mixedbread-Grep": {
+      "source": {
+        "source": "github",
+        "repo": "mixedbread-ai/mgrep"
+      },
+      "autoUpdate": true
+    },
+    "agentic-engineering-patterns": {
+      "source": {
+        "source": "github",
+        "repo": "memorysaver/agentic-engineering-patterns"
+      },
+      "autoUpdate": true
+    }
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
