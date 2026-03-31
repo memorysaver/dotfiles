@@ -61,13 +61,12 @@
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "mgrep@Mixedbread-Grep": true,
     "superpowers@superpowers-marketplace": true,
     "skill-creator@claude-plugins-official": true,
-    "project-scaffold@agentic-engineering-patterns": true,
-    "development-workflow@agentic-engineering-patterns": true
+    "ralph-loop@claude-plugins-official": true,
+    "codex@openai-codex": true
   },
   "extraKnownMarketplaces": {
     "superpowers-marketplace": {
@@ -95,6 +94,13 @@
       "source": {
         "source": "github",
         "repo": "memorysaver/agentic-engineering-patterns"
+      },
+      "autoUpdate": true
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
       },
       "autoUpdate": true
     }

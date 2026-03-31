@@ -32,3 +32,6 @@ args = ["-y", "@upstash/context7-mcp"]
 [mcp_servers.chrome-devtools]
 command = "npx"
 args = ["chrome-devtools-mcp@latest"]
+
+[plugins."github@openai-curated"]
+enabled = true

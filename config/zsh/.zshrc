@@ -45,6 +45,9 @@ alias ccusage="ccusage blocks --live"
 alias ccyolo='claude --dangerously-skip-permissions --rc'
 alias ccyolow='claude --dangerously-skip-permissions --rc -w'
 alias ccyolotw='claude --dangerously-skip-permissions --rc -w --tmux'
+alias ccauto='claude --permission-mode auto --rc'
+alias ccautow='claude --permission-mode auto --rc -w'
+alias ccautotw='claude --permission-mode auto --rc -w --tmux'
 
 # --- AI Tools update ---
 tool-update() {
