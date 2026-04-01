@@ -65,7 +65,6 @@ link:
   ensure_dir "$HOME/.claude/hooks"
   ensure_dir "$HOME/.claude/commands"
   ensure_symlink "{{dotfiles}}/agents/claude/settings.json" "$HOME/.claude/settings.json"
-  ensure_symlink "{{dotfiles}}/agents/claude/mcp-servers.json" "$HOME/.claude/mcp-servers.json"
   ensure_symlink "{{dotfiles}}/agents/claude/statusline.sh" "$HOME/.claude/statusline.sh"
   chmod +x "{{dotfiles}}/agents/claude/statusline.sh"
   # Symlink all hooks
@@ -102,7 +101,6 @@ unlink:
     "$HOME/.config/nvim"
     "$HOME/.config/starship.toml"
     "$HOME/.claude/settings.json"
-    "$HOME/.claude/mcp-servers.json"
     "$HOME/.claude/statusline.sh"
     "$HOME/.claude/output-styles"
     "$HOME/.codex/config.toml"

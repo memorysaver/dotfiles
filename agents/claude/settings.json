@@ -110,5 +110,6 @@
   "teammateMode": "tmux",
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
-  }
+  },
+  "model": "sonnet"
 }
