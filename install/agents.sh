@@ -46,4 +46,19 @@ else
   ok "Pi already installed"
 fi
 
+# --- UI/UX Pro Max Skills ---
+if ! has uipro; then
+  info "Installing uipro-cli..."
+  if has npm; then
+    npm install -g uipro-cli
+  else
+    warn "npm not found — skipping uipro-cli"
+  fi
+fi
+if has uipro; then
+  info "Installing UI/UX Pro Max skills to ~/.claude/skills/..."
+  # Must run from $HOME so it installs to ~/.claude/skills/
+  (cd "$HOME" && uipro init --ai claude --offline)
+fi
+
 ok "AI coding agents installation complete"
