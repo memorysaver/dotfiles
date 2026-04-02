@@ -1,0 +1,23 @@
+{
+  "skill_name": "opencli",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to find the top trending topics on Hacker News and Stack Overflow right now, give me a combined summary of what developers are talking about",
+      "expected_output": "Uses opencli hackernews top and opencli stackoverflow hot with -f json, then synthesizes a summary from both sources",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Research recent arxiv papers about transformer architectures and get me the titles, authors, and abstracts in a structured format",
+      "expected_output": "Uses opencli arxiv search with -f json to get structured paper data, presents it cleanly",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I want to gather real-time stock quotes for AAPL, GOOGL, and MSFT and compare their performance today",
+      "expected_output": "Uses opencli yahoo-finance quote for each ticker with -f json, then compares the results",
+      "files": []
+    }
+  ]
+}
