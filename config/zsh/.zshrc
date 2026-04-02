@@ -14,6 +14,9 @@ source "$ZSH/oh-my-zsh.sh"
 # --- Editor ---
 export EDITOR='nvim'
 
+# --- Claude Code ---
+export CLAUDE_CODE_NO_FLICKER=1
+
 # --- PATH consolidation ---
 # Language runtimes
 export PYENV_ROOT="$HOME/.pyenv"
