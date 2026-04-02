@@ -81,6 +81,11 @@ link:
   done
   # Symlink output-styles directory
   ensure_symlink "{{dotfiles}}/agents/claude/output-styles" "$HOME/.claude/output-styles"
+  # Symlink all skills
+  ensure_dir "$HOME/.claude/skills"
+  for skill in {{dotfiles}}/agents/skills/*/; do
+    [ -d "$skill" ] && ensure_symlink "$skill" "$HOME/.claude/skills/$(basename "$skill")"
+  done
 
   # Codex CLI
   ensure_dir "$HOME/.codex"
@@ -128,6 +133,10 @@ unlink:
   # Claude commands
   for cmd in "$HOME/.claude/commands/"*; do
     [ -L "$cmd" ] && links+=("$cmd")
+  done
+  # Claude skills
+  for skill in "$HOME/.claude/skills/"*; do
+    [ -L "$skill" ] && links+=("$skill")
   done
   for link in "${links[@]}"; do
     [ -L "$link" ] && rm "$link" && ok "Removed $link"
