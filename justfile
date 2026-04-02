@@ -30,6 +30,10 @@ tools:
 infra:
   @bash {{dotfiles}}/install/infra.sh
 
+# Clone/pull personal workspace repos defined in install/repos.txt
+repos:
+  @bash {{dotfiles}}/install/repos.sh
+
 # Create all config symlinks (idempotent)
 link:
   #!/usr/bin/env bash

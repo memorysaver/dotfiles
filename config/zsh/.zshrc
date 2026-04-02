@@ -7,6 +7,8 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 # --- Oh-My-Zsh ---
 export ZSH="$HOME/.oh-my-zsh"
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+# opencli completion
+fpath=(/Users/memorysaver/.zsh/completions $fpath)
 source "$ZSH/oh-my-zsh.sh"
 
 # --- Editor ---

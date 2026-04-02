@@ -1,0 +1,3 @@
+# Personal workspace repos — cloned to ~/
+# Add one SSH URL per line. Run: just repos
+git@github.com:memorysaver/newsroom.git

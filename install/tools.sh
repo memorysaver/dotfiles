@@ -95,4 +95,27 @@ else
   ok "portless already installed"
 fi
 
+# --- opencli (jackwener) ---
+if ! has opencli; then
+  info "Installing opencli..."
+  if has npm; then
+    npm install -g @jackwener/opencli || warn "opencli install failed — skipping"
+  else
+    warn "npm not found — skipping opencli"
+  fi
+else
+  ok "opencli already installed"
+fi
+
+# --- podwise-cli (hardhackerlabs) ---
+if ! has podwise; then
+  info "Installing podwise-cli..."
+  case "$DOTFILES_OS" in
+    macos) brew install hardhackerlabs/podwise-tap/podwise ;;
+    linux) warn "podwise-cli has no Linux package — install manually from https://github.com/hardhackerlabs/podwise-cli" ;;
+  esac
+else
+  ok "podwise already installed"
+fi
+
 ok "CLI tools installation complete"
