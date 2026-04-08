@@ -5,8 +5,9 @@
 # The default model (override as needed):
 # model = "gpt-4.1"
 model_provider = "openai"
-model = "gpt-5-codex"
+model = "gpt-5.4"
 sandbox_mode = "workspace-write"
+model_reasoning_effort = "medium"
 
 [model_providers.groq]
 name = "groq"
@@ -35,3 +36,9 @@ args = ["chrome-devtools-mcp@latest"]
 
 [plugins."github@openai-curated"]
 enabled = true
+
+[projects."/Users/memorysaver/.dotfiles"]
+trust_level = "trusted"
+
+[notice.model_migrations]
+gpt-5-codex = "gpt-5.4"
