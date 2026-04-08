@@ -27,52 +27,34 @@ Confirm the source file exists before proceeding.
 Ask what should change. Common categories:
 - **Content edit**: Add, remove, or change objects/elements
 - **Style change**: Different artistic style, color palette, mood
-- **Composition**: Crop, zoom, reframe
 - **Prompt refinement**: The concept is right but the details are off
-- **Specialized transform**: Relight, restore, colorize, change season, face swap
+- **Specialized transform**: Relight, restore, colorize, change season, face swap, blend
 
-### 4. Choose approach and model
+### 4. Select model and approach
 
-Use the **Model Selection Guide** in SKILL.md to pick the right model. The key decision:
+Load [references/model-guide.md](../references/model-guide.md) — the "Editing an existing image" and "Specialized tools" sections map each edit type to the right model.
 
-| Change Type | Approach | Model |
-|-------------|----------|-------|
-| General content edit (default) | `wavespeed edit` | `google/nano-banana-2/edit` |
-| Cheapest edit | `wavespeed edit` | `google/nano-banana-2/edit-fast` |
-| Multi-person scene edit | `wavespeed edit` | `wavespeed-ai/qwen-image/edit-2511` |
-| Edit with reference images | `wavespeed edit` | `wavespeed-ai/phota/edit` |
-| Best quality edit | `wavespeed edit` | `google/nano-banana-pro/edit` |
-| Style/prompt refinement | Re-generate with adjusted prompt | `google/nano-banana-2/text-to-image` |
-| Variations (same concept) | Re-generate with different seed | same model + `--seed N` |
-| Relight / change lighting | `wavespeed edit` | `bria/fibo/relight` |
-| Restore old/damaged photo | `wavespeed edit` | `bria/fibo/restore` |
-| Colorize B&W photo | `wavespeed edit` | `bria/fibo/colorize` |
-| Change season/weather | `wavespeed edit` | `bria/fibo/reseason` |
-| Blend/merge textures | `wavespeed edit` | `bria/fibo/image-blend` |
-| Face swap | `wavespeed edit` | `wavespeed-ai/infinite-you` |
+The key decision is whether to **edit** the existing image or **re-generate** from scratch:
+- Edit (preserves the original, changes specific things) → `wavespeed edit -i source.png -p "instruction" -m <model> --json`
+- Re-generate (start fresh with adjusted prompt) → `wavespeed generate image -p "new prompt" --json`
+- Variation (same concept, different seed) → `wavespeed generate image -p "same prompt" --seed N --json`
 
-Tell the user which model you're using and why.
+Tell the user which model and approach you're using and why.
 
 ### 5. Generate and present
 
-Load [references/cli.md](../references/cli.md) and run the command with `--json`. Show the user:
-- The new output file path
-- What changed (the edit instruction or prompt adjustment)
-- The model used
+Load [references/cli.md](../references/cli.md) and run the command with `--json`. Show the user the new output file path and what changed.
 
 ### 6. Loop
 
-Ask the user: **"Keep this, try again, or adjust further?"**
+Ask: **"Keep this, try again, or adjust further?"**
 
-- **Keep**: Done — offer to move the file to the right project location.
-- **Try again**: Re-run with the same or slightly modified parameters.
+- **Keep**: Offer to move the file to the right project location.
+- **Try again**: Re-run with same or slightly modified parameters.
 - **Adjust**: Go back to step 3 with new feedback.
 
-Repeat until the user is satisfied. Keep intermediate files so the user can compare versions.
+Keep intermediate files so the user can compare versions.
 
 ### 7. Clean up
 
-When the user confirms the final version, offer to:
-- Rename the final file to something meaningful
-- Move it to the appropriate project directory
-- Delete intermediate files if the user doesn't need them
+When done, offer to rename the final file, move it to the project directory, and delete intermediates.
