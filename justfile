@@ -86,9 +86,6 @@ link:
   for skill in {{dotfiles}}/agents/skills/*/; do
     [ -d "$skill" ] && ensure_symlink "$skill" "$HOME/.claude/skills/$(basename "$skill")"
   done
-  for skill in {{dotfiles}}/.agents/skills/*/; do
-    [ -d "$skill" ] && ensure_symlink "$skill" "$HOME/.claude/skills/$(basename "$skill")"
-  done
 
   # Codex CLI
   ensure_dir "$HOME/.codex"
