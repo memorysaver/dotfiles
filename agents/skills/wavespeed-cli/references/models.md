@@ -29,16 +29,29 @@
 
 ## Video Generation
 
+### WAN 2.7 — Alibaba (recommended, with thinking mode)
+
+| Model ID | Input | Resolution | Best For |
+|----------|-------|------------|----------|
+| `alibaba/wan-2.7/text-to-video` | Text | 720p/1080p | Cinematic text-to-video with thinking mode **(default)** |
+| `alibaba/wan-2.7/image-to-video` | Image + text | 720p/1080p | Animate images with audio and frame control **(default with --image)** |
+| `alibaba/wan-2.7/reference-to-video` | Reference + text | 720p/1080p | Character/scene videos preserving identity |
+| `alibaba/wan-2.7/video-edit` | Video + text | 720p/1080p | Prompt-driven video editing with multi-image reference |
+| `alibaba/wan-2.7/video-extend` | Video | 720p/1080p | Extend clips with last-frame control |
+
+### Other providers
+
 | Model ID | Input | Speed | Best For |
 |----------|-------|-------|----------|
-| `wavespeed-ai/wan-2.1/text-to-video` | Text only | Standard | Creating video from a text description |
-| `wavespeed-ai/wan-2.1/image-to-video` | Image + text | Standard | Animating a still image with guided motion |
 | `bytedance/seedance-2.0-fast/image-to-video` | Image + text | Fast | Quick image animation |
 | `wavespeed-ai/framepack` | Text | Standard | Autoregressive video, longer sequences |
 
 **Choosing a video model:**
-- Animating a still image? Use `wan-2.1/image-to-video` (quality) or `seedance-2.0-fast` (speed).
-- Creating video from scratch? Use `wan-2.1/text-to-video`.
+- Default: `alibaba/wan-2.7/text-to-video` — cinematic quality with built-in thinking mode for better prompt understanding.
+- Animating a still image? Use `alibaba/wan-2.7/image-to-video` (quality) or `seedance-2.0-fast` (speed).
+- Need character consistency? Use `alibaba/wan-2.7/reference-to-video`.
+- Editing existing video? Use `alibaba/wan-2.7/video-edit`.
+- Extending a clip? Use `alibaba/wan-2.7/video-extend`.
 - Video generation takes 1-2 minutes regardless of model.
 
 ## Image Editing

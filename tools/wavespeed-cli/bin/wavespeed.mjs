@@ -79,9 +79,13 @@ const MODELS = [
   { id: "wavespeed-ai/flux-dev", type: "image", speed: "fast", description: "General purpose Flux model" },
   { id: "wavespeed-ai/z-image/turbo", type: "image", speed: "very fast", description: "Ultra-fast 6B model, sub-second" },
   { id: "bytedance/seedream-v4.5", type: "image", speed: "standard", description: "High-fidelity photorealistic (ByteDance)" },
-  // Video generation
-  { id: "wavespeed-ai/wan-2.1/text-to-video", type: "video", speed: "standard", description: "Text-to-video generation" },
-  { id: "wavespeed-ai/wan-2.1/image-to-video", type: "video", speed: "standard", description: "Animate a still image" },
+  // Video generation — WAN 2.7 (Alibaba, with thinking mode)
+  { id: "alibaba/wan-2.7/text-to-video", type: "video", speed: "standard", description: "Cinematic 720p/1080p text-to-video with thinking mode (default)" },
+  { id: "alibaba/wan-2.7/image-to-video", type: "video", speed: "standard", description: "Image-to-video 720p/1080p with audio and frame control" },
+  { id: "alibaba/wan-2.7/reference-to-video", type: "video", speed: "standard", description: "Character/scene reference video with identity preservation" },
+  { id: "alibaba/wan-2.7/video-extend", type: "video", speed: "standard", description: "Extend existing videos with last-frame control" },
+  { id: "alibaba/wan-2.7/video-edit", type: "video", speed: "standard", description: "Prompt-driven video editing with multi-image reference" },
+  // Video generation — other
   { id: "bytedance/seedance-2.0-fast/image-to-video", type: "video", speed: "fast", description: "Fast image-to-video (ByteDance)" },
   { id: "wavespeed-ai/framepack", type: "video", speed: "standard", description: "Autoregressive video generation" },
   // Image editing — Google
@@ -156,12 +160,12 @@ generate
     // Auto-select model based on whether an image is provided
     let model = opts.model;
     if (opts.image) {
-      model = model || "wavespeed-ai/wan-2.1/image-to-video";
+      model = model || "alibaba/wan-2.7/image-to-video";
       if (!jsonMode) console.log("Uploading source image...");
       const imageUrl = await wavespeed.upload(resolve(opts.image));
       params.image = imageUrl;
     } else {
-      model = model || "wavespeed-ai/wan-2.1/text-to-video";
+      model = model || "alibaba/wan-2.7/text-to-video";
     }
 
     if (!jsonMode) console.log(`Generating video with ${model}... (this may take 1-2 minutes)`);

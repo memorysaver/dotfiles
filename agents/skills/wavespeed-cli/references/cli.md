@@ -61,7 +61,7 @@ wavespeed generate video -p <prompt> [options]
 | `-m, --model <id>` | Model ID | auto-selected based on `--image` |
 | `-o, --output <path>` | Output file path | `wavespeed-video-{timestamp}.{ext}` |
 
-When `--image` is provided, the default model switches to `wavespeed-ai/wan-2.1/image-to-video` and the image is automatically uploaded before generation. Without `--image`, the default is `wavespeed-ai/wan-2.1/text-to-video`.
+When `--image` is provided, the default model switches to `alibaba/wan-2.7/image-to-video` and the image is automatically uploaded before generation. Without `--image`, the default is `alibaba/wan-2.7/text-to-video`.
 
 Video generation typically takes 1-2 minutes.
 
