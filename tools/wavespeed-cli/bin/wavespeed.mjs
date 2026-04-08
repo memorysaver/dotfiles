@@ -75,10 +75,19 @@ const MODELS = [
   { id: "google/nano-banana-pro/text-to-image", type: "image", speed: "standard", description: "Sharper, higher-fidelity with improved prompt control" },
   { id: "google/nano-banana-pro/text-to-image-ultra", type: "image", speed: "standard", description: "Ultra-detailed 4K generation" },
   { id: "google/nano-banana/text-to-image", type: "image", speed: "standard", description: "Original Nano Banana text-to-image" },
+  // Image generation — Recraft
+  { id: "recraft-ai/recraft-v4-pro/text-to-image", type: "image", speed: "standard", description: "Premium quality for professional design" },
+  { id: "recraft-ai/recraft-v4/text-to-image", type: "image", speed: "standard", description: "High quality with color palette control" },
   // Image generation — other
-  { id: "wavespeed-ai/flux-dev", type: "image", speed: "fast", description: "General purpose Flux model" },
+  { id: "wavespeed-ai/phota/text-to-image", type: "image", speed: "standard", description: "Personalized photographs, 1K/4K" },
+  { id: "wavespeed-ai/qwen-image/text-to-image", type: "image", speed: "standard", description: "20B MMDiT next-gen model" },
+  { id: "sourceful/riverflow-2.0-pro/text-to-image", type: "image", speed: "standard", description: "Agentic model, high-precision generation" },
   { id: "wavespeed-ai/z-image/turbo", type: "image", speed: "very fast", description: "Ultra-fast 6B model, sub-second" },
+  { id: "wavespeed-ai/flux-dev", type: "image", speed: "fast", description: "General purpose Flux model" },
   { id: "bytedance/seedream-v4.5", type: "image", speed: "standard", description: "High-fidelity photorealistic (ByteDance)" },
+  // SVG / Vector generation
+  { id: "recraft-ai/recraft-v4-pro/text-to-vector", type: "svg", speed: "standard", description: "Professional SVG for logos, icons, branding" },
+  { id: "recraft-ai/recraft-v4/text-to-vector", type: "svg", speed: "standard", description: "Native SVG graphics for design assets" },
   // Video generation — WAN 2.7 (Alibaba, with thinking mode)
   { id: "alibaba/wan-2.7/text-to-video", type: "video", speed: "standard", description: "Cinematic 720p/1080p text-to-video with thinking mode (default)" },
   { id: "alibaba/wan-2.7/image-to-video", type: "video", speed: "standard", description: "Image-to-video 720p/1080p with audio and frame control" },
@@ -93,7 +102,18 @@ const MODELS = [
   { id: "google/nano-banana-2/edit-fast", type: "edit", speed: "very fast", description: "Cheapest editing ($0.045/img), 2K default" },
   { id: "google/nano-banana-pro/edit", type: "edit", speed: "standard", description: "Region-aware 4K edits preserving identity" },
   // Image editing — other
+  { id: "wavespeed-ai/phota/edit", type: "edit", speed: "standard", description: "Multi-reference editing (up to 10 refs)" },
+  { id: "wavespeed-ai/qwen-image/edit-2511", type: "edit", speed: "standard", description: "Multi-person identity/pose consistency" },
+  { id: "sourceful/riverflow-2.0-pro/edit", type: "edit", speed: "standard", description: "Agentic precise editing" },
   { id: "wavespeed-ai/flux-kontext-pro", type: "edit", speed: "fast", description: "Instruction-based image editing (Flux)" },
+  // Specialized tools
+  { id: "bria/fibo/relight", type: "tool", speed: "fast", description: "Modify lighting direction and atmosphere" },
+  { id: "bria/fibo/restore", type: "tool", speed: "fast", description: "Remove noise, scratches, blur from old photos" },
+  { id: "bria/fibo/colorize", type: "tool", speed: "fast", description: "Add color to B&W photos" },
+  { id: "bria/fibo/reseason", type: "tool", speed: "fast", description: "Change season or weather atmosphere" },
+  { id: "bria/fibo/image-blend", type: "tool", speed: "fast", description: "Merge objects, apply textures" },
+  { id: "wavespeed-ai/infinite-you", type: "tool", speed: "standard", description: "Zero-shot face swapping with identity preservation" },
+  { id: "wavespeed-ai/sam3-image", type: "tool", speed: "fast", description: "Image segmentation via text, points, or boxes" },
 ];
 
 // ---------------------------------------------------------------------------
