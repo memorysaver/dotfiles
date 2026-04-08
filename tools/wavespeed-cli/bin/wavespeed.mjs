@@ -69,18 +69,27 @@ function outputResult(data, jsonMode) {
 // ---------------------------------------------------------------------------
 
 const MODELS = [
-  // Image generation
-  { id: "wavespeed-ai/flux-dev", type: "image", speed: "fast", description: "General purpose, good default" },
+  // Image generation — Google
+  { id: "google/nano-banana-2/text-to-image", type: "image", speed: "fast", description: "Pro quality at flash speed, 512px–4K (default)" },
+  { id: "google/nano-banana-2/text-to-image-fast", type: "image", speed: "very fast", description: "Lowest cost ($0.045/img), 2K default" },
+  { id: "google/nano-banana-pro/text-to-image", type: "image", speed: "standard", description: "Sharper, higher-fidelity with improved prompt control" },
+  { id: "google/nano-banana-pro/text-to-image-ultra", type: "image", speed: "standard", description: "Ultra-detailed 4K generation" },
+  { id: "google/nano-banana/text-to-image", type: "image", speed: "standard", description: "Original Nano Banana text-to-image" },
+  // Image generation — other
+  { id: "wavespeed-ai/flux-dev", type: "image", speed: "fast", description: "General purpose Flux model" },
   { id: "wavespeed-ai/z-image/turbo", type: "image", speed: "very fast", description: "Ultra-fast 6B model, sub-second" },
-  { id: "black-forest-labs/flux-dev", type: "image", speed: "standard", description: "High quality photorealistic" },
   { id: "bytedance/seedream-v4.5", type: "image", speed: "standard", description: "High-fidelity photorealistic (ByteDance)" },
   // Video generation
   { id: "wavespeed-ai/wan-2.1/text-to-video", type: "video", speed: "standard", description: "Text-to-video generation" },
   { id: "wavespeed-ai/wan-2.1/image-to-video", type: "video", speed: "standard", description: "Animate a still image" },
   { id: "bytedance/seedance-2.0-fast/image-to-video", type: "video", speed: "fast", description: "Fast image-to-video (ByteDance)" },
   { id: "wavespeed-ai/framepack", type: "video", speed: "standard", description: "Autoregressive video generation" },
-  // Image editing
-  { id: "wavespeed-ai/flux-kontext-pro", type: "edit", speed: "fast", description: "Instruction-based image editing" },
+  // Image editing — Google
+  { id: "google/nano-banana-2/edit", type: "edit", speed: "fast", description: "4K-capable editing, text localization, subject consistency" },
+  { id: "google/nano-banana-2/edit-fast", type: "edit", speed: "very fast", description: "Cheapest editing ($0.045/img), 2K default" },
+  { id: "google/nano-banana-pro/edit", type: "edit", speed: "standard", description: "Region-aware 4K edits preserving identity" },
+  // Image editing — other
+  { id: "wavespeed-ai/flux-kontext-pro", type: "edit", speed: "fast", description: "Instruction-based image editing (Flux)" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -99,7 +108,7 @@ generate
   .command("image")
   .description("Generate an image from a text prompt")
   .requiredOption("-p, --prompt <text>", "Text prompt describing the image")
-  .option("-m, --model <id>", "Model ID", "wavespeed-ai/flux-dev")
+  .option("-m, --model <id>", "Model ID", "google/nano-banana-2/text-to-image")
   .option("-s, --size <WxH>", "Image dimensions, e.g. 1024x768")
   .option("-o, --output <path>", "Output file path")
   .option("--seed <number>", "Random seed for reproducibility", parseInt)
@@ -183,7 +192,7 @@ program
   .description("Edit an image using a text instruction")
   .requiredOption("-i, --image <path>", "Source image to edit")
   .requiredOption("-p, --prompt <text>", "Edit instruction")
-  .option("-m, --model <id>", "Model ID", "wavespeed-ai/flux-kontext-pro")
+  .option("-m, --model <id>", "Model ID", "google/nano-banana-2/edit")
   .option("-o, --output <path>", "Output file path")
   .action(async (opts) => {
     requireApiKey();

@@ -23,7 +23,7 @@ wavespeed generate image -p <prompt> [options]
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-p, --prompt <text>` | Text prompt (required) | — |
-| `-m, --model <id>` | Model ID | `wavespeed-ai/flux-dev` |
+| `-m, --model <id>` | Model ID | `google/nano-banana-2/text-to-image` |
 | `-s, --size <WxH>` | Dimensions, e.g. `1024x768` | model default |
 | `-o, --output <path>` | Output file path | `wavespeed-image-{timestamp}.{ext}` |
 | `--seed <number>` | Random seed for reproducibility | random |
@@ -92,7 +92,7 @@ wavespeed edit -i <image> -p <prompt> [options]
 |------|-------------|---------|
 | `-i, --image <path>` | Source image to edit (required) | — |
 | `-p, --prompt <text>` | Edit instruction (required) | — |
-| `-m, --model <id>` | Model ID | `wavespeed-ai/flux-kontext-pro` |
+| `-m, --model <id>` | Model ID | `google/nano-banana-2/edit` |
 | `-o, --output <path>` | Output file path | `wavespeed-edit-{timestamp}.{ext}` |
 
 The source image is automatically uploaded before the edit operation.

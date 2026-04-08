@@ -2,17 +2,30 @@
 
 ## Image Generation
 
+### Google Nano Banana (recommended)
+
 | Model ID | Speed | Best For |
 |----------|-------|----------|
-| `wavespeed-ai/flux-dev` | Fast | General purpose — good default for most image tasks |
-| `wavespeed-ai/z-image/turbo` | Very fast | Quick drafts and previews, sub-second latency |
-| `black-forest-labs/flux-dev` | Standard | High quality photorealistic images |
-| `bytedance/seedream-v4.5` | Standard | High-fidelity photorealistic (ByteDance Seedream) |
+| `google/nano-banana-2/text-to-image` | Fast | Pro quality at flash speed, 512px–4K **(default)** |
+| `google/nano-banana-2/text-to-image-fast` | Very fast | Lowest cost ($0.045/img), 2K default |
+| `google/nano-banana-pro/text-to-image` | Standard | Sharper, higher-fidelity with improved prompt control |
+| `google/nano-banana-pro/text-to-image-ultra` | Standard | Ultra-detailed 4K generation |
+| `google/nano-banana-pro/text-to-image-multi` | Standard | Multiple high-quality images per run ($0.07 each) |
+| `google/nano-banana/text-to-image` | Standard | Original Nano Banana text-to-image |
+
+### Other providers
+
+| Model ID | Speed | Best For |
+|----------|-------|----------|
+| `wavespeed-ai/flux-dev` | Fast | General purpose Flux model |
+| `wavespeed-ai/z-image/turbo` | Very fast | Ultra-fast drafts, sub-second latency |
+| `bytedance/seedream-v4.5` | Standard | High-fidelity photorealistic (ByteDance) |
 
 **Choosing an image model:**
-- Need speed? Use `z-image/turbo` for instant previews, then switch to `flux-dev` for the final version.
-- Need photorealism? Use `seedream-v4.5` or `black-forest-labs/flux-dev`.
-- General use? `wavespeed-ai/flux-dev` is the best default.
+- Default: `google/nano-banana-2/text-to-image` — best balance of quality, speed, and cost.
+- Need cheapest? Use `nano-banana-2/text-to-image-fast` at $0.045/img.
+- Need maximum quality? Use `nano-banana-pro/text-to-image-ultra` for 4K.
+- Need instant previews? Use `z-image/turbo` for sub-second drafts.
 
 ## Video Generation
 
@@ -30,11 +43,26 @@
 
 ## Image Editing
 
+### Google Nano Banana (recommended)
+
 | Model ID | Speed | Best For |
 |----------|-------|----------|
-| `wavespeed-ai/flux-kontext-pro` | Fast | Instruction-based edits: background changes, style transfers, content additions/removals |
+| `google/nano-banana-2/edit` | Fast | 4K editing, text localization, subject consistency **(default)** |
+| `google/nano-banana-2/edit-fast` | Very fast | Cheapest editing ($0.045/img), 2K default |
+| `google/nano-banana-pro/edit` | Standard | Region-aware 4K edits preserving identity |
+| `google/nano-banana-pro/edit-multi` | Standard | Multiple edited images per run ($0.07 each) |
+| `google/nano-banana/edit` | Standard | Original Nano Banana inpainting/outpainting |
 
-This is currently the only editing model. It handles a wide range of edit types — background swaps, object addition/removal, style changes, color adjustments — all via natural language instructions.
+### Other providers
+
+| Model ID | Speed | Best For |
+|----------|-------|----------|
+| `wavespeed-ai/flux-kontext-pro` | Fast | Instruction-based edits (Flux) |
+
+**Choosing an edit model:**
+- Default: `google/nano-banana-2/edit` — 4K capable with subject consistency.
+- Need cheapest? Use `nano-banana-2/edit-fast` at $0.045/img.
+- Need best quality? Use `nano-banana-pro/edit` for region-aware preservation.
 
 ## Notes
 
