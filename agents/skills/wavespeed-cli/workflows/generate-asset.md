@@ -1,6 +1,6 @@
 # Generate Asset
 
-Generate a single image or video for a project.
+Generate a single image, video, or SVG for a project.
 
 ## Steps
 
@@ -17,21 +17,26 @@ If either fails, load [references/installation.md](../references/installation.md
 
 Before generating, understand what the user needs. Ask about any of these that aren't clear from context:
 
-- **Type**: Image or video?
-- **Purpose**: Hero image, thumbnail, placeholder, social graphic, product shot, background, icon?
+- **Type**: Image, video, or SVG/vector?
+- **Purpose**: Hero image, thumbnail, placeholder, social graphic, product shot, background, icon, logo?
 - **Style/mood**: Photorealistic, illustrated, minimal, vibrant, dark, professional?
 - **Dimensions**: Standard web sizes (1024x768, 1920x1080, 1080x1080 for social)?
 - **Reference images**: Does the user have an existing image to build from?
+- **Priority**: Speed, quality, or cost?
 
 Don't over-ask — if the user said "make me a hero image for my landing page", you have enough to start. Fill in reasonable defaults and iterate.
 
 ### 3. Select model
 
-Load [references/models.md](../references/models.md) and pick the right model:
+Use the **Model Selection Guide** in SKILL.md to pick the right model based on the user's intent and priority. The guide has decision trees for every use case.
 
-- **Image**: `wavespeed-ai/flux-dev` for most cases. Use `z-image/turbo` for quick drafts.
-- **Video from text**: `wavespeed-ai/wan-2.1/text-to-video`
-- **Video from image**: `wavespeed-ai/wan-2.1/image-to-video`
+Quick defaults if no special requirements:
+- **Image from text**: `google/nano-banana-2/text-to-image`
+- **SVG / logo / icon**: `recraft-ai/recraft-v4-pro/text-to-vector`
+- **Video from text**: `alibaba/wan-2.7/text-to-video`
+- **Video from image**: `alibaba/wan-2.7/image-to-video`
+
+Tell the user which model you chose and why, in one sentence. If they want a different tradeoff (faster, cheaper, higher quality), suggest the alternative from the guide.
 
 ### 4. Craft the prompt
 
@@ -49,7 +54,7 @@ Share the prompt with the user before generating so they can adjust it.
 Load [references/cli.md](../references/cli.md) and run the appropriate command. Always use `--json` to capture the output programmatically.
 
 ```bash
-wavespeed generate image -p "your prompt here" --json
+wavespeed generate image -p "your prompt here" -m <model> --json
 ```
 
 ### 6. Present result

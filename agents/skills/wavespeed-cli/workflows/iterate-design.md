@@ -29,22 +29,36 @@ Ask what should change. Common categories:
 - **Style change**: Different artistic style, color palette, mood
 - **Composition**: Crop, zoom, reframe
 - **Prompt refinement**: The concept is right but the details are off
+- **Specialized transform**: Relight, restore, colorize, change season, face swap
 
-### 4. Choose approach
+### 4. Choose approach and model
 
-Load [references/cli.md](../references/cli.md) and [references/models.md](../references/models.md).
+Use the **Model Selection Guide** in SKILL.md to pick the right model. The key decision:
 
-| Change Type | Approach | Command |
-|-------------|----------|---------|
-| Content edit (add/remove/modify elements) | `wavespeed edit` with flux-kontext | `wavespeed edit -i source.png -p "instruction" --json` |
-| Style/prompt refinement | Re-generate with adjusted prompt | `wavespeed generate image -p "new prompt" --json` |
-| Variations (same concept, different seed) | Re-generate with seed | `wavespeed generate image -p "same prompt" --seed N --json` |
+| Change Type | Approach | Model |
+|-------------|----------|-------|
+| General content edit (default) | `wavespeed edit` | `google/nano-banana-2/edit` |
+| Cheapest edit | `wavespeed edit` | `google/nano-banana-2/edit-fast` |
+| Multi-person scene edit | `wavespeed edit` | `wavespeed-ai/qwen-image/edit-2511` |
+| Edit with reference images | `wavespeed edit` | `wavespeed-ai/phota/edit` |
+| Best quality edit | `wavespeed edit` | `google/nano-banana-pro/edit` |
+| Style/prompt refinement | Re-generate with adjusted prompt | `google/nano-banana-2/text-to-image` |
+| Variations (same concept) | Re-generate with different seed | same model + `--seed N` |
+| Relight / change lighting | `wavespeed edit` | `bria/fibo/relight` |
+| Restore old/damaged photo | `wavespeed edit` | `bria/fibo/restore` |
+| Colorize B&W photo | `wavespeed edit` | `bria/fibo/colorize` |
+| Change season/weather | `wavespeed edit` | `bria/fibo/reseason` |
+| Blend/merge textures | `wavespeed edit` | `bria/fibo/image-blend` |
+| Face swap | `wavespeed edit` | `wavespeed-ai/infinite-you` |
+
+Tell the user which model you're using and why.
 
 ### 5. Generate and present
 
-Run the command with `--json`. Show the user:
+Load [references/cli.md](../references/cli.md) and run the command with `--json`. Show the user:
 - The new output file path
 - What changed (the edit instruction or prompt adjustment)
+- The model used
 
 ### 6. Loop
 
