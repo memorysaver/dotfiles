@@ -1,0 +1,13 @@
+{
+  "name": "wavespeed-cli",
+  "version": "0.1.0",
+  "description": "CLI tool for WaveSpeed AI image/video generation",
+  "type": "module",
+  "bin": {
+    "wavespeed": "./bin/wavespeed.mjs"
+  },
+  "dependencies": {
+    "commander": "^13.0.0",
+    "wavespeed": "latest"
+  }
+}

@@ -67,7 +67,8 @@
     "skill-creator@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
     "codex@openai-codex": true,
-    "obsidian@obsidian-skills": true
+    "obsidian@obsidian-skills": true,
+    "document-skills@anthropic-agent-skills": true
   },
   "extraKnownMarketplaces": {
     "superpowers-marketplace": {
@@ -117,6 +118,5 @@
   "teammateMode": "tmux",
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
-  },
-  "model": "haiku"
+  }
 }

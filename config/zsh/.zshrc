@@ -77,3 +77,4 @@ tool-update() {
 
 # --- Starship prompt (must be last) ---
 eval "$(starship init zsh)"
+export PATH="$HOME/.looplia/bin:$PATH"

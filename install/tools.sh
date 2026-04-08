@@ -118,4 +118,16 @@ else
   ok "podwise already installed"
 fi
 
+# --- wavespeed-cli (local) ---
+if ! has wavespeed; then
+  info "Installing wavespeed-cli..."
+  if has npm; then
+    npm install -g "$DOTFILES_DIR/tools/wavespeed-cli" || warn "wavespeed-cli install failed — skipping"
+  else
+    warn "npm not found — skipping wavespeed-cli"
+  fi
+else
+  ok "wavespeed already installed"
+fi
+
 ok "CLI tools installation complete"

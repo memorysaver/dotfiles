@@ -1,0 +1,61 @@
+{
+  "skill_name": "wavespeed-cli",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a landing page for a SaaS product and I need a hero image — something futuristic and clean, maybe with a gradient background and abstract shapes. Save it to public/images/hero.png",
+      "expected_output": "Loads generate-asset workflow. Crafts a detailed prompt about futuristic SaaS hero image with gradient and abstract shapes. Uses wavespeed generate image with --output public/images/hero.png and --json. Selects an appropriate model (flux-dev or similar). Presents the result and file path.",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to generate-asset workflow"},
+        {"id": "correct-command", "text": "Uses 'wavespeed generate image' command"},
+        {"id": "output-path", "text": "Specifies --output public/images/hero.png"},
+        {"id": "json-flag", "text": "Includes --json flag"},
+        {"id": "prompt-quality", "text": "Crafted prompt includes futuristic, clean, gradient, abstract concepts"},
+        {"id": "model-selection", "text": "Selects appropriate image model with reasoning"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have this logo at assets/logo.png and I want to turn it into a short animated video for our social media intro. Something with a subtle zoom and maybe some particles.",
+      "expected_output": "Loads generate-asset workflow. Recognizes this is image-to-video. Uses wavespeed generate video --image assets/logo.png with a prompt about zoom and particles. Auto-selects wan-2.1/image-to-video model. Downloads and saves the output video.",
+      "files": ["assets/logo.png"],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to generate-asset workflow"},
+        {"id": "correct-command", "text": "Uses 'wavespeed generate video' with --image flag"},
+        {"id": "image-flag", "text": "Passes --image assets/logo.png"},
+        {"id": "model-selection", "text": "Selects image-to-video model"},
+        {"id": "prompt-quality", "text": "Prompt describes zoom and particle motion"},
+        {"id": "json-flag", "text": "Includes --json flag"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The product photo I just generated has a cluttered background — can you change it to a clean white studio background? The file is at product-shot.png",
+      "expected_output": "Loads iterate-design workflow. Uses wavespeed edit --image product-shot.png with a clear prompt about changing background to white. Uses flux-kontext-pro model. Presents the edited result and asks if the user is satisfied or wants further refinement.",
+      "files": ["product-shot.png"],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to iterate-design workflow"},
+        {"id": "correct-command", "text": "Uses 'wavespeed edit' command"},
+        {"id": "image-flag", "text": "Passes --image product-shot.png"},
+        {"id": "model-selection", "text": "Uses flux-kontext-pro model"},
+        {"id": "prompt-quality", "text": "Edit prompt describes white studio background"},
+        {"id": "iteration-offer", "text": "Offers to iterate further if unsatisfied"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need placeholder images for 4 blog posts: one about AI, one about sustainability, one about remote work, and one about cybersecurity. Make them 1200x630 for social sharing.",
+      "expected_output": "Loads batch-generate workflow. Creates 4 prompts for each topic. Confirms the plan (4 images, size 1200x630, model selection). Generates sequentially with progress reporting. Presents a summary table of all 4 outputs.",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to batch-generate workflow"},
+        {"id": "four-commands", "text": "Generates exactly 4 wavespeed generate image commands"},
+        {"id": "size-flag", "text": "All commands include --size 1200x630"},
+        {"id": "unique-prompts", "text": "Each command has unique topic-specific prompt"},
+        {"id": "json-flag", "text": "All commands include --json flag"},
+        {"id": "summary-plan", "text": "Presents confirmation plan before generating"}
+      ]
+    }
+  ]
+}
