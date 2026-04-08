@@ -1,0 +1,118 @@
+{
+  "skill_name": "nanobana-prompts",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write me a prompt for a cyberpunk character portrait",
+      "expected_output": "Routes to craft-prompt workflow. Loads prompt-structure and styles references. Crafts a detailed prompt following Subject → Outward structure with cyberpunk style keywords (neon, futuristic, rain-slicked, etc.). Includes lighting, mood, and technical specs. Offers to generate with wavespeed-cli.",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to craft-prompt workflow"},
+        {"id": "loads-structure", "text": "Loads prompt-structure reference"},
+        {"id": "loads-styles", "text": "Loads styles reference for cyberpunk keywords"},
+        {"id": "subject-outward", "text": "Output prompt follows Subject → Outward structure"},
+        {"id": "cyberpunk-keywords", "text": "Includes cyberpunk style keywords (neon, futuristic, etc.)"},
+        {"id": "includes-lighting", "text": "Prompt includes lighting and mood specification"},
+        {"id": "includes-negative", "text": "Prompt includes negative constraints"},
+        {"id": "offers-generation", "text": "Offers to generate with wavespeed-cli after crafting"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Improve this prompt: 'a girl standing in a forest, anime style, pretty'",
+      "expected_output": "Routes to refine-prompt workflow. Loads prompt-structure reference. Diagnoses issues: vague subject, missing appearance details, no lighting, no mood, no technical specs, too short. Presents numbered issues and rewrites with specific details. Offers to refine further or generate.",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to refine-prompt workflow"},
+        {"id": "diagnoses-vagueness", "text": "Identifies vague/generic descriptors as an issue"},
+        {"id": "identifies-missing", "text": "Lists missing layers (lighting, mood, technical specs)"},
+        {"id": "provides-rewrite", "text": "Outputs a complete improved prompt with specific details"},
+        {"id": "rewrite-longer", "text": "Rewritten prompt is substantially longer and more detailed"},
+        {"id": "preserves-intent", "text": "Maintains forest setting and anime style from original"},
+        {"id": "offers-next-steps", "text": "Offers refinement or generation as next steps"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I have this photorealistic portrait prompt but I want it in watercolor style instead:\n\n'A woman in her 30s with auburn hair, freckles, wearing a linen blouse. Standing in a sunlit garden with lavender bushes. Shot on 85mm f/1.4, golden hour, shallow depth of field. Photorealistic, editorial photography.'",
+      "expected_output": "Routes to adapt-style workflow. Loads styles reference for watercolor keywords. Removes photorealistic markers (camera model, f-stop, DSLR cues). Adds watercolor keywords (wet-on-wet, soft edges, color bleeding, paper texture). Preserves subject, setting, and warm mood. Presents adapted prompt with change summary.",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to adapt-style workflow"},
+        {"id": "removes-photo-markers", "text": "Removes camera specs, f-stop, and photorealistic keywords"},
+        {"id": "adds-watercolor-keywords", "text": "Adds watercolor-specific keywords (soft edges, washes, paper texture, etc.)"},
+        {"id": "preserves-subject", "text": "Keeps auburn hair, freckles, linen blouse, garden, lavender"},
+        {"id": "preserves-mood", "text": "Maintains warm, golden, sunlit mood"},
+        {"id": "explains-changes", "text": "Summarizes what was removed and added"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I'm imagining a cozy Japanese cafe on a rainy evening — warm lights inside, rain on the windows, a cat sleeping on a cushion by the entrance. Something that feels calm and nostalgic.",
+      "expected_output": "Routes to describe-to-prompt workflow. Extracts elements: subject (cafe), setting (Japanese, rainy evening), details (cat, cushion, rain on windows), mood (cozy, calm, nostalgic). Infers style (cinematic or illustration). Builds structured prompt with all layers. Notes what was inferred.",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to describe-to-prompt workflow"},
+        {"id": "extracts-elements", "text": "Identifies and lists extracted elements from the description"},
+        {"id": "includes-cat", "text": "Prompt includes the sleeping cat on cushion detail"},
+        {"id": "includes-rain", "text": "Prompt includes rain on windows and rainy atmosphere"},
+        {"id": "warm-lighting", "text": "Prompt specifies warm interior lighting contrasting with rainy exterior"},
+        {"id": "mood-match", "text": "Captures calm and nostalgic mood in lighting and atmosphere choices"},
+        {"id": "notes-inferences", "text": "Explains what was inferred vs. stated by user"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I need a prompt for a YouTube thumbnail for a video about '10 AI Tools You Need in 2026'",
+      "expected_output": "Routes to craft-prompt workflow. Determines use case (YouTube thumbnail). Crafts prompt with 16:9 ratio, leaves space for text overlay, uses bold vibrant colors and dramatic lighting. Includes negative constraints (no text, no watermarks). Medium length.",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to craft-prompt workflow"},
+        {"id": "correct-ratio", "text": "Uses 16:9 aspect ratio for YouTube"},
+        {"id": "text-space", "text": "Leaves negative space or reserved area for text overlay"},
+        {"id": "vibrant-style", "text": "Uses high-contrast, vibrant, eye-catching style"},
+        {"id": "no-text-constraint", "text": "Includes 'no text' in negative constraints"},
+        {"id": "appropriate-length", "text": "Prompt is medium length (100-200 words)"}
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Write a prompt for a 3D isometric scene of a tiny floating island with a lighthouse",
+      "expected_output": "Routes to craft-prompt workflow. Loads prompt-structure, styles (isometric + 3D render), and technical-specs references. Crafts prompt with isometric keywords (45-degree, miniature, diorama), renderer (Cinema 4D), PBR materials, detailed scene. Complex length (200+ words).",
+      "files": [],
+      "assertions": [
+        {"id": "correct-workflow", "text": "Routes to craft-prompt workflow"},
+        {"id": "isometric-keywords", "text": "Includes isometric-specific keywords (45-degree, miniature, diorama)"},
+        {"id": "renderer-specified", "text": "Specifies a rendering engine (Cinema 4D, Blender, etc.)"},
+        {"id": "material-keywords", "text": "Includes PBR or material-specific keywords"},
+        {"id": "detailed-scene", "text": "Describes lighthouse, island, and surrounding elements in detail"},
+        {"id": "appropriate-length", "text": "Prompt is complex length (200+ words)"}
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I have a photo of my dog. Write a prompt that would generate a similar image but in anime style.",
+      "expected_output": "Routes to describe-to-prompt or craft-prompt workflow. Includes reference image directive ('Use [uploaded image] as reference'). Applies anime style keywords from styles reference. Preserves the dog as subject while adapting to anime aesthetic. Removes photorealistic markers.",
+      "files": [],
+      "assertions": [
+        {"id": "reference-image", "text": "Includes a reference image usage directive"},
+        {"id": "anime-style", "text": "Uses anime/manga style keywords (cel-shaded, clean linework, etc.)"},
+        {"id": "preserves-subject", "text": "Keeps dog as the main subject"},
+        {"id": "no-photo-markers", "text": "Does not include photorealistic camera specs incompatible with anime"},
+        {"id": "offers-generation", "text": "Offers to generate with wavespeed-cli"}
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Show me what styles are available for image prompts",
+      "expected_output": "Handles as a direct operation without loading a full workflow. Loads styles.md reference and presents a summary of all available styles with brief descriptions.",
+      "files": [],
+      "assertions": [
+        {"id": "direct-operation", "text": "Does not route to a full workflow"},
+        {"id": "loads-styles", "text": "Loads styles reference"},
+        {"id": "lists-styles", "text": "Lists multiple styles with descriptions"},
+        {"id": "covers-breadth", "text": "Covers at least 10 different styles"}
+      ]
+    }
+  ]
+}
