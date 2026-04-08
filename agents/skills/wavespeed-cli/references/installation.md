@@ -24,13 +24,27 @@ npm install -g ~/.dotfiles/tools/wavespeed-cli
 1. Sign in at https://wavespeed.ai (Google or GitHub)
 2. Go to https://wavespeed.ai/accesskey
 3. Create a new API key
-4. Add to your shell profile (`~/.zshrc`):
+
+### Option A: direnv (recommended)
+
+Add the key to a `.envrc` file in the project where you need it:
+
+```bash
+echo 'export WAVESPEED_API_KEY="ws-your-key-here"' >> .envrc
+direnv allow
+```
+
+The key loads automatically when you enter the directory and unloads when you leave. For global availability, add it to `~/.config/direnv/direnvrc` instead.
+
+### Option B: Shell profile
+
+Add to `~/.zshrc`:
 
 ```bash
 export WAVESPEED_API_KEY="ws-your-key-here"
 ```
 
-5. Reload: `source ~/.zshrc`
+Then reload: `source ~/.zshrc`
 
 ## Verify
 
