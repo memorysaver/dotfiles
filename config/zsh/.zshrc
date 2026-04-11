@@ -54,6 +54,28 @@ alias obsidian='Obsidian'
 alias ccauto='claude --permission-mode auto --rc'
 alias ccautow='claude --permission-mode auto --rc -w'
 alias ccautotw='claude --permission-mode auto --rc -w --tmux'
+# --- Chrome CDP (browser automation) ---
+chrome-cdp() {
+  local name="${1:-default}"
+  local port="${2:-9222}"
+  local dir="$HOME/.chrome-cdp/$name"
+  mkdir -p "$dir"
+  if lsof -i :"$port" &>/dev/null; then
+    echo "Port $port already in use"
+    return 1
+  fi
+  /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
+    --remote-debugging-port="$port" \
+    --remote-allow-origins="*" \
+    --user-data-dir="$dir" &>/dev/null &
+  echo "Chrome '$name' on port $port"
+}
+
+ab-connect() {
+  local name="${1:-default}"
+  local port="${2:-9222}"
+  agent-browser --session "$name" connect "$port"
+}
 
 # --- AI Tools update ---
 tool-update() {
