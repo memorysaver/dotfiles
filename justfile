@@ -81,10 +81,15 @@ link:
   done
   # Symlink output-styles directory
   ensure_symlink "{{dotfiles}}/agents/claude/output-styles" "$HOME/.claude/output-styles"
-  # Symlink all skills
+  # Symlink all skills into both Claude Code and Codex
   ensure_dir "$HOME/.claude/skills"
+  ensure_dir "$HOME/.codex/skills"
   for skill in {{dotfiles}}/agents/skills/*/; do
-    [ -d "$skill" ] && ensure_symlink "$skill" "$HOME/.claude/skills/$(basename "$skill")"
+    if [ -d "$skill" ]; then
+      name="$(basename "$skill")"
+      ensure_symlink "$skill" "$HOME/.claude/skills/$name"
+      ensure_symlink "$skill" "$HOME/.codex/skills/$name"
+    fi
   done
 
   # Codex CLI
@@ -136,6 +141,10 @@ unlink:
   done
   # Claude skills
   for skill in "$HOME/.claude/skills/"*; do
+    [ -L "$skill" ] && links+=("$skill")
+  done
+  # Codex skills
+  for skill in "$HOME/.codex/skills/"*; do
     [ -L "$skill" ] && links+=("$skill")
   done
   for link in "${links[@]}"; do

@@ -130,4 +130,18 @@ else
   ok "wavespeed already installed"
 fi
 
+# --- qmd (Quick Markdown Search) — memory backbone for the lesson-learned skill ---
+if ! has qmd; then
+  info "Installing qmd..."
+  if has bun; then
+    bun install -g @tobilu/qmd || warn "qmd install failed — skipping"
+  elif has npm; then
+    npm install -g @tobilu/qmd || warn "qmd install failed — skipping"
+  else
+    warn "neither bun nor npm found — skipping qmd"
+  fi
+else
+  ok "qmd already installed"
+fi
+
 ok "CLI tools installation complete"
