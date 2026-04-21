@@ -16,7 +16,7 @@ If `project-memory/_CONTEXT.md` already exists, skip this workflow and go straig
    ```bash
    bash "$SKILL_DIR/scripts/bootstrap_memory.sh"
    ```
-   `$SKILL_DIR` is the folder this workflow lives in; use an absolute path like `~/.claude/skills/project-memory/scripts/bootstrap_memory.sh` if shell variables aren't handy.
+   `$SKILL_DIR` is the folder this workflow lives in; if shell variables aren't handy, resolve the installed skill directory first and run the script from there.
 3. The script creates:
    - `project-memory/.gitignore` — ignores qmd SQLite sidecars (the markdown stays in git). Umbrella scope.
    - `project-memory/_CONTEXT.md` — short description passed to qmd. Umbrella scope.

@@ -115,7 +115,25 @@ The build itself runs `verify.sh` which checks all 15 symlinks and 20 commands â
 - **Git**: lazygit TUI + gh/glab CLIs
 - **Terminal**: tmux with Tokyo Night theme
 - **AI Agents**: Claude Code, Codex, OpenCode, Pi
+- **Shared Skills**: authored once under `agents/skills/` and installed for Claude Code, Codex, and Pi
 - **Dev Envs**: `ccdev`, `opendev`, `codexdev` â€” tmux sessions with lazygit + AI agent
+
+## Shared Skill Portability
+
+Shared skills live under `agents/skills/<skill-name>/` and are the single source of truth for:
+
+- Claude Code via `~/.claude/skills/<skill-name>`
+- Codex via `~/.codex/skills/<skill-name>`
+- Pi via `~/.pi/agent/skills/<skill-name>`
+
+Pi also receives a thin settings file at `~/.pi/agent/settings.json` so skill discovery is explicit and stable.
+
+Use `just validate-skills` to verify that every shared skill:
+
+- has required frontmatter
+- uses a directory name that matches the skill name
+- only references files that actually exist
+- avoids harness-specific paths in the shared core
 
 ## License
 

@@ -1,6 +1,7 @@
 ---
 name: remotion-best-practices
 description: Best practices for Remotion - Video creation in React
+license: Apache-2.0
 metadata:
   tags: remotion, video, react, animation, composition
 ---
@@ -23,7 +24,7 @@ When needing to visualize audio (spectrum bars, waveforms, bass-reactive effects
 
 ## Sound effects
 
-When needing to use sound effects, load the [./rules/sound-effects.md](./rules/sound-effects.md) file for more information.
+When needing to use sound effects, load the [./rules/sfx.md](./rules/sfx.md) file for more information.
 
 ## How to use
 

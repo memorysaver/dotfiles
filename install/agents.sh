@@ -4,6 +4,10 @@ source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing AI coding agents..."
 
+PI_NPM_PACKAGE="${PI_NPM_PACKAGE:-@mariozechner/pi}"
+PI_AGENT_BIN="${PI_AGENT_BIN:-pi}"
+PI_ALT_BIN="${PI_ALT_BIN:-pi-agent}"
+
 # --- Claude Code ---
 if ! has claude; then
   info "Installing Claude Code..."
@@ -35,10 +39,10 @@ else
 fi
 
 # --- Pi Coding Agent ---
-if ! has pi; then
+if ! has "$PI_AGENT_BIN" && ! has "$PI_ALT_BIN"; then
   info "Installing Pi coding agent..."
   if has npm; then
-    npm install -g @mariozechner/pi-coding-agent
+    npm install -g "$PI_NPM_PACKAGE"
   else
     warn "npm not found — skipping Pi"
   fi

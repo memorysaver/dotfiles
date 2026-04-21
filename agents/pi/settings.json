@@ -1,0 +1,6 @@
+{
+  "skills": [
+    "~/.pi/agent/skills"
+  ],
+  "enableSkillCommands": true
+}

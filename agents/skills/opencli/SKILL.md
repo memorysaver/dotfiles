@@ -1,6 +1,7 @@
 ---
 name: opencli
 description: Use OpenCLI to gather information from websites without login. Trigger when the user wants to fetch data from websites (news, finance, research papers, tech trends, Stack Overflow, Wikipedia, etc.) via CLI, needs structured web data in JSON/CSV/Markdown, mentions opencli, or wants to discover public APIs on any website. Also use when the user asks to scrape, monitor, or pull live data from public web sources without authentication.
+license: Apache-2.0
 ---
 
 # OpenCLI: Gather Web Information Without Login

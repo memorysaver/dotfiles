@@ -1,6 +1,7 @@
 ---
 name: podwise
 description: "Podcast knowledge workflows powered by Podwise CLI: search podcasts and episodes by keyword, monitor followed shows for new releases, find popular episodes, ask questions and extract insights from transcript content, process Podwise episode URLs, YouTube videos, Xiaoyuzhou links, and local audio or video files to retrieve transcripts, summaries, chapters, Q&A, mind maps, highlights, and keywords — plus catch up on your backlog, refine your listening taste, generate weekly recaps, export episode notes to PKM tools, research topics across podcasts, debate episode ideas, and generate language learning cards. Use when the user wants to find, summarize, transcribe, or extract insights from any podcast or audio content, or manage their listening library."
+license: Apache-2.0
 version: 0.1.0
 homepage: https://podwise.ai
 metadata:
@@ -18,7 +19,7 @@ Load these files when needed — do not load all of them upfront:
 
 - [references/cli.md](references/cli.md) — full CLI command reference. Load before running any `podwise` command or looking up flags and syntax.
 - [references/installation.md](references/installation.md) — installation and API key setup. Load if `podwise` is not installed or not configured.
-- [references/taste.md](references/taste.md) — the user's listener profile. Load at the start of any workflow that benefits from personalisation.
+- [references/taste.md](references/taste.md) — the taste profile format and conventions this skill expects. Load when you need to interpret or create a listener profile.
 
 ## Environment Check
 
@@ -37,7 +38,7 @@ Before running any `podwise` command, load [references/cli.md](references/cli.md
 
 ## First-Time Setup
 
-If [references/taste.md](references/taste.md) does not exist, suggest running the `refine-taste` workflow before any other workflow. Other workflows will still run without it, but their outputs will not be personalised.
+If the project's `taste.md` does not exist, suggest running the `refine-taste` workflow before any other workflow. Other workflows will still run without it, but their outputs will not be personalised.
 
 ## Workflow Routing
 

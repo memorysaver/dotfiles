@@ -1,6 +1,7 @@
 ---
 name: project-memory
 description: "Use when the user wants to capture, organize, or retrieve project knowledge as a git-committable memory system at project-memory/ at the project root. Trigger proactively on phrases: 'lesson learned', 'save lesson', 'wrap up session', 'postmortem', 'retro', 'capture this', 'what did we learn', 'why did this fail', 'have we seen this before', 'add to lesson', 'end of session', 'project memory', 'team memory'. Also trigger when a mission is ending and no lesson has been captured yet, or when the user asks a question whose answer likely lives in prior work. Backed by qmd for hybrid BM25 + vector search over every subsystem under project-memory/."
+license: Apache-2.0
 version: 0.1.0
 metadata:
   clawdbot:
@@ -56,11 +57,11 @@ If `qmd` is not installed, every read surface falls back to `rg`. Writes never d
 
 Always prefer running `scripts/*.sh` over re-deriving the mechanics inline. The scripts encode slug generation, timestamp formatting, idempotent folder creation, section-aware inserts, and qmd calls. Each workflow file above calls out the exact script to invoke.
 
-Scripts live under the skill itself. Invoke them via the absolute path to wherever the skill is installed (e.g. `~/.claude/skills/project-memory/scripts/<name>.sh` for Claude Code, `~/.codex/skills/project-memory/scripts/<name>.sh` for Codex — both symlink to the same source in the dotfiles repo).
+Scripts live under the skill itself. Invoke them via the absolute path to wherever the skill is installed, then run `scripts/<name>.sh` from that resolved skill directory.
 
 ## Cross-agent note
 
-This skill runs identically under Claude Code and Codex because everything important is done by shell scripts and tool-agnostic markdown edits. The one agent-specific detail is the `agent:` frontmatter field — set `LESSON_AGENT=codex` in the environment before invoking the scripts from Codex, otherwise they default to `claude-code`.
+This skill runs the same way across Claude Code, Codex, and Pi because everything important is done by shell scripts and tool-agnostic markdown edits. Resolve the installed skill directory first, then run scripts relative to that location. If you want the session frontmatter to record a specific harness, set `LESSON_AGENT=claude-code`, `LESSON_AGENT=codex`, `LESSON_AGENT=pi`, or `LESSON_AGENT=other` before invoking the scripts.
 
 ## References (load only when needed)
 

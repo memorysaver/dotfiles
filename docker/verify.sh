@@ -39,13 +39,15 @@ check_symlink "$HOME/.config/nvim"                         "$D/config/nvim"
 check_symlink "$HOME/.config/starship.toml"                "$D/config/starship/starship.toml"
 check_symlink "$HOME/.config/lazygit/config.yml"           "$D/config/lazygit/config.yml"
 check_symlink "$HOME/.claude/settings.json"                "$D/agents/claude/settings.json"
-check_symlink "$HOME/.claude/mcp-servers.json"             "$D/agents/claude/mcp-servers.json"
 check_symlink "$HOME/.claude/statusline.sh"                "$D/agents/claude/statusline.sh"
 check_symlink "$HOME/.claude/hooks/cmux-notify.sh"         "$D/agents/claude/hooks/cmux-notify.sh"
 check_symlink "$HOME/.codex/config.toml"                   "$D/agents/codex/config.toml"
+check_symlink "$HOME/.pi/agent/settings.json"              "$D/agents/pi/settings.json"
 check_symlink "$HOME/.config/opencode/opencode.json"       "$D/agents/opencode/opencode.json"
 check_symlink "$HOME/.config/opencode/oh-my-opencode.json" "$D/agents/opencode/oh-my-opencode.json"
-check_symlink "$HOME/.envrc"                               "$D/env/.envrc"
+check_symlink "$HOME/.claude/skills/nanobana-prompts"      "$D/agents/skills/nanobana-prompts"
+check_symlink "$HOME/.codex/skills/nanobana-prompts"       "$D/agents/skills/nanobana-prompts"
+check_symlink "$HOME/.pi/agent/skills/nanobana-prompts"    "$D/agents/skills/nanobana-prompts"
 
 echo ""
 echo "=== Commands ==="
@@ -59,6 +61,18 @@ check_cmd bun; check_cmd rustc; check_cmd cargo
 check_cmd gh; check_cmd jq; check_cmd yq; check_cmd just
 # Agents
 check_cmd claude; check_cmd codex
+
+if command -v pi >/dev/null 2>&1; then
+  ok "command: pi"
+elif command -v pi-agent >/dev/null 2>&1; then
+  ok "command: pi-agent"
+else
+  fail "command not found: pi or pi-agent"
+fi
+
+echo ""
+echo "=== Shared Skills ==="
+bash "$D/tools/validate-agent-skills.sh" || fail "shared skill validation"
 
 echo ""
 echo "=== Summary: $PASS passed, $FAIL failed ==="

@@ -19,7 +19,7 @@ Before calling this, make sure `project-memory/_CONTEXT.md` exists (the umbrella
    ```
    Pass the mission as a single argument — quote it.
 3. The script prints the session file path on stdout. Capture that path; you'll need it for `capture-moment.md` and `wrap-up-session.md`.
-4. The script sets `agent: claude-code` by default. If running from Codex (or another agent), set `LESSON_AGENT=codex` in the environment before invoking:
+4. The script records `agent: other` by default. If you want a specific harness recorded, set `LESSON_AGENT` before invoking:
    ```bash
    LESSON_AGENT=codex bash "$SKILL_DIR/scripts/start_session.sh" "<mission>"
    ```

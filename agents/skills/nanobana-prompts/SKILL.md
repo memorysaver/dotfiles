@@ -1,6 +1,7 @@
 ---
 name: nanobana-prompts
 description: "Craft high-quality prompts for Google Nano Banana Pro image generation. Use when the user wants to write, improve, or refine an image generation prompt, needs help describing a visual concept for AI generation, wants to adapt a prompt to a different style (photorealistic, anime, 3D, etc.), wants to build a prompt from a reference image description, asks 'how do I prompt for...', 'write me a prompt', 'improve this prompt', 'make this more cinematic/anime/realistic', 'nanobana prompt', 'nano banana prompt', 'I want to make an image of...', 'help me with my image prompt', 'this image gen result looks bad', 'show me example prompts', or any request about prompt engineering for image generation — even if they don't mention Nano Banana by name."
+license: Apache-2.0
 version: 0.1.0
 ---
 

@@ -17,7 +17,7 @@ done
 SKILL_DIR="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
 
 MISSION="${1:-untitled}"
-AGENT="${LESSON_AGENT:-claude-code}"
+AGENT="${LESSON_AGENT:-other}"
 PROJECT="$(basename "$PWD")"
 DATE="$(date +%Y-%m-%d)"
 TIME_TAG="$(date +%H%M)"

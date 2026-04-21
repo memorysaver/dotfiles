@@ -22,6 +22,10 @@ runtimes:
 agents:
   @bash {{dotfiles}}/install/agents.sh
 
+# Validate shared skills for Claude Code, Codex, and Pi portability
+validate-skills:
+  @bash {{dotfiles}}/tools/validate-agent-skills.sh
+
 # Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless
 tools:
   @bash {{dotfiles}}/install/tools.sh
@@ -84,17 +88,23 @@ link:
   # Symlink all skills into both Claude Code and Codex
   ensure_dir "$HOME/.claude/skills"
   ensure_dir "$HOME/.codex/skills"
+  ensure_dir "$HOME/.pi/agent"
+  ensure_dir "$HOME/.pi/agent/skills"
   for skill in {{dotfiles}}/agents/skills/*/; do
     if [ -d "$skill" ]; then
       name="$(basename "$skill")"
       ensure_symlink "$skill" "$HOME/.claude/skills/$name"
       ensure_symlink "$skill" "$HOME/.codex/skills/$name"
+      ensure_symlink "$skill" "$HOME/.pi/agent/skills/$name"
     fi
   done
 
   # Codex CLI
   ensure_dir "$HOME/.codex"
   ensure_symlink "{{dotfiles}}/agents/codex/config.toml" "$HOME/.codex/config.toml"
+
+  # Pi
+  ensure_symlink "{{dotfiles}}/agents/pi/settings.json" "$HOME/.pi/agent/settings.json"
 
   # OpenCode
   ensure_dir "$HOME/.config/opencode"
@@ -118,6 +128,7 @@ unlink:
     "$HOME/.claude/statusline.sh"
     "$HOME/.claude/output-styles"
     "$HOME/.codex/config.toml"
+    "$HOME/.pi/agent/settings.json"
     "$HOME/.config/opencode/opencode.json"
     "$HOME/.config/opencode/oh-my-opencode.json"
   )
@@ -145,6 +156,10 @@ unlink:
   done
   # Codex skills
   for skill in "$HOME/.codex/skills/"*; do
+    [ -L "$skill" ] && links+=("$skill")
+  done
+  # Pi skills
+  for skill in "$HOME/.pi/agent/skills/"*; do
     [ -L "$skill" ] && links+=("$skill")
   done
   for link in "${links[@]}"; do
