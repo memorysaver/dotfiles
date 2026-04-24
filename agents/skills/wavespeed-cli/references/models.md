@@ -30,6 +30,7 @@
 | `wavespeed-ai/z-image/turbo` | Very fast | Ultra-fast drafts, sub-second latency |
 | `wavespeed-ai/flux-dev` | Fast | General purpose Flux model |
 | `bytedance/seedream-v4.5` | Standard | High-fidelity photorealistic (ByteDance) |
+| `openai/gpt-image-2/text-to-image` | Fast | Strong prompt fidelity, accurate in-image text rendering ($0.10/img) |
 
 **Choosing an image model:**
 - Default: `google/nano-banana-2/text-to-image` — best balance of quality, speed, and cost.
@@ -37,6 +38,7 @@
 - Need cheapest? Use `nano-banana-2/text-to-image-fast` at $0.045/img.
 - Need maximum quality? Use `nano-banana-pro/text-to-image-ultra` for 4K.
 - Need instant previews? Use `z-image/turbo` for sub-second drafts.
+- Need accurate in-image text (posters, packaging, UI mockups)? Use `openai/gpt-image-2/text-to-image`. Sizes: `1024x1024`, `1024x1536`, `1536x1024`.
 
 ## SVG / Vector Generation
 
@@ -91,6 +93,7 @@ Use these when the user needs scalable vector output — logos, icons, illustrat
 | `wavespeed-ai/qwen-image/edit-2511` | Standard | Multi-person identity/pose consistency |
 | `sourceful/riverflow-2.0-pro/edit` | Standard | Agentic precise editing |
 | `wavespeed-ai/flux-kontext-pro` | Fast | Instruction-based edits (Flux) |
+| `openai/gpt-image-2/edit` | Fast | Multi-image reference editing, no manual masking ($0.10/edit). Pass multiple `-i` flags. Sizes: `auto`, `1024x1024`, `1024x1536`, `1536x1024`. |
 
 ## Specialized Tools
 
@@ -111,4 +114,4 @@ These are single-purpose tools for specific transformations. Use them when the u
 - Model availability may change. Run `wavespeed models` for the current list.
 - The `--model` flag on all commands accepts any model ID from this catalog.
 - Run `wavespeed models --type <type>` to filter by: `image`, `video`, `edit`, `svg`, `tool`.
-- Last updated: 2026-04-08
+- Last updated: 2026-04-22

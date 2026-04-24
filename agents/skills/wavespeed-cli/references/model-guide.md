@@ -15,6 +15,7 @@ Use this guide to pick the right WaveSpeed model based on what the user is tryin
 | Instant draft (sub-second) | `wavespeed-ai/z-image/turbo` | Rapid iteration, preview-quality |
 | Photorealistic people | `bytedance/seedream-v4.5` | Strong at human faces/bodies |
 | Personalized photos | `wavespeed-ai/phota/text-to-image` | "Photos of me" style |
+| Accurate in-image text (posters, packaging, UI) | `openai/gpt-image-2/text-to-image` | Strong typography and prompt fidelity |
 
 ### Creating SVG / vector (logos, icons, illustrations)
 
@@ -43,6 +44,7 @@ Use this guide to pick the right WaveSpeed model based on what the user is tryin
 | Best quality edit | `google/nano-banana-pro/edit` | Region-aware, identity-preserving |
 | Multi-person scene | `wavespeed-ai/qwen-image/edit-2511` | Identity/pose consistency |
 | Edit with reference images | `wavespeed-ai/phota/edit` | Up to 10 reference images |
+| Multi-image natural-language edit | `openai/gpt-image-2/edit` | OpenAI model, no manual masking, strong prompt alignment |
 
 ### Specialized single-purpose tools
 

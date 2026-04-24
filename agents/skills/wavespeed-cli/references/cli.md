@@ -28,6 +28,8 @@ wavespeed generate image -p <prompt> [options]
 | `-o, --output <path>` | Output file path | `wavespeed-image-{timestamp}.{ext}` |
 | `--seed <number>` | Random seed for reproducibility | random |
 
+For `openai/gpt-image-2/*`, the CLI converts `-s WxH` into the API's `W*H` string form. Allowed sizes: `1024x1024`, `1024x1536`, `1536x1024`.
+
 **Examples:**
 
 ```bash
@@ -90,12 +92,13 @@ wavespeed edit -i <image> -p <prompt> [options]
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-i, --image <path>` | Source image to edit (required) | — |
+| `-i, --image <path>` | Source image (required, repeatable for multi-image models) | — |
 | `-p, --prompt <text>` | Edit instruction (required) | — |
 | `-m, --model <id>` | Model ID | `google/nano-banana-2/edit` |
+| `-s, --size <WxH>` | Output size (or `auto` for `openai/gpt-image-2/edit`) | model default |
 | `-o, --output <path>` | Output file path | `wavespeed-edit-{timestamp}.{ext}` |
 
-The source image is automatically uploaded before the edit operation.
+The source image is automatically uploaded before the edit operation. Pass `-i` multiple times to provide multiple references — the CLI sends `images: [url, ...]` when more than one is given, or when the model requires it (e.g. `openai/gpt-image-2/edit`).
 
 **Examples:**
 
@@ -108,6 +111,12 @@ wavespeed edit -i photo.png -p "Convert to watercolor painting style"
 
 # Content modification
 wavespeed edit -i scene.jpg -p "Add a red sports car in the foreground" -o scene-with-car.jpg
+
+# Multi-image natural-language edit (OpenAI GPT Image 2)
+wavespeed edit -m openai/gpt-image-2/edit \
+  -i subject.jpg -i style-ref.jpg \
+  -p "Place the subject into the style of the second image" \
+  -s 1024x1536
 ```
 
 ---

@@ -25,15 +25,29 @@ function timestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
-function parseSize(size) {
+function shapeSize(model, size) {
   if (!size) return {};
-  const [w, h] = size.toLowerCase().split("x").map(Number);
+  const isGptImage2 = model?.startsWith("openai/gpt-image-2/");
+  if (isGptImage2 && size.toLowerCase() === "auto") {
+    return { size: "auto" };
+  }
+  const [w, h] = size.toLowerCase().split(/[x*]/).map(Number);
   if (!w || !h) {
     console.error(`Invalid size "${size}". Use WxH format, e.g. 1024x768`);
     process.exit(1);
   }
+  // openai/gpt-image-2/* expects `size: "W*H"` (string), not width/height numbers
+  if (isGptImage2) return { size: `${w}*${h}` };
   return { width: w, height: h };
 }
+
+function collectPath(val, arr) {
+  arr.push(val);
+  return arr;
+}
+
+// Edit models that require `images: [url, ...]` even for a single reference.
+const MULTI_IMAGE_EDIT_MODELS = new Set(["openai/gpt-image-2/edit"]);
 
 async function downloadFile(url, outputPath) {
   const res = await fetch(url);
@@ -85,6 +99,7 @@ const MODELS = [
   { id: "wavespeed-ai/z-image/turbo", type: "image", speed: "very fast", description: "Ultra-fast 6B model, sub-second" },
   { id: "wavespeed-ai/flux-dev", type: "image", speed: "fast", description: "General purpose Flux model" },
   { id: "bytedance/seedream-v4.5", type: "image", speed: "standard", description: "High-fidelity photorealistic (ByteDance)" },
+  { id: "openai/gpt-image-2/text-to-image", type: "image", speed: "fast", description: "Strong prompt fidelity, accurate in-image text ($0.10/img)" },
   // SVG / Vector generation
   { id: "recraft-ai/recraft-v4-pro/text-to-vector", type: "svg", speed: "standard", description: "Professional SVG for logos, icons, branding" },
   { id: "recraft-ai/recraft-v4/text-to-vector", type: "svg", speed: "standard", description: "Native SVG graphics for design assets" },
@@ -106,6 +121,7 @@ const MODELS = [
   { id: "wavespeed-ai/qwen-image/edit-2511", type: "edit", speed: "standard", description: "Multi-person identity/pose consistency" },
   { id: "sourceful/riverflow-2.0-pro/edit", type: "edit", speed: "standard", description: "Agentic precise editing" },
   { id: "wavespeed-ai/flux-kontext-pro", type: "edit", speed: "fast", description: "Instruction-based image editing (Flux)" },
+  { id: "openai/gpt-image-2/edit", type: "edit", speed: "fast", description: "Multi-image reference editing with strong prompt alignment ($0.10/edit)" },
   // Specialized tools
   { id: "bria/fibo/relight", type: "tool", speed: "fast", description: "Modify lighting direction and atmosphere" },
   { id: "bria/fibo/restore", type: "tool", speed: "fast", description: "Remove noise, scratches, blur from old photos" },
@@ -139,7 +155,7 @@ generate
   .action(async (opts) => {
     requireApiKey();
     const jsonMode = program.opts().json;
-    const params = { prompt: opts.prompt, ...parseSize(opts.size) };
+    const params = { prompt: opts.prompt, ...shapeSize(opts.model, opts.size) };
     if (opts.seed !== undefined) params.seed = opts.seed;
 
     if (!jsonMode) console.log(`Generating image with ${opts.model}...`);
@@ -214,24 +230,43 @@ generate
 program
   .command("edit")
   .description("Edit an image using a text instruction")
-  .requiredOption("-i, --image <path>", "Source image to edit")
+  .option("-i, --image <path>", "Source image(s) — repeat for multi-image models", collectPath, [])
   .requiredOption("-p, --prompt <text>", "Edit instruction")
   .option("-m, --model <id>", "Model ID", "google/nano-banana-2/edit")
+  .option("-s, --size <WxH>", "Output size (WxH, or 'auto' for gpt-image-2)")
   .option("-o, --output <path>", "Output file path")
   .action(async (opts) => {
     requireApiKey();
     const jsonMode = program.opts().json;
 
-    if (!jsonMode) console.log("Uploading source image...");
-    const imageUrl = await wavespeed.upload(resolve(opts.image));
+    if (!opts.image.length) {
+      console.error("Error: at least one -i/--image is required");
+      process.exit(1);
+    }
+
+    if (!jsonMode) {
+      console.log(
+        opts.image.length === 1
+          ? "Uploading source image..."
+          : `Uploading ${opts.image.length} source images...`
+      );
+    }
+    const imageUrls = [];
+    for (const path of opts.image) {
+      imageUrls.push(await wavespeed.upload(resolve(path)));
+    }
+
+    const params = { prompt: opts.prompt, ...shapeSize(opts.model, opts.size) };
+    if (imageUrls.length > 1 || MULTI_IMAGE_EDIT_MODELS.has(opts.model)) {
+      params.images = imageUrls;
+    } else {
+      params.image = imageUrls[0];
+    }
 
     if (!jsonMode) console.log(`Editing with ${opts.model}...`);
 
     try {
-      const result = await wavespeed.run(opts.model, {
-        image: imageUrl,
-        prompt: opts.prompt,
-      });
+      const result = await wavespeed.run(opts.model, params);
       const url = result.outputs?.[0] || result.output;
       if (!url) throw new Error("No output URL in response");
 
