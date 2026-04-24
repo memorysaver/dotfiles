@@ -12,7 +12,7 @@ Fields for every `session-<HHMM>-<slug>.md` file. Keep this stable — the scrip
 | `mission` | string | yes | One-line summary of what was attempted. |
 | `outcome` | enum | no | `success` \| `partial` \| `failed` \| `abandoned`. Set during wrap-up. |
 | `agent` | enum | yes | `claude-code` \| `codex` \| `pi` \| `other`. Set by the script from `$LESSON_AGENT` or default. |
-| `model` | string | no | E.g. `claude-opus-4-6`, `gpt-5.4`. Filled during wrap-up from session context. |
+| `model` | string | no | E.g. `claude-opus-4-6`, `gpt-5.5`. Filled during wrap-up from session context. |
 | `skills_used` | list[string] | no | Skill names invoked during the session. |
 | `tools_used` | list[string] | no | Non-skill tooling worth remembering (CLIs, MCP servers). |
 | `tags` | list[string] | no | Short topical tags (e.g. `auth`, `refactor`, `migration`). |

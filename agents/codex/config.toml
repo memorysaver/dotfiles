@@ -5,7 +5,7 @@
 # The default model (override as needed):
 # model = "gpt-4.1"
 model_provider = "openai"
-model = "gpt-5.4"
+model = "gpt-5.5"
 sandbox_mode = "workspace-write"
 model_reasoning_effort = "medium"
 
@@ -41,4 +41,4 @@ enabled = true
 trust_level = "trusted"
 
 [notice.model_migrations]
-gpt-5-codex = "gpt-5.4"
+gpt-5-codex = "gpt-5.5"

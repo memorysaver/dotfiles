@@ -41,7 +41,7 @@ Edit the frontmatter in-place:
 
 - `time_ended` — current `HH:MM`.
 - `outcome` — `success` | `partial` | `failed` | `abandoned`. When unsure, pick `partial`; overclaiming `success` poisons the index.
-- `model` — the model powering this session (e.g. `claude-opus-4-6`, `gpt-5.4`).
+- `model` — the model powering this session (e.g. `claude-opus-4-6`, `gpt-5.5`).
 - `skills_used`, `tools_used`, `tags` — fill with the actual names.
 
 ### 3. Update the indexes
