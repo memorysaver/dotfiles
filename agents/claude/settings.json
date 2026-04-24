@@ -25,7 +25,8 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:github.com)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [],
@@ -114,9 +115,14 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
   "teammateMode": "tmux",
+  "skipAutoPermissionPrompt": true,
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
-  }
+  },
+  "preferredNotifChannel": "ghostty",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
 }

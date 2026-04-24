@@ -37,8 +37,36 @@ args = ["chrome-devtools-mcp@latest"]
 [plugins."github@openai-curated"]
 enabled = true
 
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[plugins."browser-use@openai-bundled"]
+enabled = true
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
 [projects."/Users/memorysaver/.dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/memorysaver/Documents/newsroom"]
 trust_level = "trusted"
 
 [notice.model_migrations]
 gpt-5-codex = "gpt-5.5"
+
+[marketplaces.openai-bundled]
+last_updated = "2026-04-24T02:02:01Z"
+source_type = "local"
+source = "/Users/memorysaver/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-04-24T02:08:28Z"
+source_type = "local"
+source = "/Users/memorysaver/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
