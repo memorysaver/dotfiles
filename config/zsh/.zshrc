@@ -55,25 +55,73 @@ alias ccauto='claude --permission-mode auto --rc'
 alias ccautow='claude --permission-mode auto --rc -w'
 alias ccautotw='claude --permission-mode auto --rc -w --tmux'
 # --- Chrome CDP (browser automation) ---
+_chrome_cdp_ready() {
+  local port="${1:-9222}"
+  curl -fsS "http://127.0.0.1:${port}/json/version" >/dev/null 2>&1
+}
+
+_chrome_cdp_clear_stale_locks() {
+  local dir="$1"
+  local lock="$dir/SingletonLock"
+
+  [[ -e "$lock" ]] || return 0
+
+  local target pid
+  target="$(readlink "$lock" 2>/dev/null || true)"
+  pid="${target##*-}"
+
+  if [[ "$pid" == <-> ]] && kill -0 "$pid" 2>/dev/null; then
+    echo "Chrome profile is already locked by PID $pid: $dir" >&2
+    return 1
+  fi
+
+  rm -f "$dir/SingletonLock" "$dir/SingletonSocket" "$dir/SingletonCookie"
+}
+
 chrome-cdp() {
   local name="${1:-default}"
   local port="${2:-9222}"
   local dir="$HOME/.chrome-cdp/$name"
+
   mkdir -p "$dir"
-  if lsof -i :"$port" &>/dev/null; then
-    echo "Port $port already in use"
+
+  if _chrome_cdp_ready "$port"; then
+    echo "Chrome '$name' already listening on port $port"
+    return 0
+  fi
+
+  if lsof -nP -iTCP:"$port" -sTCP:LISTEN &>/dev/null; then
+    echo "Port $port is in use, but it is not a reachable Chrome CDP endpoint"
     return 1
   fi
-  /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
+
+  _chrome_cdp_clear_stale_locks "$dir" || return 1
+
+  # LaunchServices keeps Chrome alive after the shell exits. Direct background
+  # launches from automation shells can be reaped before CDP is usable.
+  open -na "Google Chrome" --args \
     --remote-debugging-port="$port" \
     --remote-allow-origins="*" \
-    --user-data-dir="$dir" &>/dev/null &
-  echo "Chrome '$name' on port $port"
+    --user-data-dir="$dir"
+
+  local i
+  for i in {1..20}; do
+    if _chrome_cdp_ready "$port"; then
+      echo "Chrome '$name' on port $port"
+      return 0
+    fi
+    sleep 0.25
+  done
+
+  echo "Chrome '$name' was launched, but CDP did not become reachable on port $port" >&2
+  return 1
 }
 
 ab-connect() {
   local name="${1:-default}"
   local port="${2:-9222}"
+
+  chrome-cdp "$name" "$port" || return 1
   agent-browser --session "$name" connect "$port"
 }
 
