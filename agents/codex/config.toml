@@ -9,6 +9,12 @@ model = "gpt-5.5"
 sandbox_mode = "workspace-write"
 model_reasoning_effort = "medium"
 
+# Keep local Codex sessions useful for development automation while preserving
+# workspace-write filesystem boundaries. Do not copy Codex.app internal state
+# keys such as `codexCloudAccess` or `agent_network_access` into this TOML.
+[sandbox_workspace_write]
+network_access = true
+
 [model_providers.groq]
 name = "groq"
 base_url = "https://api.groq.com/openai/v1"
