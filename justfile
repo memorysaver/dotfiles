@@ -45,6 +45,7 @@ link:
   info "Linking configuration files..."
 
   # Shell
+  ensure_symlink "{{dotfiles}}/config/zsh/.zshenv" "$HOME/.zshenv"
   ensure_symlink "{{dotfiles}}/config/zsh/.zshrc" "$HOME/.zshrc"
   ensure_symlink "{{dotfiles}}/config/tmux/.tmux.conf" "$HOME/.tmux.conf"
 
@@ -118,6 +119,7 @@ unlink:
   #!/usr/bin/env bash
   source {{dotfiles}}/lib/helpers.sh
   links=(
+    "$HOME/.zshenv"
     "$HOME/.zshrc"
     "$HOME/.tmux.conf"
     "$HOME/.gitconfig"
