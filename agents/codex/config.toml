@@ -14,6 +14,10 @@ model_reasoning_effort = "medium"
 # keys such as `codexCloudAccess` or `agent_network_access` into this TOML.
 [sandbox_workspace_write]
 network_access = true
+writable_roots = [
+  "/Users/memorysaver/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian iCloud Vault",
+  "/Users/memorysaver/.cache/podwise",
+]
 
 [model_providers.groq]
 name = "groq"
