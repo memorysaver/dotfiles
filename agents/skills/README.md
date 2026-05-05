@@ -44,12 +44,17 @@ put it under a short section such as `## Claude Code Notes`, `## Codex Notes`, o
 
 | Skill | Claude Code | Codex | Pi Agent | Runtime dependencies |
 | --- | --- | --- | --- | --- |
+| `canonical-skills` | Supported | Supported | Supported | Bash, `git` (optional but recommended) |
+| `caveman` | Supported | Supported | Supported | None |
+| `grill-me` | Supported | Supported | Supported | None |
+| `guizang-ppt-skill` | Supported | Supported | Supported | None |
 | `nanobana-prompts` | Supported | Supported | Supported | None |
 | `opencli` | Supported | Supported | Supported | Node.js 20+, `@jackwener/opencli` |
 | `podwise` | Supported | Supported | Supported | Podwise CLI and API key |
 | `project-memory` | Supported | Supported | Supported | Optional `qmd`; falls back to text search |
 | `remotion-best-practices` | Supported | Supported | Supported | Remotion project dependencies as applicable |
 | `wavespeed-cli` | Supported | Supported | Supported | WaveSpeed CLI and `WAVESPEED_API_KEY` |
+| `write-a-skill` | Supported | Supported | Supported | None |
 
 ## Local Agent Configuration
 
