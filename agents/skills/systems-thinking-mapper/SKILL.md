@@ -1,6 +1,6 @@
 ---
 name: systems-thinking-mapper
-description: Helps analyze systemic problems, teach systems-thinking concepts, and create explainable diagrams such as causal loop diagrams, stock-flow sketches, behavior-over-time graphs, leverage maps, and intervention hypotheses. Use when the user wants to understand a complex recurring problem, learn how to read systems diagrams, mentions systems thinking, causal loops, feedback loops, Sherwood, Seeing the Forest for the Trees, stock and flow, leverage points, root causes, unintended consequences, or asks to make a diagram of a business, product, organizational, social, or operational system.
+description: Helps analyze systemic problems, teach systems-thinking concepts, and create explainable diagrams such as causal loop diagrams, stock-flow sketches, behavior-over-time graphs, leverage maps, model portfolios, and intervention hypotheses. Use when the user wants to understand a complex recurring problem, learn how to read systems diagrams, apply many-model thinking, compare multiple models, mentions systems thinking, causal loops, feedback loops, Sherwood, Seeing the Forest for the Trees, Scott E. Page, The Model Thinker, stock and flow, leverage points, root causes, unintended consequences, or asks to make a diagram of a business, product, organizational, social, or operational system.
 ---
 
 # Systems Thinking Mapper
@@ -16,6 +16,7 @@ Use this skill to help the user see the structure behind a complex problem and t
 - Use the diagram to improve understanding before recommending interventions.
 - When the user asks for a root cause, reframe the request as a search for recurring system structure: feedback loops, delays, accumulations, decision rules, incentives, and side effects. Avoid naming one final cause unless the evidence clearly supports it.
 - When the user is new to systems thinking, teach just enough notation and reading strategy to make the current diagram understandable. Do not turn the response into a textbook.
+- When using Scott E. Page-style many-model thinking, treat systems thinking as one useful model family inside a broader model portfolio. Use additional models to cross-check, reveal blind spots, and generate alternative explanations; do not collapse every problem into feedback loops.
 
 ## Workflow
 
@@ -63,6 +64,12 @@ Use this skill to help the user see the structure behind a complex problem and t
    - List low, medium, and high-leverage intervention points.
    - For each intervention, state the expected loop effect, likely delay, leading indicators, and possible unintended consequences.
    - Prefer experiments that can test the model rather than one-shot "solutions."
+
+9. Add a many-model check when useful:
+   - Select 2-5 additional model lenses that fit the problem.
+   - For each lens, state what it explains, what it hides, and what evidence would support or weaken it.
+   - Compare conclusions across models: where they agree, where they conflict, and what action remains robust.
+   - Prefer a small high-quality model portfolio over a long catalog of loosely relevant models.
 
 ## Teaching mode
 
@@ -114,6 +121,8 @@ For each diagram, include:
 
 For deeper notation guidance, diagram templates, and review checklists, load `references/system-tools.md`.
 When the user wants to learn the method step by step, asks for a beginner tutorial, or needs a structured explanation before using the diagrams, load `references/tutorial.md`.
+When the user asks for many-model thinking, model portfolios, The Model Thinker, Scott E. Page, or cross-checking a system diagram with other models, load `references/model-thinking.md`.
+When the user asks which model to use or mentions the 32 models from The Model Thinker, load `references/model-thinker-32-models.md`.
 
 ## Quality bar
 

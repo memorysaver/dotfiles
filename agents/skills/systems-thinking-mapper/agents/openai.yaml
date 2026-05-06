@@ -1,4 +1,4 @@
 interface:
   display_name: "Systems Thinking Mapper"
-  short_description: "Map and teach systems thinking"
-  default_prompt: "Use $systems-thinking-mapper to analyze this recurring problem and explain the diagram step by step."
+  short_description: "Map systems and model portfolios"
+  default_prompt: "Use $systems-thinking-mapper to analyze this recurring problem, explain the system diagram, and cross-check it with a small model portfolio."
