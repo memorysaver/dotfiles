@@ -1,9 +1,9 @@
 ---
-name: systems-thinking-mapper
-description: Helps analyze systemic problems, teach systems-thinking concepts, and create explainable diagrams such as causal loop diagrams, stock-flow sketches, behavior-over-time graphs, leverage maps, model portfolios, and intervention hypotheses. Use when the user wants to understand a complex recurring problem, learn how to read systems diagrams, apply many-model thinking, compare multiple models, mentions systems thinking, causal loops, feedback loops, Sherwood, Seeing the Forest for the Trees, Scott E. Page, The Model Thinker, stock and flow, leverage points, root causes, unintended consequences, or asks to make a diagram of a business, product, organizational, social, or operational system.
+name: system-thinker
+description: Helps analyze systemic problems, teach systems-thinking concepts, and turn conclusions into explainable diagrams, model portfolios, Remotion animation briefs, presentation storyboards, and visual assets. Use when the user wants to understand a complex recurring problem, learn how to read systems diagrams, apply many-model thinking, compare multiple models, prepare a presentable explanation, animate a system map, create a Remotion video plan, make a presentation deck, generate conceptual images, mentions systems thinking, causal loops, feedback loops, Sherwood, Seeing the Forest for the Trees, Scott E. Page, The Model Thinker, stock and flow, leverage points, root causes, unintended consequences, or asks to make a diagram of a business, product, organizational, social, or operational system.
 ---
 
-# Systems Thinking Mapper
+# System Thinker
 
 Use this skill to help the user see the structure behind a complex problem and turn that structure into clear diagrams. This is a systems-thinking workflow inspired by practical management systems thinking, including Dennis Sherwood's *Seeing the Forest for the Trees*, but it must not claim to reproduce or contain the full book.
 
@@ -17,6 +17,7 @@ Use this skill to help the user see the structure behind a complex problem and t
 - When the user asks for a root cause, reframe the request as a search for recurring system structure: feedback loops, delays, accumulations, decision rules, incentives, and side effects. Avoid naming one final cause unless the evidence clearly supports it.
 - When the user is new to systems thinking, teach just enough notation and reading strategy to make the current diagram understandable. Do not turn the response into a textbook.
 - When using Scott E. Page-style many-model thinking, treat systems thinking as one useful model family inside a broader model portfolio. Use additional models to cross-check, reveal blind spots, and generate alternative explanations; do not collapse every problem into feedback loops.
+- When turning analysis into media, preserve the reasoning structure. The animation, deck, or generated image should make the conclusion easier to understand, not merely decorate it.
 
 ## Workflow
 
@@ -71,6 +72,14 @@ Use this skill to help the user see the structure behind a complex problem and t
    - Compare conclusions across models: where they agree, where they conflict, and what action remains robust.
    - Prefer a small high-quality model portfolio over a long catalog of loosely relevant models.
 
+10. Prepare presentable media when requested:
+   - Confirm the audience, presentation context, target duration, language, and output format.
+   - Convert the analysis into a narrative arc: problem behavior, structure, surprise, leverage, action.
+   - Choose the medium: Remotion animation for time-based explanation, editorial deck for live presentation, generated images for conceptual anchors, or a combination.
+   - Produce a handoff brief before implementation: storyboard, scene or slide list, visual metaphors, asset list, and validation checks.
+   - For Remotion explainers, plan the reading layout before animating. Keep explanatory text and animated diagrams in clearly separated regions, then verify dense moments with still frames before final render.
+   - If implementing the media, use the relevant dedicated skill and follow its workflow.
+
 ## Teaching mode
 
 Use teaching mode when the user asks how to read a diagram, says they are new to the method, asks for an explanation of a generated diagram, or when the diagram is complex enough that a reader may need orientation.
@@ -123,6 +132,7 @@ For deeper notation guidance, diagram templates, and review checklists, load `re
 When the user wants to learn the method step by step, asks for a beginner tutorial, or needs a structured explanation before using the diagrams, load `references/tutorial.md`.
 When the user asks for many-model thinking, model portfolios, The Model Thinker, Scott E. Page, or cross-checking a system diagram with other models, load `references/model-thinking.md`.
 When the user asks which model to use or mentions the 32 models from The Model Thinker, load `references/model-thinker-32-models.md`.
+When the user wants to turn the analysis into a Remotion animation, presentation deck, visual explainer, generated image, or other presentable artifact, load `references/presentation-media.md`.
 
 ## Quality bar
 
@@ -131,3 +141,5 @@ When the user asks which model to use or mentions the 32 models from The Model T
 - Use multiple smaller diagrams when one large diagram becomes hard to read.
 - Avoid claiming causality is proven unless evidence is provided.
 - If the user asks for advice, connect each recommendation to a specific loop or stock-flow structure.
+- If producing media, each scene, slide, or image must map to a specific insight, loop, stock, model lens, leverage point, or open question.
+- If producing Remotion media, the final artifact must pass a readability check: no overlap between narrative text, diagram labels, animation paths, titles, or captions in representative still frames.

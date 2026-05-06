@@ -1,0 +1,4 @@
+interface:
+  display_name: "System Thinker"
+  short_description: "Map systems into visual explainers"
+  default_prompt: "Use $system-thinker to analyze this recurring problem, explain the system diagram, cross-check it with models, and plan a presentable visual explainer."

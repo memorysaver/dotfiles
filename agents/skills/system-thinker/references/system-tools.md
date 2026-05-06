@@ -1,6 +1,6 @@
 # Systems Thinking Tools
 
-This reference supports the `systems-thinking-mapper` skill. Load it when creating diagrams, reviewing a model, or choosing between systems-thinking tools.
+This reference supports the `system-thinker` skill. Load it when creating diagrams, reviewing a model, or choosing between systems-thinking tools.
 
 For a beginner-friendly learning path, use `tutorial.md` instead of this quick-reference file.
 

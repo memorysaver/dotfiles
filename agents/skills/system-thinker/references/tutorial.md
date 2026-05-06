@@ -1,4 +1,4 @@
-# Systems Thinking Mapper Tutorial
+# System Thinker Tutorial
 
 Use this tutorial when the user wants a simple, structured way to learn how to read and use systems-thinking diagrams. Keep the teaching grounded in the user's actual problem whenever possible.
 
