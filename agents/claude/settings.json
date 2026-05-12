@@ -116,13 +116,14 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
+  "skillListingBudgetFraction": 0.02,
   "skipDangerousModePermissionPrompt": true,
+  "preferredNotifChannel": "ghostty",
   "teammateMode": "tmux",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "feedbackSurveyState": {
     "lastShownTime": 1754042257468
-  },
-  "preferredNotifChannel": "ghostty",
-  "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  }
 }
