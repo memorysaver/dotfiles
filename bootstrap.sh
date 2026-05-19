@@ -3,6 +3,12 @@
 # Usage: curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/bootstrap.sh | bash
 set -euo pipefail
 
+# When piped via `curl ... | bash`, stdin is the curl pipe (already at EOF).
+# Reattach to the terminal so interactive prompts (sudo, chsh, xcode wait) work.
+if [ ! -t 0 ] && [ -r /dev/tty ]; then
+  exec < /dev/tty
+fi
+
 DOTFILES_DIR="$HOME/.dotfiles"
 REPO="https://github.com/memorysaver/dotfiles.git"
 
@@ -20,17 +26,26 @@ echo "Detected OS: $OS"
 if [ "$OS" = "macos" ]; then
   # Xcode CLI tools
   if ! xcode-select -p &>/dev/null; then
-    echo "Installing Xcode CLI tools..."
-    xcode-select --install
-    echo "Press Enter after Xcode CLI tools installation completes..."
-    read -r
+    echo "Installing Xcode CLI tools (accept the GUI dialog if it appears)..."
+    xcode-select --install 2>/dev/null || true
+    until xcode-select -p &>/dev/null; do
+      sleep 10
+    done
+    echo "Xcode CLI tools installed."
   fi
 
   # Homebrew
   if ! command -v brew &>/dev/null; then
     echo "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    if [ -x /opt/homebrew/bin/brew ]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    else
+      echo "ERROR: brew not found after install" >&2
+      exit 1
+    fi
   fi
 else
   # Linux: ensure essentials
@@ -70,7 +85,7 @@ fi
 # Set zsh as default shell if it isn't already
 if [ "$(basename "$SHELL")" != "zsh" ]; then
   echo "Setting zsh as default shell..."
-  chsh -s "$(which zsh)"
+  chsh -s "$(command -v zsh)" || echo "WARN: chsh failed; run 'chsh -s $(command -v zsh)' manually later."
 fi
 
 # --- Just (task runner) ---
