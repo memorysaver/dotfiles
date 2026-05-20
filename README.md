@@ -5,7 +5,7 @@ Modular, idempotent, cross-platform dotfiles with `just` orchestration.
 ## Quick Start
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/bootstrap.sh | bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/bootstrap.sh)"
 ```
 
 Or manually:

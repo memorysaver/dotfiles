@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 # Bootstrap dotfiles on a fresh machine
-# Usage: curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/bootstrap.sh | bash
+# Usage: bash -c "$(curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/bootstrap.sh)"
 set -euo pipefail
-
-# When piped via `curl ... | bash`, stdin is the curl pipe (already at EOF).
-# Reattach to the terminal so interactive prompts (sudo, chsh, xcode wait) work.
-if [ ! -t 0 ] && [ -r /dev/tty ]; then
-  exec < /dev/tty
-fi
 
 DOTFILES_DIR="$HOME/.dotfiles"
 REPO="https://github.com/memorysaver/dotfiles.git"
