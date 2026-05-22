@@ -51,7 +51,6 @@ put it under a short section such as `## Claude Code Notes`, `## Codex Notes`, o
 | `nanobana-prompts` | Supported | Supported | Supported | None |
 | `opencli` | Supported | Supported | Supported | Node.js 20+, `@jackwener/opencli` |
 | `podwise` | Supported | Supported | Supported | Podwise CLI and API key |
-| `project-memory` | Supported | Supported | Supported | Optional `qmd`; falls back to text search |
 | `remotion-best-practices` | Supported | Supported | Supported | Remotion project dependencies as applicable |
 | `wavespeed-cli` | Supported | Supported | Supported | WaveSpeed CLI and `WAVESPEED_API_KEY` |
 | `write-a-skill` | Supported | Supported | Supported | None |
