@@ -1,10 +1,13 @@
 ---
 type: lesson
+mode: session
+capture_mode: __CAPTURE_MODE__
 date: __DATE__
 time_started: "__TIME__"
 time_ended: ""
 project: __PROJECT__
 mission: __MISSION__
+spec_ref: "__SPEC_REF__"
 outcome: ""
 agent: __AGENT__
 model: ""
@@ -25,6 +28,11 @@ related_sessions: []
 
 ## Steering & Course Corrections
 <!-- Moments the user redirected: what the agent did, what the user said, why. -->
+
+## Decisions Made
+<!-- Agent-side choices: where the spec/intent was ambiguous, what was picked, and why.
+     One bullet per decision. Use this when you (the agent) had to resolve ambiguity,
+     not when the user steered you. -->
 
 ## What Worked
 <!-- Concrete wins with enough context to reproduce. -->

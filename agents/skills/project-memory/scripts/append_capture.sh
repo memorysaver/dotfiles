@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
 # Append a timestamped bullet to a section of today's active session file.
 # Usage: append_capture.sh <section> "<content>"
-#   section: steering | failed | worked | takeaway | open
+#   section (mode: session): steering | decision | failed | worked | takeaway | open
+#   section (mode: spec):    decision | deviation | tradeoff | open
 
 set -euo pipefail
 
 SECTION="${1:-}"
 CONTENT="${2:-}"
+USAGE_KEYS="steering|decision|failed|worked|takeaway|open|deviation|tradeoff"
 if [ -z "$SECTION" ] || [ -z "$CONTENT" ]; then
-  echo "Usage: $0 <steering|failed|worked|takeaway|open> \"<content>\"" >&2
+  echo "Usage: $0 <$USAGE_KEYS> \"<content>\"" >&2
   exit 1
 fi
 
 case "$SECTION" in
-  steering) HEADING="## Steering & Course Corrections" ;;
-  failed)   HEADING="## What Failed / Frustrations" ;;
-  worked)   HEADING="## What Worked" ;;
-  takeaway) HEADING="## Takeaways" ;;
-  open)     HEADING="## Open Questions" ;;
-  *) echo "Unknown section: $SECTION (steering|failed|worked|takeaway|open)" >&2; exit 1 ;;
+  steering)  HEADING="## Steering & Course Corrections" ;;
+  decision)  HEADING="## Decisions Made" ;;
+  failed)    HEADING="## What Failed / Frustrations" ;;
+  worked)    HEADING="## What Worked" ;;
+  takeaway)  HEADING="## Takeaways" ;;
+  open)      HEADING="## Open Questions" ;;
+  deviation) HEADING="## Deviations" ;;
+  tradeoff)  HEADING="## Tradeoffs" ;;
+  *) echo "Unknown section: $SECTION ($USAGE_KEYS)" >&2; exit 1 ;;
 esac
 
 DATE="$(date +%Y-%m-%d)"

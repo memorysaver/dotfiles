@@ -14,10 +14,13 @@ An umbrella memory system for a project. Lives at `project-memory/` at the proje
 
 Today the only subsystem is `project-memory/lesson-learned/` (per-session retrospectives). Future subsystems — decisions, glossaries, onboarding notes, whatever — land as sibling folders under `project-memory/` and are auto-indexed by the same qmd collection.
 
+Every new session is seeded from a **capture-shape preset** chosen by the agent at start — `session` (the standard 11-section retrospective) or `spec` (a lighter six-section template focused on the spec axis). Presets define which sections come pre-seeded; **sections are additive**, so a session can grow new sections later via [`scripts/promote_to_session.sh`](scripts/promote_to_session.sh) (spec → session widen) or by starting with `--with-spec-axis` (session preset with the spec axis included). See [workflows/start-session.md](workflows/start-session.md) for the decision rule.
+
 ## Entry points — pick one and load that workflow
 
 - **First time in a project** → [workflows/bootstrap-memory.md](workflows/bootstrap-memory.md). Check for `project-memory/_CONTEXT.md`; if missing, bootstrap before anything else.
-- **Starting a new mission** → [workflows/start-session.md](workflows/start-session.md).
+- **Starting a new mission** → [workflows/start-session.md](workflows/start-session.md). Pick `--mode=session` for open-ended work or `--mode=spec` when implementing a written specification; pass `--with-spec-axis` for gray-zone missions that mix the two. The workflow page has the full decision rule.
+- **Mission drifted past the spec mid-session** → [workflows/start-session.md#if-drift-happens-mid-session](workflows/start-session.md). Run `scripts/promote_to_session.sh` to widen the file additively — preserves all spec-axis content, adds the standard sections.
 - **Mid-session notable moment** (steering, frustration, win, takeaway) → [workflows/capture-moment.md](workflows/capture-moment.md).
 - **Mission ending** → [workflows/wrap-up-session.md](workflows/wrap-up-session.md).
 - **User asks about prior work** ("have we seen this", "what did we learn about X") → [workflows/query-memory.md](workflows/query-memory.md).
@@ -65,7 +68,8 @@ This skill runs the same way across Claude Code, Codex, and Pi because everythin
 
 ## References (load only when needed)
 
-- [references/template-session.md](references/template-session.md) — canonical session file template. Read when running `start-session` or `wrap-up-session`.
+- [references/template-session.md](references/template-session.md) — canonical session file template (`mode: session`). Read when running `start-session` or `wrap-up-session`.
+- [references/template-spec-session.md](references/template-spec-session.md) — lighter template for `mode: spec` (Spec Reference, Decisions, Deviations, Tradeoffs, Open Questions). Read when starting or wrapping up a spec-implementation mission.
 - [references/template-daily.md](references/template-daily.md), [references/template-index.md](references/template-index.md), [references/template-context.md](references/template-context.md) — seed templates, consumed by the scripts.
 - [references/frontmatter-schema.md](references/frontmatter-schema.md) — field definitions and allowed values. Read when editing frontmatter.
 - [references/qmd-integration.md](references/qmd-integration.md) — qmd command reference + fallback behaviour. Read before any qmd invocation.
