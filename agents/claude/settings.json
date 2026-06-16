@@ -1,8 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
+  "skillListingBudgetFraction": 0.02,
   "permissions": {
     "allow": [
       "Bash(rg:*)",
@@ -69,7 +67,8 @@
     "ralph-loop@claude-plugins-official": true,
     "codex@openai-codex": true,
     "obsidian@obsidian-skills": true,
-    "document-skills@anthropic-agent-skills": true
+    "document-skills@anthropic-agent-skills": true,
+    "ichef-context@ichef-company-context": true
   },
   "extraKnownMarketplaces": {
     "superpowers-marketplace": {
@@ -112,14 +111,18 @@
         "source": "github",
         "repo": "kepano/obsidian-skills"
       }
+    },
+    "ichef-company-context": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/memorysaver/Documents/github/company-context-layer"
+      }
     }
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
-  "skillListingBudgetFraction": 0.02,
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
-  "preferredNotifChannel": "ghostty",
-  "teammateMode": "tmux",
+  "preferredNotifChannel": "iterm2",
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
