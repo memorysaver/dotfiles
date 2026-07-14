@@ -26,6 +26,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "claude-opus-4-8[1m]",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [],
   "hooks": {
@@ -120,9 +121,11 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
+  "advisorModel": "fable",
   "skipDangerousModePermissionPrompt": true,
   "preferredNotifChannel": "iterm2",
+  "autoCompactEnabled": true,
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
