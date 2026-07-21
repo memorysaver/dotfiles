@@ -136,6 +136,41 @@ Use `just validate-skills` to verify that every shared skill:
 - only references files that actually exist
 - avoids harness-specific paths in the shared core
 
+## Codex Config Template
+
+`agents/codex/config.toml` is symlinked to `~/.codex/config.toml`, so the Codex
+CLI and desktop app continuously write **machine-local state** back into it —
+trusted project paths, plugin/runtime state, sandbox mode, and Codex.app
+internals. To keep that drift (including private project names) out of this
+public repo, the file is a **tracked template pinned with `skip-worktree`**:
+git ignores local edits, so `just link` still provisions a clean config on a
+fresh machine while your day-to-day Codex state is never committed.
+
+The tracked template deliberately stays minimal and safe:
+
+- `sandbox_mode = "workspace-write"` (not `danger-full-access`)
+- `model = "gpt-5.6-sol"`
+- no local `[projects.*]` trust entries beyond the repo itself
+
+Because of the pin, `git status` and `git add` will **not** see changes to this
+file. To intentionally update the tracked template:
+
+```bash
+# 1. Unpin so git tracks the file again
+git update-index --no-skip-worktree agents/codex/config.toml
+
+# 2. Edit the CLEAN template only — do NOT commit local project paths,
+#    danger-full-access, or Codex.app runtime state.
+$EDITOR agents/codex/config.toml
+
+# 3. Commit + push, then re-pin so local drift is ignored again
+git add agents/codex/config.toml && git commit && git push
+git update-index --skip-worktree agents/codex/config.toml
+```
+
+Check the pin with `git ls-files -v agents/codex/config.toml` — a leading `S`
+means `skip-worktree` is active.
+
 ## License
 
 MIT
