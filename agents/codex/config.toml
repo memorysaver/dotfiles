@@ -5,7 +5,7 @@
 # The default model (override as needed):
 # model = "gpt-4.1"
 model_provider = "openai"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 sandbox_mode = "workspace-write"
 model_reasoning_effort = "medium"
 
