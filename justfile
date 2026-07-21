@@ -68,11 +68,6 @@ link:
     ensure_symlink "{{dotfiles}}/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
   fi
 
-  # SketchyBar (macOS only)
-  if [ "$DOTFILES_OS" = "macos" ]; then
-    ensure_symlink "{{dotfiles}}/config/sketchybar" "$HOME/.config/sketchybar"
-  fi
-
   # Claude Code
   ensure_dir "$HOME/.claude"
   ensure_dir "$HOME/.claude/hooks"
@@ -145,10 +140,6 @@ unlink:
     links+=("$HOME/Library/Application Support/lazygit/config.yml")
   else
     links+=("$HOME/.config/lazygit/config.yml")
-  fi
-  # SketchyBar (macOS only)
-  if [ "$(uname)" = "Darwin" ]; then
-    links+=("$HOME/.config/sketchybar")
   fi
   # Claude hooks
   for hook in "$HOME/.claude/hooks/"*; do

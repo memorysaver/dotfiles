@@ -73,32 +73,16 @@ ensure_installed git git git
 # --- Direnv ---
 ensure_installed direnv direnv direnv
 
-# --- SketchyBar (macOS only) ---
+# --- JetBrainsMono Nerd Font (macOS; used by terminal, starship, lazygit) ---
 if [ "$DOTFILES_OS" = "macos" ]; then
-  if ! has sketchybar; then
-    info "Installing sketchybar..."
-    brew install FelixKratz/formulae/sketchybar
-  else
-    ok "sketchybar already installed"
-  fi
-
-  # JetBrainsMono Nerd Font (required by sketchybar config)
   if ! brew list --cask font-jetbrains-mono-nerd-font &>/dev/null; then
     info "Installing JetBrainsMono Nerd Font..."
     brew install --cask font-jetbrains-mono-nerd-font
   else
     ok "JetBrainsMono Nerd Font already installed"
   fi
-
-  # SwitchAudioSource (required by sketchybar volume/mic plugins)
-  if ! has SwitchAudioSource; then
-    info "Installing SwitchAudioSource..."
-    brew install switchaudio-osx
-  else
-    ok "SwitchAudioSource already installed"
-  fi
 else
-  ok "sketchybar skipped (macOS only)"
+  ok "JetBrainsMono Nerd Font skipped (macOS only)"
 fi
 
 ok "Core tools installation complete"
