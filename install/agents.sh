@@ -69,10 +69,18 @@ else
 fi
 
 # --- Pi Coding Agent ---
-if [ "$UPGRADE" != 1 ] && { has "$PI_AGENT_BIN" || has "$PI_ALT_BIN"; }; then
-  ok "Pi already installed"
+# Fresh install goes through npm; upgrades use Pi's built-in self-updater
+# (`pi update`), which is faster and keeps Pi's own version bookkeeping intact.
+if has "$PI_AGENT_BIN" || has "$PI_ALT_BIN"; then
+  if [ "$UPGRADE" = 1 ]; then
+    pi_bin="$(command -v "$PI_AGENT_BIN" || command -v "$PI_ALT_BIN")"
+    info "Upgrading Pi coding agent (pi update)..."
+    "$pi_bin" update
+  else
+    ok "Pi already installed"
+  fi
 elif has npm; then
-  info "$VERB Pi coding agent..."
+  info "Installing Pi coding agent..."
   npm install -g "$PI_NPM_PACKAGE"
 else
   warn "npm not found — skipping Pi"
