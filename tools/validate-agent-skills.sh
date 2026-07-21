@@ -7,6 +7,7 @@ CLAUDE_SKILLS="$HOME/.claude/skills"
 CODEX_SKILLS="$HOME/.codex/skills"
 PI_SKILLS="$HOME/.pi/agent/skills"
 PI_SETTINGS="$HOME/.pi/agent/settings.json"
+AGY_SKILLS="$HOME/.gemini/antigravity-cli/skills"
 
 PASS=0
 FAIL=0
@@ -74,6 +75,7 @@ check_forbidden_patterns() {
     "~/.claude/skills"
     "~/.codex/skills"
     "~/.pi/agent/skills"
+    "~/.gemini/antigravity-cli/skills"
     "/skill:"
   )
   local pattern
@@ -173,6 +175,7 @@ for skill_dir in "$SKILLS_DIR"/*; do
   check_skill_link "Claude Code" "$CLAUDE_SKILLS" "$skill_name" "$skill_dir"
   check_skill_link "Codex" "$CODEX_SKILLS" "$skill_name" "$skill_dir"
   check_skill_link "Pi Agent" "$PI_SKILLS" "$skill_name" "$skill_dir"
+  check_skill_link "Antigravity CLI" "$AGY_SKILLS" "$skill_name" "$skill_dir"
 done
 
 check_pi_settings

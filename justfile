@@ -18,11 +18,15 @@ core:
 runtimes:
   @bash {{dotfiles}}/install/runtimes.sh
 
-# Install AI coding agents: Claude Code, Codex, OpenCode, Pi
+# Install AI coding agents: Claude Code, Codex, OpenCode, Pi, Antigravity CLI (agy)
 agents:
   @bash {{dotfiles}}/install/agents.sh
 
-# Validate shared skills for Claude Code, Codex, and Pi portability
+# Upgrade all AI coding agents to their latest release
+update-agents:
+  @bash {{dotfiles}}/install/agents.sh --upgrade
+
+# Validate shared skills for Claude Code, Codex, Pi, and Antigravity CLI portability
 validate-skills:
   @bash {{dotfiles}}/tools/validate-agent-skills.sh
 
@@ -86,17 +90,19 @@ link:
   done
   # Symlink output-styles directory
   ensure_symlink "{{dotfiles}}/agents/claude/output-styles" "$HOME/.claude/output-styles"
-  # Symlink all skills into both Claude Code and Codex
+  # Symlink all skills into Claude Code, Codex, Pi, and Antigravity CLI
   ensure_dir "$HOME/.claude/skills"
   ensure_dir "$HOME/.codex/skills"
   ensure_dir "$HOME/.pi/agent"
   ensure_dir "$HOME/.pi/agent/skills"
+  ensure_dir "$HOME/.gemini/antigravity-cli/skills"
   for skill in {{dotfiles}}/agents/skills/*/; do
     if [ -d "$skill" ]; then
       name="$(basename "$skill")"
       ensure_symlink "$skill" "$HOME/.claude/skills/$name"
       ensure_symlink "$skill" "$HOME/.codex/skills/$name"
       ensure_symlink "$skill" "$HOME/.pi/agent/skills/$name"
+      ensure_symlink "$skill" "$HOME/.gemini/antigravity-cli/skills/$name"
     fi
   done
 
@@ -162,6 +168,10 @@ unlink:
   done
   # Pi skills
   for skill in "$HOME/.pi/agent/skills/"*; do
+    [ -L "$skill" ] && links+=("$skill")
+  done
+  # Antigravity CLI (agy) skills
+  for skill in "$HOME/.gemini/antigravity-cli/skills/"*; do
     [ -L "$skill" ] && links+=("$skill")
   done
   for link in "${links[@]}"; do

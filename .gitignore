@@ -11,6 +11,9 @@
 # Claude Code
 .claude/debug/
 
+# Antigravity CLI (agy) per-workspace state
+.antigravitycli/
+
 # Python bytecode
 __pycache__/
 *.pyc

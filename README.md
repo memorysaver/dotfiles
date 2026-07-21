@@ -22,7 +22,7 @@ just setup
 |--------|-------|
 | `just core` | zsh, oh-my-zsh, tmux, starship, nvim, lazygit, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
-| `just agents` | Claude Code, Codex CLI, OpenCode, Pi |
+| `just agents` | Claude Code, Codex CLI, OpenCode, Pi, Antigravity CLI (agy) |
 | `just tools` | gh, glab, jq, yq, just, agent-browser, portless |
 | `just infra` | Terraform, Pulumi, SST *(opt-in, not in default setup)* |
 
@@ -114,7 +114,7 @@ The build itself runs `verify.sh` which checks all 15 symlinks and 20 commands â
 - **Editor**: Neovim (LazyVim)
 - **Git**: lazygit TUI + gh/glab CLIs
 - **Terminal**: tmux with Tokyo Night theme
-- **AI Agents**: Claude Code, Codex, OpenCode, Pi
+- **AI Agents**: Claude Code, Codex, OpenCode, Pi, Antigravity CLI (`agy`)
 - **Shared Skills**: authored once under `agents/skills/` and installed for Claude Code, Codex, and Pi
 - **Dev Envs**: `ccdev`, `opendev`, `codexdev` â€” tmux sessions with lazygit + AI agent
 
@@ -125,6 +125,7 @@ Shared skills live under `agents/skills/<skill-name>/` and are the single source
 - Claude Code via `~/.claude/skills/<skill-name>`
 - Codex via `~/.codex/skills/<skill-name>`
 - Pi via `~/.pi/agent/skills/<skill-name>`
+- Antigravity CLI (`agy`) via `~/.gemini/antigravity-cli/skills/<skill-name>`
 
 Pi also receives a thin settings file at `~/.pi/agent/settings.json` so skill discovery is explicit and stable.
 

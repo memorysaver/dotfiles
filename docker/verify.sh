@@ -48,6 +48,7 @@ check_symlink "$HOME/.config/opencode/oh-my-opencode.json" "$D/agents/opencode/o
 check_symlink "$HOME/.claude/skills/nanobana-prompts"      "$D/agents/skills/nanobana-prompts"
 check_symlink "$HOME/.codex/skills/nanobana-prompts"       "$D/agents/skills/nanobana-prompts"
 check_symlink "$HOME/.pi/agent/skills/nanobana-prompts"    "$D/agents/skills/nanobana-prompts"
+check_symlink "$HOME/.gemini/antigravity-cli/skills/nanobana-prompts" "$D/agents/skills/nanobana-prompts"
 
 echo ""
 echo "=== Commands ==="
@@ -60,7 +61,7 @@ check_cmd bun; check_cmd rustc; check_cmd cargo
 # Tools
 check_cmd gh; check_cmd jq; check_cmd yq; check_cmd just
 # Agents
-check_cmd claude; check_cmd codex
+check_cmd claude; check_cmd codex; check_cmd agy
 
 if command -v pi >/dev/null 2>&1; then
   ok "command: pi"
