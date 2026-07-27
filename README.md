@@ -171,6 +171,19 @@ git update-index --skip-worktree agents/codex/config.toml
 Check the pin with `git ls-files -v agents/codex/config.toml` — a leading `S`
 means `skip-worktree` is active.
 
+### Global Codex instructions
+
+`agents/codex/AGENTS.md` is symlinked to `~/.codex/AGENTS.md` and holds the
+machine-wide Codex instructions (project-level `AGENTS.md` files still win).
+Unlike `config.toml` it is **not** pinned with `skip-worktree`, so edits show up
+in `git status` normally.
+
+Keeping it tracked matters: third-party installers write into
+`~/.codex/AGENTS.md` without asking. One (`mgrep`) had overwritten the entire
+file with an "always use this, never use grep" directive that no one could see
+from the repo. Tracking + symlinking makes that class of change visible in
+`git diff`.
+
 ## License
 
 MIT

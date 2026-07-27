@@ -104,6 +104,7 @@ link:
   # Codex CLI
   ensure_dir "$HOME/.codex"
   ensure_symlink "{{dotfiles}}/agents/codex/config.toml" "$HOME/.codex/config.toml"
+  ensure_symlink "{{dotfiles}}/agents/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 
   # Pi
   ensure_symlink "{{dotfiles}}/agents/pi/settings.json" "$HOME/.pi/agent/settings.json"
@@ -131,6 +132,7 @@ unlink:
     "$HOME/.claude/statusline.sh"
     "$HOME/.claude/output-styles"
     "$HOME/.codex/config.toml"
+    "$HOME/.codex/AGENTS.md"
     "$HOME/.pi/agent/settings.json"
     "$HOME/.config/opencode/opencode.json"
     "$HOME/.config/opencode/oh-my-opencode.json"

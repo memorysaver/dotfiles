@@ -1,14 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "mgrep": {
-      "type": "local",
-      "command": [
-        "mgrep",
-        "mcp"
-      ],
-      "enabled": true
-    },
     "context7": {
       "type": "local",
       "command": [

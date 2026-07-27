@@ -62,7 +62,6 @@
     "code-simplifier@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "mgrep@Mixedbread-Grep": true,
     "superpowers@superpowers-marketplace": true,
     "skill-creator@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
@@ -83,13 +82,6 @@
       "source": {
         "source": "github",
         "repo": "vercel-labs/agent-browser"
-      },
-      "autoUpdate": true
-    },
-    "Mixedbread-Grep": {
-      "source": {
-        "source": "github",
-        "repo": "mixedbread-ai/mgrep"
       },
       "autoUpdate": true
     },
