@@ -61,6 +61,10 @@ link:
   ensure_symlink "{{dotfiles}}/config/nvim" "$HOME/.config/nvim"
   ensure_symlink "{{dotfiles}}/config/starship/starship.toml" "$HOME/.config/starship.toml"
 
+  # Herdr (link the file only -- the dir also holds sockets, logs, session state)
+  ensure_dir "$HOME/.config/herdr"
+  ensure_symlink "{{dotfiles}}/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+
   # Lazygit (OS-dependent path)
   if [ "$DOTFILES_OS" = "macos" ]; then
     ensure_symlink "{{dotfiles}}/config/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
@@ -128,6 +132,7 @@ unlink:
     "$HOME/.gitmessage"
     "$HOME/.config/nvim"
     "$HOME/.config/starship.toml"
+    "$HOME/.config/herdr/config.toml"
     "$HOME/.claude/settings.json"
     "$HOME/.claude/statusline.sh"
     "$HOME/.claude/output-styles"

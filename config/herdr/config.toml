@@ -1,0 +1,24 @@
+onboarding = false
+
+[keys]
+# Match the tmux prefix (config/tmux/.tmux.conf sets C-a) so muscle memory is shared.
+# Caveat: herdr always intercepts the prefix, and it has no send-prefix action, so
+# tmux running inside a herdr pane will never see ctrl+a. Change the tmux prefix if
+# you need to nest them.
+prefix = "ctrl+a"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+
+[ui.toast]
+delivery = "terminal"
+
+[experimental]
+pane_history = false
+# CJK IME support (macOS). Trade-off: an extra hardware cursor shows up in the outer
+# terminal for apps that hide the cursor without painting their own (nvim normal mode).
+# Narrow it with cjk_ime_agents = ["claude", "codex", "pi"] if that gets annoying.
+reveal_hidden_cursor_for_cjk_ime = true
+# Temporarily switch macOS to an ASCII layout while prefix mode is active, so the
+# keypress after ctrl+a is read as ASCII even with a CJK IME engaged.
+switch_ascii_input_source_in_prefix = true
