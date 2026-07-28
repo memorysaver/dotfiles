@@ -45,10 +45,7 @@ check_symlink "$HOME/.codex/config.toml"                   "$D/agents/codex/conf
 check_symlink "$HOME/.pi/agent/settings.json"              "$D/agents/pi/settings.json"
 check_symlink "$HOME/.config/opencode/opencode.json"       "$D/agents/opencode/opencode.json"
 check_symlink "$HOME/.config/opencode/oh-my-opencode.json" "$D/agents/opencode/oh-my-opencode.json"
-check_symlink "$HOME/.claude/skills/nanobana-prompts"      "$D/agents/skills/nanobana-prompts"
-check_symlink "$HOME/.codex/skills/nanobana-prompts"       "$D/agents/skills/nanobana-prompts"
-check_symlink "$HOME/.pi/agent/skills/nanobana-prompts"    "$D/agents/skills/nanobana-prompts"
-check_symlink "$HOME/.gemini/antigravity-cli/skills/nanobana-prompts" "$D/agents/skills/nanobana-prompts"
+# Skills are installed per project, not linked globally -- nothing to verify here.
 
 echo ""
 echo "=== Commands ==="

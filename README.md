@@ -120,14 +120,26 @@ The build itself runs `verify.sh` which checks all 15 symlinks and 20 commands â
 
 ## Shared Skill Portability
 
-Shared skills live under `agents/skills/<skill-name>/` and are the single source of truth for:
+Shared skills live under `agents/skills/<skill-name>/` and are the single source of
+truth. They are **not installed globally** â€” as of 2026-07-28 nothing is symlinked into
+`~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the Antigravity CLI's
+skill directory. Install per project instead, from this public repo:
 
-- Claude Code via `~/.claude/skills/<skill-name>`
-- Codex via `~/.codex/skills/<skill-name>`
-- Pi via `~/.pi/agent/skills/<skill-name>`
-- Antigravity CLI (`agy`) via `~/.gemini/antigravity-cli/skills/<skill-name>`
+```bash
+npx skills@1.5.20 add memorysaver/dotfiles --skill <name> -a claude-code -a codex -a pi -y
+```
 
-Pi also receives a thin settings file at `~/.pi/agent/settings.json` so skill discovery is explicit and stable.
+Each agent has its own project-level skill directory, so let the CLI pick the target:
+
+| Agent | Project skill directory |
+| --- | --- |
+| Claude Code | `<project>/.claude/skills` |
+| Codex | `<project>/.agents/skills` |
+| Pi | `<project>/.pi/skills` |
+| Antigravity CLI (`agy`) | `<project>/.agents/skills` |
+
+See `docs/agent-skills-sources.md` for every other skill source and the
+`skills-lock.json` format.
 
 Use `just validate-skills` to verify that every shared skill:
 

@@ -95,11 +95,9 @@ if should_setup uipro; then
     warn "npm not found — skipping uipro-cli"
   fi
 fi
-if has uipro; then
-  info "Installing UI/UX Pro Max skills to ~/.claude/skills/..."
-  # Must run from $HOME so it installs to ~/.claude/skills/
-  (cd "$HOME" && uipro init --ai claude --offline)
-fi
+# UI/UX Pro Max is no longer installed globally. Run `uipro init --ai claude --offline`
+# from inside a project, or install it per project with the skills CLI:
+#   npx skills add nextlevelbuilder/ui-ux-pro-max-skill --full-depth
 
 if [ "$UPGRADE" = 1 ]; then
   ok "AI coding agents upgraded"
