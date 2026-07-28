@@ -5,18 +5,22 @@ directory is a portable Agent Skill built around a `SKILL.md` file plus optional
 relative `workflows/`, `references/`, `scripts/`, `assets/`, and `evals/`
 folders.
 
-The same skill directories are exposed to each agent by symlink:
-
-| Agent | Install path | Source of truth |
-| --- | --- | --- |
-| Claude Code | `~/.claude/skills/<skill>` | `~/.dotfiles/agents/skills/<skill>` |
-| Codex | `~/.codex/skills/<skill>` | `~/.dotfiles/agents/skills/<skill>` |
-| Pi Agent | `~/.pi/agent/skills/<skill>` | `~/.dotfiles/agents/skills/<skill>` |
-
-Do not edit the symlinked copies. Edit the skill directory here, then run:
+These skills are **not installed globally**. As of 2026-07-28 the installer no longer
+symlinks them into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or
+`~/.gemini/antigravity-cli/skills`. Install them per project instead:
 
 ```bash
-just link
+npx skills@1.5.20 add memorysaver/dotfiles --list            # see what is here
+npx skills@1.5.20 add memorysaver/dotfiles --skill caveman -a claude-code -y
+```
+
+This repo is public, and all skills here are discoverable by the CLI without
+`--full-depth`. See `docs/agent-skills-sources.md` for every other skill source and for
+the `skills-lock.json` format that makes a project's set reproducible.
+
+Edit the skill here, then run:
+
+```bash
 just validate-skills
 ```
 
@@ -55,27 +59,10 @@ put it under a short section such as `## Claude Code Notes`, `## Codex Notes`, o
 | `wavespeed-cli` | Supported | Supported | Supported | WaveSpeed CLI and `WAVESPEED_API_KEY` |
 | `write-a-skill` | Supported | Supported | Supported | None |
 
-## Local Agent Configuration
-
-Claude Code discovers skills from `~/.claude/skills`.
-
-Codex discovers personal skills from `~/.codex/skills`; system and plugin skills
-can coexist in the same parent directory.
-
-Pi Agent is configured by `~/.pi/agent/settings.json`, which should include:
-
-```json
-{
-  "skills": [
-    "~/.pi/agent/skills"
-  ],
-  "enableSkillCommands": true
-}
-```
-
 ## Maintenance Checklist
 
 1. Add or edit the canonical skill under this directory.
-2. Run `just link` to refresh symlinks through the dotfiles installer.
-3. Run `just validate-skills` to check portability and installed links.
-4. Commit only canonical skill changes and support scripts, not generated copies.
+2. Run `just validate-skills` to check frontmatter, relative links, and portability.
+3. Commit the change and push, so projects can install the new version.
+4. In each project that needs it, run `npx skills add memorysaver/dotfiles --skill <name>`
+   (or `npx skills update <name>` to pull a newer version).

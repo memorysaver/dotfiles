@@ -89,21 +89,9 @@ link:
   done
   # Symlink output-styles directory
   ensure_symlink "{{dotfiles}}/agents/claude/output-styles" "$HOME/.claude/output-styles"
-  # Symlink all skills into Claude Code, Codex, Pi, and Antigravity CLI
-  ensure_dir "$HOME/.claude/skills"
-  ensure_dir "$HOME/.codex/skills"
+  # Skills are NOT linked globally. They install per project via the skills CLI --
+  # see docs/agent-skills-sources.md. agents/skills/ stays here as the install source.
   ensure_dir "$HOME/.pi/agent"
-  ensure_dir "$HOME/.pi/agent/skills"
-  ensure_dir "$HOME/.gemini/antigravity-cli/skills"
-  for skill in {{dotfiles}}/agents/skills/*/; do
-    if [ -d "$skill" ]; then
-      name="$(basename "$skill")"
-      ensure_symlink "$skill" "$HOME/.claude/skills/$name"
-      ensure_symlink "$skill" "$HOME/.codex/skills/$name"
-      ensure_symlink "$skill" "$HOME/.pi/agent/skills/$name"
-      ensure_symlink "$skill" "$HOME/.gemini/antigravity-cli/skills/$name"
-    fi
-  done
 
   # Codex CLI
   ensure_dir "$HOME/.codex"
@@ -156,22 +144,7 @@ unlink:
   for cmd in "$HOME/.claude/commands/"*; do
     [ -L "$cmd" ] && links+=("$cmd")
   done
-  # Claude skills
-  for skill in "$HOME/.claude/skills/"*; do
-    [ -L "$skill" ] && links+=("$skill")
-  done
-  # Codex skills
-  for skill in "$HOME/.codex/skills/"*; do
-    [ -L "$skill" ] && links+=("$skill")
-  done
-  # Pi skills
-  for skill in "$HOME/.pi/agent/skills/"*; do
-    [ -L "$skill" ] && links+=("$skill")
-  done
-  # Antigravity CLI (agy) skills
-  for skill in "$HOME/.gemini/antigravity-cli/skills/"*; do
-    [ -L "$skill" ] && links+=("$skill")
-  done
+  # Skills are not linked globally, so there is nothing to unlink for them.
   for link in "${links[@]}"; do
     [ -L "$link" ] && rm "$link" && ok "Removed $link"
   done

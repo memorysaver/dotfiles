@@ -26,7 +26,6 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-opus-4-8[1m]",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [],
   "hooks": {
@@ -36,6 +35,15 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/cmux-notify.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }
@@ -49,6 +57,109 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/memorysaver/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -56,19 +167,13 @@
     "command": "~/.claude/statusline.sh"
   },
   "enabledPlugins": {
-    "agent-browser@agent-browser": true,
     "agent-sdk-dev@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "superpowers@superpowers-marketplace": true,
     "skill-creator@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
-    "codex@openai-codex": true,
-    "obsidian@obsidian-skills": true,
-    "document-skills@anthropic-agent-skills": true,
-    "ichef-context@ichef-company-context": true
+    "ralph-loop@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "superpowers-marketplace": {
