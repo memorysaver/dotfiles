@@ -11,7 +11,7 @@ symlinks them into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, 
 
 ```bash
 npx skills@1.5.20 add memorysaver/dotfiles --list            # see what is here
-npx skills@1.5.20 add memorysaver/dotfiles --skill caveman -a claude-code -y
+npx skills@1.5.20 add memorysaver/dotfiles --skill system-thinker -a claude-code -y
 ```
 
 This repo is public, and all skills here are discoverable by the CLI without
@@ -49,15 +49,14 @@ put it under a short section such as `## Claude Code Notes`, `## Codex Notes`, o
 | Skill | Claude Code | Codex | Pi Agent | Runtime dependencies |
 | --- | --- | --- | --- | --- |
 | `canonical-skills` | Supported | Supported | Supported | Bash, `git` (optional but recommended) |
-| `caveman` | Supported | Supported | Supported | None |
 | `grill-me` | Supported | Supported | Supported | None |
 | `guizang-ppt-skill` | Supported | Supported | Supported | None |
 | `nanobana-prompts` | Supported | Supported | Supported | None |
 | `opencli` | Supported | Supported | Supported | Node.js 20+, `@jackwener/opencli` |
 | `podwise` | Supported | Supported | Supported | Podwise CLI and API key |
 | `remotion-best-practices` | Supported | Supported | Supported | Remotion project dependencies as applicable |
+| `system-thinker` | Supported | Supported | Supported | None |
 | `wavespeed-cli` | Supported | Supported | Supported | WaveSpeed CLI and `WAVESPEED_API_KEY` |
-| `write-a-skill` | Supported | Supported | Supported | None |
 
 ## Maintenance Checklist
 

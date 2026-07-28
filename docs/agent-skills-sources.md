@@ -63,10 +63,13 @@ than list entries for the reason in each row.
 
 | Skill | Upstream | Why still vendored |
 | --- | --- | --- |
-| `caveman` (MIT) | `mattpocock/skills` | **Gone from upstream.** The 42 skills there no longer include it; this copy is the only one left. |
-| `write-a-skill` (MIT) | `mattpocock/skills` | **Gone from upstream.** Nearest survivor is `writing-great-skills`, which is a different skill. |
-| `grill-me` (MIT) | `mattpocock/skills` | Still upstream — could be de-vendored. |
-| `guizang-ppt-skill` | `op7418/guizang-ppt-skill` | Still upstream — could be de-vendored. |
+| `grill-me` (MIT) | `mattpocock/skills` | Upstream is now a two-line stub (`Run a /grilling session.`, `disable-model-invocation: true`) that delegates to a separate `grilling` skill. This copy is the full self-contained version. De-vendoring would be a downgrade, not an update. |
+| `guizang-ppt-skill` | `op7418/guizang-ppt-skill` | Still upstream and equivalent — could be de-vendored. |
+
+`caveman` and `write-a-skill` were also vendored from `mattpocock/skills` and were
+dropped on 2026-07-29. Both had disappeared upstream — that repo's 42 skills include
+neither, and the nearest survivor to the latter is `writing-great-skills`, a different
+skill. Recover from git history if they are ever wanted back.
 
 ## Third party — install from upstream
 
