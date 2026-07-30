@@ -38,14 +38,30 @@ check_symlink "$HOME/.gitmessage"                          "$D/config/git/.gitme
 check_symlink "$HOME/.config/nvim"                         "$D/config/nvim"
 check_symlink "$HOME/.config/starship.toml"                "$D/config/starship/starship.toml"
 check_symlink "$HOME/.config/lazygit/config.yml"           "$D/config/lazygit/config.yml"
-check_symlink "$HOME/.claude/settings.json"                "$D/agents/claude/settings.json"
-check_symlink "$HOME/.claude/statusline.sh"                "$D/agents/claude/statusline.sh"
-check_symlink "$HOME/.claude/hooks/cmux-notify.sh"         "$D/agents/claude/hooks/cmux-notify.sh"
-check_symlink "$HOME/.codex/config.toml"                   "$D/agents/codex/config.toml"
-check_symlink "$HOME/.pi/agent/settings.json"              "$D/agents/pi/settings.json"
-check_symlink "$HOME/.config/opencode/opencode.json"       "$D/agents/opencode/opencode.json"
-check_symlink "$HOME/.config/opencode/oh-my-opencode.json" "$D/agents/opencode/oh-my-opencode.json"
-# Skills are installed per project, not linked globally -- nothing to verify here.
+# Agent configs are NOT symlinked -- `just seed-agents` copies them once and each
+# machine owns its copy from then on. Skills install per project. Both are checked
+# below as real files, not links.
+
+echo ""
+echo "=== Agent configs (real files, seeded not linked) ==="
+check_real_file() {
+  local p="$1"
+  if [ -L "$p" ]; then
+    fail "should be a real file, not a symlink: $p"
+  elif [ -e "$p" ]; then
+    ok "$p"
+  else
+    fail "missing: $p"
+  fi
+}
+check_real_file "$HOME/.claude/settings.json"
+check_real_file "$HOME/.claude/statusline.sh"
+check_real_file "$HOME/.claude/hooks/cmux-notify.sh"
+check_real_file "$HOME/.codex/config.toml"
+check_real_file "$HOME/.codex/AGENTS.md"
+check_real_file "$HOME/.pi/agent/settings.json"
+check_real_file "$HOME/.config/opencode/opencode.json"
+check_real_file "$HOME/.config/opencode/oh-my-opencode.json"
 
 echo ""
 echo "=== Commands ==="

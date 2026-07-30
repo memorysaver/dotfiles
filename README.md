@@ -46,11 +46,12 @@ just setup
 │   ├── starship/
 │   ├── nvim/
 │   └── lazygit/
-├── agents/               # AI tool configs (symlinked to ~)
+├── agents/               # AI tool config templates (copied to ~, never symlinked)
 │   ├── claude/
 │   ├── codex/
 │   ├── opencode/
-│   └── pi/
+│   ├── pi/
+│   └── skills/           # Skill source, installed per project by the skills CLI
 └── env/                  # Environment config
     ├── .env.example
     └── .envrc.template
@@ -59,12 +60,52 @@ just setup
 ## Just Recipes
 
 ```bash
-just setup    # Full setup: core + runtimes + agents + tools + link
-just link     # Create all config symlinks (idempotent)
-just unlink   # Remove all symlinks
-just infra    # Install infrastructure tools (opt-in)
-just --list   # Show all available recipes
+just setup             # Full setup: core + runtimes + agents + tools + link + seed-agents
+just link              # Create all config symlinks (idempotent)
+just unlink            # Remove all symlinks
+just seed-agents       # Copy agent config templates to ~ (never overwrites)
+just check-agent-links # Warn if any agent config still links back into this repo
+just infra             # Install infrastructure tools (opt-in)
+just --list            # Show all available recipes
 ```
+
+## Agent Configs Are Machine-Local
+
+Everything under `config/` is symlinked into `~` — one source of truth across
+machines. Everything under `agents/` is **not**. Claude Code, Codex, Pi and OpenCode
+each rewrite their own config in place (trusted paths, plugin state, sandbox mode,
+app internals), and their formats change faster than a shared repo can usefully
+track. A symlink turned every one of those writes into an uncommitted diff here.
+
+So `agents/*/` holds **templates**, not live config:
+
+```bash
+just seed-agents        # fresh machine: copy templates into ~, skip anything present
+just adopt-agents       # old machine: turn existing symlinks into real files
+just check-agent-links  # audit: nothing under ~/.claude, ~/.codex, ~/.pi should link here
+```
+
+After seeding, each machine owns its copy. Edit `~/.claude/settings.json` directly;
+this repo will not touch it again. Update a template here only when you want a
+*new* machine to start from something different.
+
+### Migrating a machine set up before 2026-07-30
+
+`just seed-agents` **will not** fix an already-linked machine — a symlink counts as
+"already exists", so every path gets skipped and stays linked to this repo. Run this
+once on each old machine instead:
+
+```bash
+cd ~/.dotfiles && git pull
+just adopt-agents       # dereferences each link in place, keeping content and mode
+just check-agent-links  # should report nothing
+```
+
+`adopt-agents` copies through the link before removing it, so your live settings —
+including anything the app wrote that was never committed here — survive intact.
+File modes are preserved (`statusline.sh` stays executable, `~/.codex/config.toml`
+stays `0600`). Links owned by something else, such as the skill links Orca installs
+into `~/.claude/skills`, are reported but never touched. Both recipes are idempotent.
 
 ## Environment Variables
 
@@ -106,7 +147,7 @@ docker exec -it dev zsh
 docker stop dev && docker rm dev
 ```
 
-The build itself runs `verify.sh` which checks all 15 symlinks and 20 commands — if anything is broken, the build fails.
+The build itself runs `verify.sh` which checks the 7 config symlinks, the 8 seeded agent configs (asserting they are real files, not links), and 20 commands — if anything is broken, the build fails.
 
 ## Key Tools
 
@@ -115,7 +156,7 @@ The build itself runs `verify.sh` which checks all 15 symlinks and 20 commands �
 - **Git**: lazygit TUI + gh/glab CLIs
 - **Terminal**: tmux with Tokyo Night theme
 - **AI Agents**: Claude Code, Codex, OpenCode, Pi, Antigravity CLI (`agy`)
-- **Shared Skills**: authored once under `agents/skills/` and installed for Claude Code, Codex, and Pi
+- **Shared Skills**: authored once under `agents/skills/`, installed per project via the skills CLI
 - **Dev Envs**: `ccdev`, `opendev`, `codexdev` — tmux sessions with lazygit + AI agent
 
 ## Shared Skill Portability
@@ -139,7 +180,8 @@ Each agent has its own project-level skill directory, so let the CLI pick the ta
 | Antigravity CLI (`agy`) | `<project>/.agents/skills` |
 
 See `docs/agent-skills-sources.md` for every other skill source and the
-`skills-lock.json` format.
+`skills-lock.json` format, and `docs/removed-agent-clis.md` for the skill-installer
+and skill-backend CLIs this repo used to install globally (and how to get them back).
 
 Use `just validate-skills` to verify that every shared skill:
 
@@ -150,51 +192,40 @@ Use `just validate-skills` to verify that every shared skill:
 
 ## Codex Config Template
 
-`agents/codex/config.toml` is symlinked to `~/.codex/config.toml`, so the Codex
-CLI and desktop app continuously write **machine-local state** back into it —
-trusted project paths, plugin/runtime state, sandbox mode, and Codex.app
-internals. To keep that drift (including private project names) out of this
-public repo, the file is a **tracked template pinned with `skip-worktree`**:
-git ignores local edits, so `just link` still provisions a clean config on a
-fresh machine while your day-to-day Codex state is never committed.
+`agents/codex/config.toml` is a **template**, not your live config. The Codex CLI
+and desktop app continuously write machine-local state into `~/.codex/config.toml`
+— trusted project paths, plugin/runtime state, sandbox mode, Codex.app internals.
+While that file was symlinked here, the only way to keep private project names out
+of this public repo was to pin it with `skip-worktree`, which meant `git status`
+lied about it by design. De-linking removes both problems: the live file is yours,
+the template is plain tracked content.
 
-The tracked template deliberately stays minimal and safe:
+The template deliberately stays minimal and safe:
 
 - `sandbox_mode = "workspace-write"` (not `danger-full-access`)
 - `model = "gpt-5.6-sol"`
 - no local `[projects.*]` trust entries beyond the repo itself
 
-Because of the pin, `git status` and `git add` will **not** see changes to this
-file. To intentionally update the tracked template:
-
-```bash
-# 1. Unpin so git tracks the file again
-git update-index --no-skip-worktree agents/codex/config.toml
-
-# 2. Edit the CLEAN template only — do NOT commit local project paths,
-#    danger-full-access, or Codex.app runtime state.
-$EDITOR agents/codex/config.toml
-
-# 3. Commit + push, then re-pin so local drift is ignored again
-git add agents/codex/config.toml && git commit && git push
-git update-index --skip-worktree agents/codex/config.toml
-```
-
-Check the pin with `git ls-files -v agents/codex/config.toml` — a leading `S`
-means `skip-worktree` is active.
+Edit it like any other file. Nothing is pinned — `git ls-files -v agents/` should
+show no `S` flags. When you change it, you are changing what the *next* machine
+starts with; run `just seed-agents` there, or copy it by hand onto a machine you
+want to reset.
 
 ### Global Codex instructions
 
-`agents/codex/AGENTS.md` is symlinked to `~/.codex/AGENTS.md` and holds the
-machine-wide Codex instructions (project-level `AGENTS.md` files still win).
-Unlike `config.toml` it is **not** pinned with `skip-worktree`, so edits show up
-in `git status` normally.
+`agents/codex/AGENTS.md` is the template for `~/.codex/AGENTS.md`, the machine-wide
+Codex instructions (project-level `AGENTS.md` files still win).
 
-Keeping it tracked matters: third-party installers write into
-`~/.codex/AGENTS.md` without asking. One (`mgrep`) had overwritten the entire
-file with an "always use this, never use grep" directive that no one could see
-from the repo. Tracking + symlinking makes that class of change visible in
-`git diff`.
+**Known tradeoff:** third-party installers write into `~/.codex/AGENTS.md` without
+asking — one (`mgrep`) once overwrote the whole file with an "always use this, never
+use grep" directive. The symlink used to surface that in `git diff` for free. It no
+longer does. If a global agent instruction file starts behaving oddly, diff it against
+the template by hand:
+
+```bash
+diff ~/.codex/AGENTS.md ~/.dotfiles/agents/codex/AGENTS.md
+diff ~/.claude/settings.json ~/.dotfiles/agents/claude/settings.json
+```
 
 ## License
 

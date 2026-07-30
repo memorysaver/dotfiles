@@ -6,7 +6,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 dotfiles := env("HOME") / ".dotfiles"
 
 # Run full setup (idempotent — safe to re-run)
-setup: core runtimes agents tools link
+setup: core runtimes agents tools link seed-agents
   @echo ""
   @echo "Setup complete! Restart your shell or run: source ~/.zshrc"
 
@@ -72,41 +72,54 @@ link:
     ensure_symlink "{{dotfiles}}/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
   fi
 
-  # Claude Code
-  ensure_dir "$HOME/.claude"
-  ensure_dir "$HOME/.claude/hooks"
-  ensure_dir "$HOME/.claude/commands"
-  ensure_symlink "{{dotfiles}}/agents/claude/settings.json" "$HOME/.claude/settings.json"
-  ensure_symlink "{{dotfiles}}/agents/claude/statusline.sh" "$HOME/.claude/statusline.sh"
-  chmod +x "{{dotfiles}}/agents/claude/statusline.sh"
-  # Symlink all hooks
-  for hook in {{dotfiles}}/agents/claude/hooks/*; do
-    [ -f "$hook" ] && ensure_symlink "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
-  done
-  # Symlink all commands
-  for cmd in {{dotfiles}}/agents/claude/commands/*; do
-    [ -f "$cmd" ] && ensure_symlink "$cmd" "$HOME/.claude/commands/$(basename "$cmd")"
-  done
-  # Symlink output-styles directory
-  ensure_symlink "{{dotfiles}}/agents/claude/output-styles" "$HOME/.claude/output-styles"
-  # Skills are NOT linked globally. They install per project via the skills CLI --
-  # see docs/agent-skills-sources.md. agents/skills/ stays here as the install source.
-  ensure_dir "$HOME/.pi/agent"
-
-  # Codex CLI
-  ensure_dir "$HOME/.codex"
-  ensure_symlink "{{dotfiles}}/agents/codex/config.toml" "$HOME/.codex/config.toml"
-  ensure_symlink "{{dotfiles}}/agents/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
-
-  # Pi
-  ensure_symlink "{{dotfiles}}/agents/pi/settings.json" "$HOME/.pi/agent/settings.json"
-
-  # OpenCode
-  ensure_dir "$HOME/.config/opencode"
-  ensure_symlink "{{dotfiles}}/agents/opencode/opencode.json" "$HOME/.config/opencode/opencode.json"
-  ensure_symlink "{{dotfiles}}/agents/opencode/oh-my-opencode.json" "$HOME/.config/opencode/oh-my-opencode.json"
+  # Coding-agent configs are NOT symlinked. Claude Code, Codex, Pi and OpenCode
+  # all rewrite their own config in place, and their formats change faster than a
+  # shared repo can track. Each machine owns its own copy under ~/. What lives in
+  # agents/*/ is a reference template -- run `just seed-agents` to copy it onto a
+  # fresh machine, then let the machine diverge. Skills likewise install per
+  # project via the skills CLI; see docs/agent-skills-sources.md.
 
   ok "All symlinks created"
+
+# Copy agent config templates to a fresh machine (never overwrites an existing file)
+seed-agents:
+  #!/usr/bin/env bash
+  source {{dotfiles}}/lib/helpers.sh
+  info "Seeding agent configs (existing files are left untouched)..."
+
+  seed() {
+    local src="$1" dest="$2"
+    if [ -e "$dest" ]; then
+      warn "exists, skipped: $dest"
+    else
+      ensure_dir "$(dirname "$dest")"
+      cp -R "$src" "$dest"
+      ok "seeded $dest"
+    fi
+  }
+
+  # Claude Code
+  ensure_dir "$HOME/.claude/hooks"
+  seed "{{dotfiles}}/agents/claude/settings.json"  "$HOME/.claude/settings.json"
+  seed "{{dotfiles}}/agents/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
+  seed "{{dotfiles}}/agents/claude/output-styles"  "$HOME/.claude/output-styles"
+  for hook in {{dotfiles}}/agents/claude/hooks/*; do
+    [ -f "$hook" ] && seed "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
+  done
+  [ -f "$HOME/.claude/statusline.sh" ] && chmod +x "$HOME/.claude/statusline.sh"
+
+  # Codex CLI
+  seed "{{dotfiles}}/agents/codex/config.toml" "$HOME/.codex/config.toml"
+  seed "{{dotfiles}}/agents/codex/AGENTS.md"   "$HOME/.codex/AGENTS.md"
+
+  # Pi
+  seed "{{dotfiles}}/agents/pi/settings.json" "$HOME/.pi/agent/settings.json"
+
+  # OpenCode
+  seed "{{dotfiles}}/agents/opencode/opencode.json"       "$HOME/.config/opencode/opencode.json"
+  seed "{{dotfiles}}/agents/opencode/oh-my-opencode.json" "$HOME/.config/opencode/oh-my-opencode.json"
+
+  ok "Agent configs seeded -- they are yours to edit now, this repo will not touch them again"
 
 # Unlink all symlinks (for clean removal)
 unlink:
@@ -121,14 +134,6 @@ unlink:
     "$HOME/.config/nvim"
     "$HOME/.config/starship.toml"
     "$HOME/.config/herdr/config.toml"
-    "$HOME/.claude/settings.json"
-    "$HOME/.claude/statusline.sh"
-    "$HOME/.claude/output-styles"
-    "$HOME/.codex/config.toml"
-    "$HOME/.codex/AGENTS.md"
-    "$HOME/.pi/agent/settings.json"
-    "$HOME/.config/opencode/opencode.json"
-    "$HOME/.config/opencode/oh-my-opencode.json"
   )
   # Lazygit (OS-dependent path)
   if [ "$(uname)" = "Darwin" ]; then
@@ -136,15 +141,17 @@ unlink:
   else
     links+=("$HOME/.config/lazygit/config.yml")
   fi
-  # Claude hooks
-  for hook in "$HOME/.claude/hooks/"*; do
-    [ -L "$hook" ] && links+=("$hook")
-  done
-  # Claude commands
-  for cmd in "$HOME/.claude/commands/"*; do
-    [ -L "$cmd" ] && links+=("$cmd")
-  done
-  # Skills are not linked globally, so there is nothing to unlink for them.
+  # Agent configs and skills are not symlinked, so there is nothing to unlink for
+  # them. Whatever sits under ~/.claude, ~/.codex, ~/.pi and ~/.config/opencode
+  # belongs to this machine and is left alone.
   for link in "${links[@]}"; do
     [ -L "$link" ] && rm "$link" && ok "Removed $link"
   done
+
+# Report any symlink still pointing into this repo from an agent config directory
+check-agent-links:
+  @bash {{dotfiles}}/tools/agent-links.sh check
+
+# Turn agent config symlinks into real machine-local files (run once per old machine)
+adopt-agents:
+  @bash {{dotfiles}}/tools/agent-links.sh adopt
