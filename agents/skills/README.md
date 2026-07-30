@@ -11,7 +11,16 @@ symlinks them into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, 
 
 ```bash
 npx skills@1.5.20 add memorysaver/dotfiles --list            # see what is here
-npx skills@1.5.20 add memorysaver/dotfiles --skill system-thinker -a claude-code -y
+npx skills@1.5.20 add memorysaver/dotfiles --skill podwise -a claude-code -y
+```
+
+Not every personal skill lives here. Ones that outgrew a dotfiles repo moved to
+[`memorysaver/skills`](https://github.com/memorysaver/skills), which is a proper
+skills repo with grouped sources, a Claude Code plugin marketplace, and tagged
+releases to pin against:
+
+```bash
+npx skills@1.5.20 add memorysaver/skills --skill system-thinker -a claude-code -y
 ```
 
 This repo is public, and all skills here are discoverable by the CLI without
@@ -48,15 +57,24 @@ put it under a short section such as `## Claude Code Notes`, `## Codex Notes`, o
 
 | Skill | Claude Code | Codex | Pi Agent | Runtime dependencies |
 | --- | --- | --- | --- | --- |
-| `canonical-skills` | Supported | Supported | Supported | Bash, `git` (optional but recommended) |
 | `grill-me` | Supported | Supported | Supported | None |
 | `guizang-ppt-skill` | Supported | Supported | Supported | None |
 | `nanobana-prompts` | Supported | Supported | Supported | None |
 | `opencli` | Supported | Supported | Supported | Node.js 20+, `@jackwener/opencli` |
 | `podwise` | Supported | Supported | Supported | Podwise CLI and API key |
 | `remotion-best-practices` | Supported | Supported | Supported | Remotion project dependencies as applicable |
-| `system-thinker` | Supported | Supported | Supported | None |
 | `wavespeed-cli` | Supported | Supported | Supported | WaveSpeed CLI and `WAVESPEED_API_KEY` |
+
+The three CLI-backed skills above (`opencli`, `podwise`, `wavespeed-cli`) no longer get
+their CLI installed automatically on every machine — see `docs/removed-agent-clis.md`.
+
+### Moved out
+
+| Skill | Now at | Why |
+| --- | --- | --- |
+| `system-thinker` | `memorysaver/skills` → `skills/thinking/system-thinker` | Belongs in the dedicated skills repo, which has grouped sources, a plugin marketplace, and tagged releases |
+| `canonical-skills` | `memorysaver/skills` → `skills/project-scaffold/canonical-project-skills-layout` | Was a stale duplicate of that skill under an older name |
+| `project-memory` | `memorysaver/skills` → `skills/memory/project-memory` | Moved 2026-05-23 |
 
 ## Maintenance Checklist
 

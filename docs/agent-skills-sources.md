@@ -4,7 +4,9 @@
 
 Two things, and only these:
 
-1. **Config files** for each agent (`agents/*/`), symlinked into place by `just link`.
+1. **Config templates** for each agent (`agents/*/`), copied into place once by
+   `just seed-agents`. They are deliberately **not** symlinked — see the README's
+   "Agent Configs Are Machine-Local". After seeding, each machine owns its own copy.
 2. **This list** — the third-party skills we deliberately add, and where to get them.
 
 ## What this repo does not manage
@@ -34,6 +36,10 @@ npx skills@1.5.20 add <repo> --list          # see what a repo offers first
 npx skills@1.5.20 ls --json                  # audit what a project has
 ```
 
+The skills CLI is the only installer we use. Standalone skill-installer CLIs and the
+per-skill backend CLIs this repo used to install globally are recorded in
+`removed-agent-clis.md`, along with the command to bring each one back.
+
 Each agent has a different project-level skill directory, so let the CLI pick the target
 rather than writing paths by hand:
 
@@ -49,12 +55,32 @@ rather than writing paths by hand:
 These live under `agents/skills/` and install from this public repo. All are discovered
 without `--full-depth`.
 
-`canonical-skills` · `nanobana-prompts` · `opencli` · `podwise` ·
-`remotion-best-practices` · `system-thinker` · `wavespeed-cli`
+`nanobana-prompts` · `opencli` · `podwise` · `remotion-best-practices` · `wavespeed-cli`
 
 ```bash
 npx skills@1.5.20 add memorysaver/dotfiles --skill <name> -a claude-code -y
 ```
+
+## Ours — in the dedicated skills repo
+
+`memorysaver/skills` is the real home for personal skills: grouped sources, a Claude Code
+plugin marketplace, and tagged releases to pin against. Skills go there rather than here
+once they are worth versioning on their own.
+
+| Group | Skills |
+| --- | --- |
+| `project-scaffold` | `canonical-project-skills-layout`, `project-behavior` |
+| `memory` | `project-memory`, `memory-forge` |
+| `thinking` | `system-thinker` |
+
+```bash
+npx skills@1.5.20 add memorysaver/skills --skill <name> -a claude-code -y
+npx skills@1.5.20 add memorysaver/skills@<tag> -a claude-code --skill '*'   # pinned
+```
+
+`canonical-skills` and `system-thinker` were removed from this repo on 2026-07-30 and now
+live there — the former as `canonical-project-skills-layout`, which it had already been
+duplicated into under that name.
 
 ## Third party — vendored here
 
