@@ -95,53 +95,9 @@ else
   ok "portless already installed"
 fi
 
-# --- opencli (jackwener) ---
-if ! has opencli; then
-  info "Installing opencli..."
-  if has npm; then
-    npm install -g @jackwener/opencli || warn "opencli install failed — skipping"
-  else
-    warn "npm not found — skipping opencli"
-  fi
-else
-  ok "opencli already installed"
-fi
-
-# --- podwise-cli (hardhackerlabs) ---
-if ! has podwise; then
-  info "Installing podwise-cli..."
-  case "$DOTFILES_OS" in
-    macos) brew install hardhackerlabs/podwise-tap/podwise ;;
-    linux) warn "podwise-cli has no Linux package — install manually from https://github.com/hardhackerlabs/podwise-cli" ;;
-  esac
-else
-  ok "podwise already installed"
-fi
-
-# --- wavespeed-cli (local) ---
-if ! has wavespeed; then
-  info "Installing wavespeed-cli..."
-  if has npm; then
-    npm install -g "$DOTFILES_DIR/tools/wavespeed-cli" || warn "wavespeed-cli install failed — skipping"
-  else
-    warn "npm not found — skipping wavespeed-cli"
-  fi
-else
-  ok "wavespeed already installed"
-fi
-
-# --- qmd (Quick Markdown Search) — memory backbone for the lesson-learned skill ---
-if ! has qmd; then
-  info "Installing qmd..."
-  if has bun; then
-    bun install -g @tobilu/qmd || warn "qmd install failed — skipping"
-  elif has npm; then
-    npm install -g @tobilu/qmd || warn "qmd install failed — skipping"
-  else
-    warn "neither bun nor npm found — skipping qmd"
-  fi
-else
-  ok "qmd already installed"
-fi
+# Skill-backing CLIs (opencli, podwise, wavespeed-cli, qmd, uipro-cli) are no longer
+# installed globally on every machine. Each existed only to make one skill in
+# agents/skills/ runnable, so they belong wherever that skill is actually used.
+# docs/removed-agent-clis.md records every one and the command to bring it back.
 
 ok "CLI tools installation complete"

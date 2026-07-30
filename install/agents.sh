@@ -86,18 +86,9 @@ else
   warn "npm not found — skipping Pi"
 fi
 
-# --- UI/UX Pro Max Skills ---
-if should_setup uipro; then
-  if has npm; then
-    info "$VERB uipro-cli..."
-    npm install -g uipro-cli
-  else
-    warn "npm not found — skipping uipro-cli"
-  fi
-fi
-# UI/UX Pro Max is no longer installed globally. Run `uipro init --ai claude --offline`
-# from inside a project, or install it per project with the skills CLI:
-#   npx skills add nextlevelbuilder/ui-ux-pro-max-skill --full-depth
+# Skill-installer CLIs are deliberately NOT installed here anymore -- skills come
+# from the skills CLI per project. See docs/removed-agent-clis.md for what used to
+# live here and how to get each one back on demand.
 
 if [ "$UPGRADE" = 1 ]; then
   ok "AI coding agents upgraded"
