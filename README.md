@@ -22,7 +22,7 @@ just setup
 |--------|-------|
 | `just core` | zsh, oh-my-zsh, tmux, starship, nvim, lazygit, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
-| `just agents` | Claude Code, Codex CLI, OpenCode, Pi, Antigravity CLI (agy) |
+| `just agents` | Herdr (+ its agent skill), Claude Code, Codex CLI, OpenCode, Pi, Antigravity CLI (agy) |
 | `just tools` | gh, glab, jq, yq, just, agent-browser, portless |
 | `just infra` | Terraform, Pulumi, SST *(opt-in, not in default setup)* |
 
@@ -147,14 +147,14 @@ docker exec -it dev zsh
 docker stop dev && docker rm dev
 ```
 
-The build itself runs `verify.sh` which checks the 7 config symlinks, the 8 seeded agent configs (asserting they are real files, not links), and 20 commands — if anything is broken, the build fails.
+The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seeded agent configs plus the global Herdr skill (asserting they are real files, not links), and 21 commands — if anything is broken, the build fails.
 
 ## Key Tools
 
 - **Shell**: zsh + oh-my-zsh + starship prompt
 - **Editor**: Neovim (LazyVim)
 - **Git**: lazygit TUI + gh/glab CLIs
-- **Terminal**: tmux with Tokyo Night theme
+- **Terminal**: tmux with Tokyo Night theme; Herdr as the agent multiplexer
 - **AI Agents**: Claude Code, Codex, OpenCode, Pi, Antigravity CLI (`agy`)
 - **Shared Skills**: authored once under `agents/skills/`, installed per project via the skills CLI
 - **Dev Envs**: `ccdev`, `opendev`, `codexdev` — tmux sessions with lazygit + AI agent
@@ -164,7 +164,9 @@ The build itself runs `verify.sh` which checks the 7 config symlinks, the 8 seed
 Shared skills live under `agents/skills/<skill-name>/` and are the single source of
 truth. They are **not installed globally** — as of 2026-07-28 nothing is symlinked into
 `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the Antigravity CLI's
-skill directory. Install per project instead, from this public repo:
+skill directory. The single exception is the Herdr skill, installed globally by
+`just agents` because it is gated on `HERDR_ENV=1` and so stays inert everywhere else.
+Install everything else per project, from this public repo:
 
 ```bash
 npx skills@1.5.20 add memorysaver/dotfiles --skill <name> -a claude-code -a codex -a pi -y

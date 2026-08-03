@@ -38,6 +38,7 @@ check_symlink "$HOME/.gitmessage"                          "$D/config/git/.gitme
 check_symlink "$HOME/.config/nvim"                         "$D/config/nvim"
 check_symlink "$HOME/.config/starship.toml"                "$D/config/starship/starship.toml"
 check_symlink "$HOME/.config/lazygit/config.yml"           "$D/config/lazygit/config.yml"
+check_symlink "$HOME/.config/herdr/config.toml"            "$D/config/herdr/config.toml"
 # Agent configs are NOT symlinked -- `just seed-agents` copies them once and each
 # machine owns its copy from then on. Skills install per project. Both are checked
 # below as real files, not links.
@@ -74,7 +75,7 @@ check_cmd bun; check_cmd rustc; check_cmd cargo
 # Tools
 check_cmd gh; check_cmd jq; check_cmd yq; check_cmd just
 # Agents
-check_cmd claude; check_cmd codex; check_cmd agy
+check_cmd herdr; check_cmd claude; check_cmd codex; check_cmd agy
 
 if command -v pi >/dev/null 2>&1; then
   ok "command: pi"
@@ -87,6 +88,10 @@ fi
 echo ""
 echo "=== Shared Skills ==="
 bash "$D/tools/validate-agent-skills.sh" || fail "shared skill validation"
+
+# The Herdr skill is the only skill installed globally -- see docs/agent-skills-sources.md.
+# ~/.agents/skills holds the canonical copy; per-agent global dirs symlink to it.
+check_real_file "$HOME/.agents/skills/herdr/SKILL.md"
 
 echo ""
 echo "=== Summary: $PASS passed, $FAIL failed ==="

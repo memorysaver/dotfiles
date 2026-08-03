@@ -18,7 +18,7 @@ core:
 runtimes:
   @bash {{dotfiles}}/install/runtimes.sh
 
-# Install AI coding agents: Claude Code, Codex, OpenCode, Pi, Antigravity CLI (agy)
+# Install Herdr + AI coding agents: Claude Code, Codex, OpenCode, Pi, Antigravity CLI (agy)
 agents:
   @bash {{dotfiles}}/install/agents.sh
 

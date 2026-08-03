@@ -30,6 +30,21 @@ Skills are installed **per project**, never into a global skill directory. Nothi
 symlinked into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the
 Antigravity CLI's directory.
 
+**One exception: `herdr`.** Added 2026-08-03, installed globally by `install/agents.sh`
+alongside the Herdr binary. Its frontmatter requires `HERDR_ENV=1` and tells the agent to
+stop if that is unset, so outside a Herdr-managed pane it costs one description line and
+nothing else — it cannot fire on an unrelated task the way the eleven skills that
+triggered the 2026-07-28 policy did. Herdr is also a machine-level tool, not a
+project-level one, so project scoping would mean reinstalling it in every project. This
+is the bar for future exceptions: the skill must be inert by construction outside the
+tool it drives, and the tool must be machine-level. Nothing else currently clears it.
+
+Verify it with `ls ~/.agents/skills/herdr`, not `ls ~/.codex/skills`. With `-a '*'` the
+CLI writes one canonical copy to `~/.agents/skills/` and symlinks it into the agents that
+keep their own global directory (`~/.claude/skills`, `~/.pi/agent/skills`). Codex and the
+Antigravity CLI read `~/.agents/skills` directly, so their own global directories stay
+empty and that is not a failed install.
+
 ```bash
 npx skills@1.5.20 add <repo> --skill <name> -a claude-code -y
 npx skills@1.5.20 add <repo> --list          # see what a repo offers first
@@ -101,6 +116,7 @@ skill. Recover from git history if they are ever wanted back.
 
 | Skill(s) | Repo | Notes |
 | --- | --- | --- |
+| `herdr` | `herdrdev/herdr` | **The one global install** — see Policy above. `install/agents.sh` runs it with `-a '*' -g`. The repo also offers `herdr-pre-release-audit`, `herdr-throwaway-repro`, and `triage`; all three are for developing Herdr itself, not for using it, so they are deliberately not installed. |
 | superpowers (brainstorming, systematic-debugging, TDD, writing-plans, …) | `obra/superpowers` | ~14 skills. Not `obra/superpowers-marketplace` — that resolves but exposes 0. |
 | document-skills (`xlsx`, `docx`, `pptx`, `pdf`, …) | `anthropics/skills` | ~19 skills. |
 | obsidian (`defuddle`, `json-canvas`, `obsidian-bases`, `obsidian-cli`, `obsidian-markdown`) | `kepano/obsidian-skills` | **Needs `--full-depth`.** |
