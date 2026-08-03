@@ -93,6 +93,7 @@ bash "$D/tools/validate-agent-skills.sh" || fail "shared skill validation"
 # ~/.agents/skills holds the canonical copy; per-agent global dirs symlink to it.
 check_real_file "$HOME/.agents/skills/herdr/SKILL.md"
 check_real_file "$HOME/.agents/skills/i-have-adhd/SKILL.md"
+check_real_file "$HOME/.agents/skills/agent-browser/SKILL.md"
 
 echo ""
 echo "=== Summary: $PASS passed, $FAIL failed ==="

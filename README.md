@@ -22,7 +22,7 @@ just setup
 |--------|-------|
 | `just core` | zsh, oh-my-zsh, tmux, starship, nvim, lazygit, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
-| `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`), Claude Code, Codex CLI, OpenCode, Pi, Antigravity CLI (agy) |
+| `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Pi, Antigravity CLI (agy) |
 | `just tools` | gh, glab, jq, yq, just, agent-browser, portless |
 | `just infra` | Terraform, Pulumi, SST *(opt-in, not in default setup)* |
 
@@ -147,7 +147,7 @@ docker exec -it dev zsh
 docker stop dev && docker rm dev
 ```
 
-The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seeded agent configs plus the 2 global skills (asserting they are real files, not links), and 21 commands — if anything is broken, the build fails.
+The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seeded agent configs plus the 3 global skills (asserting they are real files, not links), and 21 commands — if anything is broken, the build fails.
 
 ## Key Tools
 
@@ -164,9 +164,9 @@ The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seed
 Shared skills live under `agents/skills/<skill-name>/` and are the single source of
 truth. They are **not installed globally** — as of 2026-07-28 nothing is symlinked into
 `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the Antigravity CLI's
-skill directory. The exceptions are `herdr` and `i-have-adhd`, installed globally by
-`just agents` — both stay inert until deliberately activated, and both are about the
-machine rather than a project. `docs/agent-skills-sources.md` states the bar in full.
+skill directory. The exceptions are `herdr`, `i-have-adhd` and `agent-browser`, installed globally by
+`just agents`. The first two stay inert until deliberately activated; `agent-browser` is a
+deliberate override that does not. `docs/agent-skills-sources.md` states the bar in full.
 Install everything else per project, from this public repo:
 
 ```bash

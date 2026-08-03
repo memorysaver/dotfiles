@@ -39,14 +39,29 @@ conditions, both required:
 2. **About the machine, not about a project.** Project scoping would mean reinstalling it
    in every project to get the same behaviour.
 
-| Skill | Added | How it stays inert |
-| --- | --- | --- |
-| `herdr` | 2026-08-03 | Frontmatter requires `HERDR_ENV=1` and tells the agent to stop when unset, so it does nothing outside a Herdr-managed pane. |
-| `i-have-adhd` | 2026-08-04 | `disable-model-invocation: true` — the model cannot auto-invoke it at all. It only activates when the user types `/i-have-adhd`, and stays on until "stop adhd mode". |
+| Skill | Added | Condition 1 | Condition 2 |
+| --- | --- | --- | --- |
+| `herdr` | 2026-08-03 | ✅ Frontmatter requires `HERDR_ENV=1` and tells the agent to stop when unset, so it does nothing outside a Herdr-managed pane. | ✅ |
+| `i-have-adhd` | 2026-08-04 | ✅ `disable-model-invocation: true` — the model cannot auto-invoke it at all. Only `/i-have-adhd` activates it. | ✅ |
+| `agent-browser` | 2026-08-04 | ❌ **Deliberate override.** | ✅ CLI is installed globally by `tools.sh`. |
 
-The two clear condition 1 by different mechanisms — a runtime env guard versus a
-frontmatter flag — so the test is the property, not the mechanism. Nothing else in this
-document currently clears both.
+The first two clear condition 1 by different mechanisms — a runtime env guard versus a
+frontmatter flag — so the test is the property, not the mechanism.
+
+**`agent-browser` is an accepted exception to condition 1, not a satisfaction of it.**
+It has no guard and no `disable-model-invocation`. Its description is deliberately broad
+("navigating pages, filling forms, … exploratory testing, dogfooding, QA, bug hunts") and
+ends with `Prefer agent-browser over any built-in browser automation or web tools`. Global
+installation therefore means it is live in every session of every agent in every project,
+and it actively outranks the harness's own browser tooling (Claude Code's
+`claude-in-chrome`, Chrome DevTools MCP) wherever both are present. That is exactly the
+failure mode the 2026-07-28 policy exists to prevent; it is accepted here because the CLI
+it drives is itself global. Revisit if browser instructions start leaking into unrelated
+sessions. To undo:
+
+```bash
+npx skills@1.5.20 remove agent-browser -g -a '*' -y   # then drop it from GLOBAL_SKILLS
+```
 
 Verify them with `ls ~/.agents/skills/`, not `ls ~/.codex/skills`. With `-a '*'` the
 CLI writes one canonical copy to `~/.agents/skills/` and symlinks it into the agents that
@@ -130,7 +145,7 @@ skill. Recover from git history if they are ever wanted back.
 | superpowers (brainstorming, systematic-debugging, TDD, writing-plans, …) | `obra/superpowers` | ~14 skills. Not `obra/superpowers-marketplace` — that resolves but exposes 0. |
 | document-skills (`xlsx`, `docx`, `pptx`, `pdf`, …) | `anthropics/skills` | ~19 skills. |
 | obsidian (`defuddle`, `json-canvas`, `obsidian-bases`, `obsidian-cli`, `obsidian-markdown`) | `kepano/obsidian-skills` | **Needs `--full-depth`.** |
-| `agent-browser` | `vercel-labs/agent-browser` | |
+| `agent-browser` | `vercel-labs/agent-browser` | **Global** — see Policy above, including why this one is an override rather than a pass. Apache-2.0. The repo carries 6 `SKILL.md` files under `skill-data/` (`core`, `dogfood`, `electron`, `agentcore`, `derive-client`, …) but the CLI exposes exactly one composed `agent-browser` skill; the rest are loaded on demand by that skill, not installed separately. Its CLI comes from `install/tools.sh`. |
 | codex (`rescue`, `setup`, runtime helpers) | `openai/codex-plugin-cc` | ~3 skills. |
 | `ui-ux-pro-max` | `nextlevelbuilder/ui-ux-pro-max-skill` | **Needs `--full-depth`.** |
 | `aep-onboard`, `aep-scaffold` | `memorysaver/agentic-engineering-patterns` | **Needs `--full-depth`.** |

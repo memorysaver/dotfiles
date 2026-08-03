@@ -75,7 +75,7 @@ fi
 if ! has agent-browser; then
   info "Installing agent-browser..."
   if has npm; then
-    npm install -g @anthropic-ai/agent-browser || warn "agent-browser not available on npm — skipping"
+    npm install -g agent-browser || warn "agent-browser install failed"
   else
     warn "npm not found — skipping agent-browser"
   fi
@@ -87,7 +87,7 @@ fi
 if ! has portless; then
   info "Installing portless..."
   if has npm; then
-    npm install -g @anthropic-ai/portless || warn "portless not available on npm — skipping"
+    npm install -g portless || warn "portless install failed"
   else
     warn "npm not found — skipping portless"
   fi

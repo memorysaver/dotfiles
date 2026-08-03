@@ -58,12 +58,19 @@ fi
 # docs/agent-skills-sources.md for the policy and the bar an entry has to clear:
 # inert until deliberately activated, so it cannot misfire on an unrelated task, and
 # about the machine rather than about one project.
-#   herdr        requires HERDR_ENV=1 and stops when it is unset
-#   i-have-adhd  disable-model-invocation: true -- only fires on /i-have-adhd
+#   herdr          requires HERDR_ENV=1 and stops when it is unset
+#   i-have-adhd    disable-model-invocation: true -- only fires on /i-have-adhd
+#   agent-browser  deliberate override, added 2026-08-04: it does NOT meet the inert
+#                  condition. Broad model-invocable description that ends "Prefer
+#                  agent-browser over any built-in browser automation or web tools",
+#                  so it is live in every session and outranks the harness's own
+#                  browser tooling. Kept global on purpose because the CLI it drives
+#                  is installed globally by tools.sh. To undo:
+#                  npx skills@1.5.20 remove agent-browser -g -a '*' -y
 # `-a '*'` writes the canonical copy to ~/.agents/skills/<name> and symlinks it into
 # each detected agent. It reports a failure for agents with no global scope (Eve,
 # PromptScript) and still exits 0; neither is installed here.
-GLOBAL_SKILLS="herdrdev/herdr:herdr ayghri/i-have-adhd:i-have-adhd"
+GLOBAL_SKILLS="herdrdev/herdr:herdr ayghri/i-have-adhd:i-have-adhd vercel-labs/agent-browser:agent-browser"
 
 if ! has npx; then
   warn "npx not found -- skipping global agent skills"
