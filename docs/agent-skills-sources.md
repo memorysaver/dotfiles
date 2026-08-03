@@ -30,16 +30,25 @@ Skills are installed **per project**, never into a global skill directory. Nothi
 symlinked into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the
 Antigravity CLI's directory.
 
-**One exception: `herdr`.** Added 2026-08-03, installed globally by `install/agents.sh`
-alongside the Herdr binary. Its frontmatter requires `HERDR_ENV=1` and tells the agent to
-stop if that is unset, so outside a Herdr-managed pane it costs one description line and
-nothing else — it cannot fire on an unrelated task the way the eleven skills that
-triggered the 2026-07-28 policy did. Herdr is also a machine-level tool, not a
-project-level one, so project scoping would mean reinstalling it in every project. This
-is the bar for future exceptions: the skill must be inert by construction outside the
-tool it drives, and the tool must be machine-level. Nothing else currently clears it.
+**Exceptions**, installed globally by `install/agents.sh` (`GLOBAL_SKILLS`). Two
+conditions, both required:
 
-Verify it with `ls ~/.agents/skills/herdr`, not `ls ~/.codex/skills`. With `-a '*'` the
+1. **Inert until deliberately activated.** The skill cannot fire on an unrelated task the
+   way the eleven always-loaded skills that triggered the 2026-07-28 policy did. Outside
+   its trigger it costs one description line and nothing else.
+2. **About the machine, not about a project.** Project scoping would mean reinstalling it
+   in every project to get the same behaviour.
+
+| Skill | Added | How it stays inert |
+| --- | --- | --- |
+| `herdr` | 2026-08-03 | Frontmatter requires `HERDR_ENV=1` and tells the agent to stop when unset, so it does nothing outside a Herdr-managed pane. |
+| `i-have-adhd` | 2026-08-04 | `disable-model-invocation: true` — the model cannot auto-invoke it at all. It only activates when the user types `/i-have-adhd`, and stays on until "stop adhd mode". |
+
+The two clear condition 1 by different mechanisms — a runtime env guard versus a
+frontmatter flag — so the test is the property, not the mechanism. Nothing else in this
+document currently clears both.
+
+Verify them with `ls ~/.agents/skills/`, not `ls ~/.codex/skills`. With `-a '*'` the
 CLI writes one canonical copy to `~/.agents/skills/` and symlinks it into the agents that
 keep their own global directory (`~/.claude/skills`, `~/.pi/agent/skills`). Codex and the
 Antigravity CLI read `~/.agents/skills` directly, so their own global directories stay
@@ -116,7 +125,8 @@ skill. Recover from git history if they are ever wanted back.
 
 | Skill(s) | Repo | Notes |
 | --- | --- | --- |
-| `herdr` | `herdrdev/herdr` | **The one global install** — see Policy above. `install/agents.sh` runs it with `-a '*' -g`. The repo also offers `herdr-pre-release-audit`, `herdr-throwaway-repro`, and `triage`; all three are for developing Herdr itself, not for using it, so they are deliberately not installed. |
+| `herdr` | `herdrdev/herdr` | **Global** — see Policy above. The repo also offers `herdr-pre-release-audit`, `herdr-throwaway-repro`, and `triage`; all three are for developing Herdr itself, not for using it, so they are deliberately not installed. |
+| `i-have-adhd` | `ayghri/i-have-adhd` | **Global** — see Policy above. MIT. Output-shaping style, invoked with `/i-have-adhd`. The repo also ships a Claude Code plugin whose `SessionStart` hook makes it always-on when `~/.claude/.i-have-adhd-always` exists; `skills add` does not install hooks, so that mode needs the plugin instead (see "plugin != skill" below). |
 | superpowers (brainstorming, systematic-debugging, TDD, writing-plans, …) | `obra/superpowers` | ~14 skills. Not `obra/superpowers-marketplace` — that resolves but exposes 0. |
 | document-skills (`xlsx`, `docx`, `pptx`, `pdf`, …) | `anthropics/skills` | ~19 skills. |
 | obsidian (`defuddle`, `json-canvas`, `obsidian-bases`, `obsidian-cli`, `obsidian-markdown`) | `kepano/obsidian-skills` | **Needs `--full-depth`.** |

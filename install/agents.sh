@@ -53,22 +53,31 @@ else
   ok "Herdr already installed ($(herdr --version 2>/dev/null))"
 fi
 
-# --- Herdr agent skill ---
-# The one global skill this repo installs. Everything else is per project (see
-# docs/agent-skills-sources.md), but this skill is gated on HERDR_ENV=1 -- it is inert
-# outside a Herdr pane, and Herdr is a machine-level tool rather than a project one, so
-# scoping it to a project would just mean reinstalling it in every project.
-# `-a '*'` writes the canonical copy to ~/.agents/skills/herdr and symlinks it into each
-# detected agent. It reports a failure for agents with no global scope (Eve,
+# --- Global agent skills ---
+# The only skills installed globally. Everything else is per project -- see
+# docs/agent-skills-sources.md for the policy and the bar an entry has to clear:
+# inert until deliberately activated, so it cannot misfire on an unrelated task, and
+# about the machine rather than about one project.
+#   herdr        requires HERDR_ENV=1 and stops when it is unset
+#   i-have-adhd  disable-model-invocation: true -- only fires on /i-have-adhd
+# `-a '*'` writes the canonical copy to ~/.agents/skills/<name> and symlinks it into
+# each detected agent. It reports a failure for agents with no global scope (Eve,
 # PromptScript) and still exits 0; neither is installed here.
+GLOBAL_SKILLS="herdrdev/herdr:herdr ayghri/i-have-adhd:i-have-adhd"
+
 if ! has npx; then
-  warn "npx not found -- skipping the Herdr agent skill"
-elif [ "$UPGRADE" != 1 ] && [ -f "$HOME/.agents/skills/herdr/SKILL.md" ]; then
-  ok "Herdr agent skill already installed"
+  warn "npx not found -- skipping global agent skills"
 else
-  info "$VERB Herdr agent skill (global)..."
-  npx skills@1.5.20 add herdrdev/herdr --skill herdr -a '*' -g -y \
-    || warn "Herdr agent skill install failed"
+  for entry in $GLOBAL_SKILLS; do
+    repo="${entry%%:*}" skill="${entry##*:}"
+    if [ "$UPGRADE" != 1 ] && [ -f "$HOME/.agents/skills/$skill/SKILL.md" ]; then
+      ok "Skill '$skill' already installed"
+    else
+      info "$VERB skill '$skill' (global)..."
+      npx skills@1.5.20 add "$repo" --skill "$skill" -a '*' -g -y \
+        || warn "Skill '$skill' install failed"
+    fi
+  done
 fi
 
 # --- Claude Code --- (curl installer is idempotent and upgrades in place)
