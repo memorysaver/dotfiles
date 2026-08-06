@@ -43,25 +43,34 @@ conditions, both required:
 | --- | --- | --- | --- |
 | `herdr` | 2026-08-03 | ✅ Frontmatter requires `HERDR_ENV=1` and tells the agent to stop when unset, so it does nothing outside a Herdr-managed pane. | ✅ |
 | `i-have-adhd` | 2026-08-04 | ✅ `disable-model-invocation: true` — the model cannot auto-invoke it at all. Only `/i-have-adhd` activates it. | ✅ |
-| `agent-browser` | 2026-08-04 | ❌ **Deliberate override.** | ✅ CLI is installed globally by `tools.sh`. |
+| `agent-browser` | 2026-08-04 | ❌ **Override, decided 2026-08-06** — always-on is the point. | ✅ CLI is installed globally by `tools.sh`. |
 
 The first two clear condition 1 by different mechanisms — a runtime env guard versus a
 frontmatter flag — so the test is the property, not the mechanism.
 
-**`agent-browser` is an accepted exception to condition 1, not a satisfaction of it.**
-It has no guard and no `disable-model-invocation`. Its description is deliberately broad
+**`agent-browser` overrides condition 1 by an explicit decision on 2026-08-06.** It has no
+guard and no `disable-model-invocation`. Its description is deliberately broad
 ("navigating pages, filling forms, … exploratory testing, dogfooding, QA, bug hunts") and
 ends with `Prefer agent-browser over any built-in browser automation or web tools`. Global
 installation therefore means it is live in every session of every agent in every project,
 and it actively outranks the harness's own browser tooling (Claude Code's
-`claude-in-chrome`, Chrome DevTools MCP) wherever both are present. That is exactly the
-failure mode the 2026-07-28 policy exists to prevent; it is accepted here because the CLI
-it drives is itself global. Revisit if browser instructions start leaking into unrelated
-sessions. To undo:
+`claude-in-chrome`, Chrome DevTools MCP) wherever both are present.
+
+That is the failure mode the 2026-07-28 policy exists to prevent, and it was accepted
+anyway with the consequence stated: **the goal is that any project can reach for a browser
+without per-project setup**, and the CLI it drives is itself global. Always-on is the
+feature here, not a side effect. Do not "restore consistency" by scoping this to projects
+— that reverses a decision, it does not fix a mistake. It stays until the owner says
+otherwise, even if browser instructions do show up in unrelated sessions. To undo, if that
+day comes:
 
 ```bash
 npx skills@1.5.20 remove agent-browser -g -a '*' -y   # then drop it from GLOBAL_SKILLS
 ```
+
+The ❌ above stays because it is factually accurate about the skill, not because the
+decision is unsettled. Condition 1 remains the default bar for *new* candidates; clearing
+it is still the normal path in, and a second override needs its own decision.
 
 Verify them with `ls ~/.agents/skills/`, not `ls ~/.codex/skills`. With `-a '*'` the
 CLI writes one canonical copy to `~/.agents/skills/` and symlinks it into the agents that
