@@ -54,7 +54,10 @@ guard and no `disable-model-invocation`. Its description is deliberately broad
 ends with `Prefer agent-browser over any built-in browser automation or web tools`. Global
 installation therefore means it is live in every session of every agent in every project,
 and it actively outranks the harness's own browser tooling (Claude Code's
-`claude-in-chrome`, Chrome DevTools MCP) wherever both are present.
+`claude-in-chrome`, Chrome DevTools MCP) wherever both are present. What it does *not*
+cost is context: it is a 3.4 KB discovery stub, and the 115 KB of real instructions load
+only when a browser is actually being driven — see "agent-browser is a stub, not a skill"
+below.
 
 That is the failure mode the 2026-07-28 policy exists to prevent, and it was accepted
 anyway with the consequence stated: **the goal is that any project can reach for a browser
@@ -154,7 +157,7 @@ skill. Recover from git history if they are ever wanted back.
 | superpowers (brainstorming, systematic-debugging, TDD, writing-plans, …) | `obra/superpowers` | ~14 skills. Not `obra/superpowers-marketplace` — that resolves but exposes 0. |
 | document-skills (`xlsx`, `docx`, `pptx`, `pdf`, …) | `anthropics/skills` | ~19 skills. |
 | obsidian (`defuddle`, `json-canvas`, `obsidian-bases`, `obsidian-cli`, `obsidian-markdown`) | `kepano/obsidian-skills` | **Needs `--full-depth`.** |
-| `agent-browser` | `vercel-labs/agent-browser` | **Global** — see Policy above, including why this one is an override rather than a pass. Apache-2.0. The repo carries 6 `SKILL.md` files under `skill-data/` (`core`, `dogfood`, `electron`, `agentcore`, `derive-client`, …) but the CLI exposes exactly one composed `agent-browser` skill; the rest are loaded on demand by that skill, not installed separately. Its CLI comes from `install/tools.sh`. |
+| `agent-browser` | `vercel-labs/agent-browser` | **Global** — see Policy above for why this one is an override rather than a pass, and "agent-browser is a stub, not a skill" below for how it actually works. Apache-2.0. Its CLI comes from `install/tools.sh` and is a hard dependency. |
 | codex (`rescue`, `setup`, runtime helpers) | `openai/codex-plugin-cc` | ~3 skills. |
 | `ui-ux-pro-max` | `nextlevelbuilder/ui-ux-pro-max-skill` | **Needs `--full-depth`.** |
 | `aep-onboard`, `aep-scaffold` | `memorysaver/agentic-engineering-patterns` | **Needs `--full-depth`.** |
@@ -174,6 +177,55 @@ which ships inside Claude Code with no public repo. They stay enabled as plugins
 `agents/claude/settings.json` because there is nothing to install per project in their
 place. Note that only `frontend-design` and `skill-creator` actually carry skills — the
 rest provide slash commands and subagents.
+
+### agent-browser is a stub, not a skill
+
+Worth understanding before judging its cost, and before "fixing" anything about it.
+Verified 2026-08-06 against CLI 0.33.2.
+
+The npm package ships two directories, both under
+`/opt/homebrew/lib/node_modules/agent-browser` (find yours with `agent-browser skills
+path`):
+
+| Path | Contents | Size |
+| --- | --- | --- |
+| `skill-data/` | the 7 real skills — `core`, `dogfood`, `electron`, `slack`, `derive-client`, `vercel-sandbox`, `agentcore` | 208 KB |
+| `skills/agent-browser/` | a discovery stub, `hidden: true`, no usage content | 4 KB |
+
+What `npx skills add` installs is **the stub, and only the stub**. The copy at
+`~/.agents/skills/agent-browser/SKILL.md` is byte-identical to the one already inside the
+npm package. As content, the install is entirely redundant.
+
+It is not redundant for **discovery**. Agents scan `~/.agents/skills` and their own skill
+directories; none of them look inside `node_modules`. Without that copy an agent never
+learns the CLI exists and reaches for its built-in browser tooling instead. The CLI
+carries the content; the skill install buys nothing but being noticed.
+
+Real instructions are fetched at runtime, always matching the installed CLI:
+
+```bash
+agent-browser skills list              # the 7
+agent-browser skills get core          #  28 KB
+agent-browser skills get core --full   # 115 KB, adds command reference and templates
+agent-browser skills get electron      # or slack, dogfood, derive-client, ...
+```
+
+Two consequences:
+
+- **Context cost is the stub, not the corpus.** ~3.4 KB sits in every session, and in
+  practice only its description line does. The 115 KB never loads unless the agent is
+  actually driving a browser. Judge the global install on its broad description and its
+  `Prefer agent-browser over any built-in browser automation or web tools` line — not on
+  a size that never materialises.
+- **The skill is inert without the CLI.** The stub's only content is instructions to run
+  `agent-browser skills get`, so on a machine without the CLI it points at a command that
+  does not exist. `install/tools.sh` installed it under `@anthropic-ai/agent-browser`
+  — a package that has never existed on npm — until 2026-08-04, so any machine built
+  before that fix has a live stub and no CLI behind it. Keep `just tools` and
+  `just agents` in step.
+
+Unrelated trap: `agent-browser install` downloads Chrome/Chromium binaries. It does not
+wire the CLI into any agent and is not an alternative to installing the stub.
 
 ### Caveat: plugin != skill
 
