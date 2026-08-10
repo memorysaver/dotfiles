@@ -148,6 +148,10 @@ unlink:
     [ -L "$link" ] && rm "$link" && ok "Removed $link"
   done
 
+# Health-check this machine: symlinks, commands, global skills, brew taps (read-only)
+doctor:
+  @bash {{dotfiles}}/tools/doctor.sh
+
 # Report any symlink still pointing into this repo from an agent config directory
 check-agent-links:
   @bash {{dotfiles}}/tools/agent-links.sh check

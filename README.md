@@ -64,6 +64,7 @@ just setup             # Full setup: core + runtimes + agents + tools + link + s
 just link              # Create all config symlinks (idempotent)
 just unlink            # Remove all symlinks
 just seed-agents       # Copy agent config templates to ~ (never overwrites)
+just doctor            # Health-check this machine (read-only, exits 1 on failure)
 just check-agent-links # Warn if any agent config still links back into this repo
 just infra             # Install infrastructure tools (opt-in)
 just --list            # Show all available recipes
