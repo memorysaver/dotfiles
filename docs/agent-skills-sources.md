@@ -224,6 +224,25 @@ Two consequences:
   before that fix has a live stub and no CLI behind it. Keep `just tools` and
   `just agents` in step.
 
+**Do not install the other 7, at either scope.** `--list` shows one skill; `--list
+--full-depth` shows eight, because `--full-depth` reaches the `skill-data/` directories.
+That gap looks like a missing install and is not one — installing them would be a
+regression on three counts:
+
+- **They would come from a different source than your CLI.** `skills add` pulls GitHub
+  HEAD; the CLI is whatever npm release is installed. The two can disagree immediately,
+  not just eventually. They happen to match today (repo `core` and `skills get core` are
+  both 28,158 bytes) only because the CLI was updated to 0.33.2 on 2026-08-04 and HEAD has
+  not moved since. That is a coincidence, not a guarantee.
+- **They would freeze.** A copy on disk stays at its install-time version while the CLI
+  moves on, silently. Serving content that always matches the binary is the stub's stated
+  reason for existing; copying the content out turns that guarantee off by hand.
+- **They would be always-loaded.** Seven more descriptions in every session, which is the
+  2026-07-28 problem exactly. Through the CLI they cost nothing until a task needs them.
+
+There is nothing to install per project either. The global stub already provides discovery
+everywhere, and a project-level copy of it is the same 3.4 KB file twice.
+
 Unrelated trap: `agent-browser install` downloads Chrome/Chromium binaries. It does not
 wire the CLI into any agent and is not an alternative to installing the stub.
 
