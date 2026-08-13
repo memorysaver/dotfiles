@@ -61,7 +61,7 @@ check_cmd() {
 for c in zsh tmux nvim lazygit git direnv starship;   do check_cmd "$c" core;     done
 for c in pyenv uv node npm bun rustc cargo;           do check_cmd "$c" runtimes; done
 for c in gh jq yq just agent-browser portless;        do check_cmd "$c" tools;    done
-for c in herdr claude codex agy;                      do check_cmd "$c" agents;   done
+for c in herdr claude codex agy grok;                 do check_cmd "$c" agents;   done
 if has pi || has pi-agent; then pass "pi"; else hard "pi not found — run: just agents"; fi
 
 # --- Global agent skills ---------------------------------------------------

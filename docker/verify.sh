@@ -75,7 +75,7 @@ check_cmd bun; check_cmd rustc; check_cmd cargo
 # Tools
 check_cmd gh; check_cmd jq; check_cmd yq; check_cmd just
 # Agents
-check_cmd herdr; check_cmd claude; check_cmd codex; check_cmd agy
+check_cmd herdr; check_cmd claude; check_cmd codex; check_cmd agy; check_cmd grok
 
 if command -v pi >/dev/null 2>&1; then
   ok "command: pi"

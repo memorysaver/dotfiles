@@ -129,6 +129,27 @@ else
   ok "Antigravity CLI already installed"
 fi
 
+# --- Grok Build (xAI) --- (curl installer is idempotent and upgrades in place)
+# Official released-binary path from xai-org/grok-build's README. That repo is the
+# Rust source, for people building it themselves; we take the prebuilt binary, which
+# lands in ~/.grok/downloads/ with ~/.grok/bin/grok symlinked at it.
+#
+# Unlike the Codex installer above, this one has no equivalent of
+# CODEX_NON_INTERACTIVE: it always rewrites its own `# >>> grok installer >>>` block
+# in the profile for $SHELL, replacing any existing copy. Only GROK_BIN_DIR,
+# GROK_CHANNEL, GROK_PROXY_URL and GROK_DEPLOYMENT_KEY are configurable. Since
+# ~/.zshrc is symlinked to config/zsh/.zshrc, every run writes into this repo. The
+# block committed there is byte-identical to what the installer currently emits, so
+# this is a no-op today -- but if xAI edits that template, it lands as an
+# unexplained diff in `git status`. Same in-place-rewrite hazard as the herdr and
+# agent configs; see the README's "Agent Configs Are Machine-Local".
+if should_setup grok; then
+  info "$VERB Grok Build..."
+  curl -fsSL https://x.ai/cli/install.sh | bash || warn "grok install failed"
+else
+  ok "Grok Build already installed ($(grok --version 2>/dev/null))"
+fi
+
 # --- Pi Coding Agent ---
 # Fresh install goes through npm; upgrades use Pi's built-in self-updater
 # (`pi update`), which is faster and keeps Pi's own version bookkeeping intact.

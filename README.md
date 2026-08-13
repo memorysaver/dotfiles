@@ -22,7 +22,7 @@ just setup
 |--------|-------|
 | `just core` | zsh, oh-my-zsh, tmux, starship, nvim, lazygit, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
-| `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Pi, Antigravity CLI (agy) |
+| `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Antigravity CLI (agy), Grok Build, Pi |
 | `just tools` | gh, glab, jq, yq, just, agent-browser, portless |
 | `just infra` | Terraform, Pulumi, SST *(opt-in, not in default setup)* |
 
@@ -148,7 +148,7 @@ docker exec -it dev zsh
 docker stop dev && docker rm dev
 ```
 
-The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seeded agent configs plus the 3 global skills (asserting they are real files, not links), and 21 commands — if anything is broken, the build fails.
+The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seeded agent configs plus the 3 global skills (asserting they are real files, not links), and 22 commands — if anything is broken, the build fails.
 
 ## Key Tools
 
@@ -156,7 +156,7 @@ The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seed
 - **Editor**: Neovim (LazyVim)
 - **Git**: lazygit TUI + gh/glab CLIs
 - **Terminal**: tmux with Tokyo Night theme; Herdr as the agent multiplexer
-- **AI Agents**: Claude Code, Codex, OpenCode, Pi, Antigravity CLI (`agy`)
+- **AI Agents**: Claude Code, Codex, OpenCode, Antigravity CLI (`agy`), Grok Build (`grok`), Pi
 - **Shared Skills**: authored once under `agents/skills/`, installed per project via the skills CLI
 - **Dev Envs**: `ccdev`, `opendev`, `codexdev` — tmux sessions with lazygit + AI agent
 
