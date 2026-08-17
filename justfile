@@ -72,6 +72,14 @@ link:
     ensure_symlink "{{dotfiles}}/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
   fi
 
+  # Ghostty (OS-dependent path; link one location only -- Ghostty reads both and
+  # font-family appends, so linking both would double the fallback chain)
+  if [ "$DOTFILES_OS" = "macos" ]; then
+    ensure_symlink "{{dotfiles}}/config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+  else
+    ensure_symlink "{{dotfiles}}/config/ghostty/config" "$HOME/.config/ghostty/config"
+  fi
+
   # Coding-agent configs are NOT symlinked. Claude Code, Codex, Pi and OpenCode
   # all rewrite their own config in place, and their formats change faster than a
   # shared repo can track. Each machine owns its own copy under ~/. What lives in
@@ -135,11 +143,13 @@ unlink:
     "$HOME/.config/starship.toml"
     "$HOME/.config/herdr/config.toml"
   )
-  # Lazygit (OS-dependent path)
+  # Lazygit and Ghostty (OS-dependent paths)
   if [ "$(uname)" = "Darwin" ]; then
     links+=("$HOME/Library/Application Support/lazygit/config.yml")
+    links+=("$HOME/Library/Application Support/com.mitchellh.ghostty/config")
   else
     links+=("$HOME/.config/lazygit/config.yml")
+    links+=("$HOME/.config/ghostty/config")
   fi
   # Agent configs and skills are not symlinked, so there is nothing to unlink for
   # them. Whatever sits under ~/.claude, ~/.codex, ~/.pi and ~/.config/opencode

@@ -1,0 +1,20 @@
+# Ghostty configuration.
+#
+# On macOS this is linked to ~/Library/Application Support/com.mitchellh.ghostty/config
+# by `just link`. Ghostty also reads ~/.config/ghostty/config; only one of the two
+# should exist, because Ghostty loads both and font-family appends rather than
+# replaces, which would silently double the fallback chain.
+
+# Fonts
+# =====
+# font-family repeats to build a fallback chain: the first entry that has the
+# codepoint wins. Without a CJK entry here, macOS resolves every Han codepoint
+# on its own and lands on a mix of PingFang / Hiragino Sans GB / STHeiti, which
+# shows up as the weight changing from character to character.
+#
+# Sarasa Mono TC (brew cask font-sarasa-gothic) is Source Han Sans + Iosevka with
+# CJK advance at exactly 2x ASCII, so Chinese stays on the terminal grid. Only the
+# CJK glyphs are taken from it -- ASCII and the Nerd Font icons still come from
+# JetBrains Mono, whose Sarasa equivalent is noticeably thinner.
+font-family = JetBrainsMono Nerd Font Mono
+font-family = Sarasa Mono TC

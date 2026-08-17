@@ -85,4 +85,19 @@ else
   ok "JetBrainsMono Nerd Font skipped (macOS only)"
 fi
 
+# --- Sarasa Gothic (macOS; CJK fallback named in config/ghostty/config) ---
+# JetBrains Mono has no CJK coverage, so without this the terminal falls back per
+# codepoint across whatever Han fonts macOS ships and the weight visibly jumps
+# between characters. Sarasa keeps CJK at exactly 2x the ASCII advance.
+if [ "$DOTFILES_OS" = "macos" ]; then
+  if ! brew list --cask font-sarasa-gothic &>/dev/null; then
+    info "Installing Sarasa Gothic (CJK)..."
+    brew install --cask font-sarasa-gothic
+  else
+    ok "Sarasa Gothic already installed"
+  fi
+else
+  ok "Sarasa Gothic skipped (macOS only)"
+fi
+
 ok "Core tools installation complete"
