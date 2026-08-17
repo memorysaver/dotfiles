@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install core tools: zsh, oh-my-zsh, tmux, starship, nvim, lazygit, git, direnv
+# Install core tools: zsh, oh-my-zsh, tmux, starship, nvim, lazygit, git, direnv,
+# ghostty and the fonts it is configured to use
 source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing core tools..."
@@ -72,6 +73,23 @@ ensure_installed git git git
 
 # --- Direnv ---
 ensure_installed direnv direnv direnv
+
+# --- Ghostty (macOS; terminal emulator, config linked by `just link`) ---
+# The cask is marked auto_updates, so Homebrew installs the current release once
+# and Ghostty's own Sparkle updater keeps it there. The Caskroom directory stays
+# pinned to whatever version was first installed while the app moves ahead on its
+# own -- that gap is expected and `brew upgrade` is a no-op, so don't chase it
+# with a reinstall (which would swap the bundle out from under a running session).
+if [ "$DOTFILES_OS" = "macos" ]; then
+  if ! brew list --cask ghostty &>/dev/null; then
+    info "Installing Ghostty..."
+    brew install --cask ghostty
+  else
+    ok "Ghostty already installed"
+  fi
+else
+  ok "Ghostty skipped (macOS only)"
+fi
 
 # --- JetBrainsMono Nerd Font (macOS; used by terminal, starship, lazygit) ---
 if [ "$DOTFILES_OS" = "macos" ]; then
