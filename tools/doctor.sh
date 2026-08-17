@@ -47,6 +47,8 @@ check_link "$HOME/.config/starship.toml"      "$D/config/starship/starship.toml"
 check_link "$HOME/.config/herdr/config.toml"  "$D/config/herdr/config.toml"
 if [ "$DOTFILES_OS" = macos ]; then
   check_link "$HOME/Library/Application Support/lazygit/config.yml" "$D/config/lazygit/config.yml"
+  # Ghostty is linked on macOS only, matching where core.sh installs it.
+  check_link "$HOME/Library/Application Support/com.mitchellh.ghostty/config" "$D/config/ghostty/config"
 else
   check_link "$HOME/.config/lazygit/config.yml" "$D/config/lazygit/config.yml"
 fi
@@ -105,6 +107,30 @@ if [ "$DOTFILES_OS" = macos ] && has brew; then
       pass "$t"
     else
       hard "$t remote is unreachable — this breaks \`brew update\`. Run: brew untap $t"
+    fi
+  done
+fi
+
+# --- macOS protected folders -----------------------------------------------
+# ~/Documents and ~/Desktop are TCC-protected, and one terminal process tree can
+# lose access to them while every other tree on the machine keeps working
+# (anthropics/claude-code#58952, open, no root cause). It shows up as `claude`
+# exiting with EPERM and every subshell printing "getcwd: cannot access parent
+# directories", which reads like a permissions or install problem and is neither
+# -- nothing on disk changed, and the TCC database records no denial.
+#
+# Deliberately scoped to whichever tree runs doctor, because that is the only
+# thing worth measuring: run it from the terminal that is misbehaving. Warned
+# rather than failed, since this is a transient runtime state and not a defect
+# in how this repo is installed.
+if [ "$DOTFILES_OS" = macos ]; then
+  head_ "Protected folders (this process tree only)"
+  for dir in "$HOME/Documents" "$HOME/Desktop"; do
+    [ -d "$dir" ] || continue
+    if ls "$dir" >/dev/null 2>&1; then
+      pass "${dir/#$HOME/\~} readable"
+    else
+      soft "${dir/#$HOME/\~} unreadable from this tree — rebuild it: herdr server stop (HERDR_SOCKET_PATH=~/.config/herdr/herdr.sock), then quit the terminal with ⌘Q and relaunch"
     fi
   done
 fi
