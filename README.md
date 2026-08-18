@@ -109,6 +109,16 @@ stays `0600`). Links owned by something else, such as the skill links the skills
 installs into `~/.claude/skills`, are reported but never touched. Both recipes are
 idempotent.
 
+Links under `~/.claude/skills`, `~/.codex/skills` and `~/.pi/agent/skills` **that point
+into this repo** are the one exception: those are deleted, not dereferenced. Skills moved
+to per-project installs in the same migration, so dereferencing would rebuild the global
+skill tree as real directories — one duplicate copy per agent — which is exactly what that
+change removed. The `herdr`, `i-have-adhd` and `agent-browser` links that `just agents`
+installs in those same directories point at `~/.agents/skills`, not here, so they fall
+under the never-touched rule above and survive. Reinstall what a project needs with
+`npx skills add memorysaver/dotfiles`; see
+[docs/agent-skills-sources.md](docs/agent-skills-sources.md) for where each one now lives.
+
 ## Environment Variables
 
 direnv uses per-project `.envrc` files. A template is provided:
