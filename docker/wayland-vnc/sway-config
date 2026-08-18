@@ -1,0 +1,29 @@
+# Minimal sway for a headless VNC session. Everything is drawn by llvmpipe on the
+# CPU, so this deliberately skips the usual eye candy -- effects are what make a
+# software-rendered desktop feel broken rather than merely slow.
+
+output HEADLESS-1 resolution 1600x900
+# Without a background swaybg logs an error for this output on every start.
+output HEADLESS-1 bg #1e1e2e solid_color
+
+# No Xwayland in the image, so say so rather than letting sway fail to start it
+# and log two errors. Add xorg-xwayland to the Dockerfile if you need X11 apps.
+xwayland disable
+
+set $mod Mod4
+set $term foot
+
+bindsym $mod+Return exec $term
+bindsym $mod+q kill
+bindsym $mod+e exit
+bindsym $mod+f fullscreen
+bindsym $mod+h focus left
+bindsym $mod+l focus right
+bindsym $mod+k focus up
+bindsym $mod+j focus down
+
+default_border pixel 2
+gaps inner 4
+gaps outer 8
+
+exec $term
