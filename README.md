@@ -105,8 +105,9 @@ just check-agent-links  # should report nothing
 `adopt-agents` copies through the link before removing it, so your live settings —
 including anything the app wrote that was never committed here — survive intact.
 File modes are preserved (`statusline.sh` stays executable, `~/.codex/config.toml`
-stays `0600`). Links owned by something else, such as the skill links Orca installs
-into `~/.claude/skills`, are reported but never touched. Both recipes are idempotent.
+stays `0600`). Links owned by something else, such as the skill links the skills CLI
+installs into `~/.claude/skills`, are reported but never touched. Both recipes are
+idempotent.
 
 ## Environment Variables
 

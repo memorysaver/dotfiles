@@ -63,7 +63,7 @@ while IFS= read -r link; do
   target="$(readlink "$link")"
 
   if ! points_here "$target"; then
-    # Someone else's link (Orca, an agent's own installer). Not ours to touch.
+    # Someone else's link (the skills CLI, an agent's own installer). Not ours to touch.
     if [ ! -e "$link" ]; then
       warn "broken link, not ours: $link -> $target"
       foreign_dead=$((foreign_dead + 1))

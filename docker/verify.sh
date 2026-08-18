@@ -57,7 +57,6 @@ check_real_file() {
 }
 check_real_file "$HOME/.claude/settings.json"
 check_real_file "$HOME/.claude/statusline.sh"
-check_real_file "$HOME/.claude/hooks/cmux-notify.sh"
 check_real_file "$HOME/.codex/config.toml"
 check_real_file "$HOME/.codex/AGENTS.md"
 check_real_file "$HOME/.pi/agent/settings.json"

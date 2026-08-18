@@ -108,13 +108,9 @@ seed-agents:
   }
 
   # Claude Code
-  ensure_dir "$HOME/.claude/hooks"
   seed "{{dotfiles}}/agents/claude/settings.json"  "$HOME/.claude/settings.json"
   seed "{{dotfiles}}/agents/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
   seed "{{dotfiles}}/agents/claude/output-styles"  "$HOME/.claude/output-styles"
-  for hook in {{dotfiles}}/agents/claude/hooks/*; do
-    [ -f "$hook" ] && seed "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
-  done
   [ -f "$HOME/.claude/statusline.sh" ] && chmod +x "$HOME/.claude/statusline.sh"
 
   # Codex CLI
