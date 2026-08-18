@@ -16,7 +16,12 @@ else
   info "Installing AI coding agents..."
 fi
 
-PI_NPM_PACKAGE="${PI_NPM_PACKAGE:-@mariozechner/pi}"
+# The CLI lives in pi-coding-agent, not pi. @mariozechner/pi kept the name but
+# ships only the pi-pods binary now, and the rename warning it prints points at
+# @earendil-works/pi-agent-core, which is the library half and has no bin at all
+# -- following either one leaves the machine with no `pi`. Needs node >=22.19.0;
+# the legacy-node20 dist-tag is the fallback for anything older.
+PI_NPM_PACKAGE="${PI_NPM_PACKAGE:-@earendil-works/pi-coding-agent}"
 PI_AGENT_BIN="${PI_AGENT_BIN:-pi}"
 PI_ALT_BIN="${PI_ALT_BIN:-pi-agent}"
 
