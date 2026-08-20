@@ -158,6 +158,26 @@ unlink:
 doctor:
   @bash {{dotfiles}}/tools/doctor.sh
 
+# Install Omarchy 4 from the official ISO into a local VM -- macOS, emulated, opt-in
+omarchy-vm:
+  @bash {{dotfiles}}/tools/omarchy-vm.sh up
+
+# Print how to reach the Omarchy VM and what to expect on first boot
+omarchy-vm-info:
+  @bash {{dotfiles}}/tools/omarchy-vm.sh info
+
+# Report whether the Omarchy VM is running, and its ISO/disk sizes
+omarchy-vm-status:
+  @bash {{dotfiles}}/tools/omarchy-vm.sh status
+
+# Shut the Omarchy VM down, leaving its disk intact
+omarchy-vm-stop:
+  @bash {{dotfiles}}/tools/omarchy-vm.sh stop
+
+# Delete the Omarchy VM's disk and UEFI variables (the cached ISO is kept)
+omarchy-vm-destroy:
+  @bash {{dotfiles}}/tools/omarchy-vm.sh destroy
+
 # Report any symlink still pointing into this repo from an agent config directory
 check-agent-links:
   @bash {{dotfiles}}/tools/agent-links.sh check
