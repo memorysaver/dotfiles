@@ -48,12 +48,18 @@ fi
 # --- Aliases ---
 alias ccusage="ccusage blocks --live"
 alias ccyolo='claude --dangerously-skip-permissions --rc'
+alias agyolo='agy --dangerously-skip-permissions'
+alias codexyolo='codex --yolo'
 alias ccyolow='claude --dangerously-skip-permissions --rc -w'
 alias ccyolotw='claude --dangerously-skip-permissions --rc -w --tmux'
 alias obsidian='Obsidian'
 alias ccauto='claude --permission-mode auto --rc'
 alias ccautow='claude --permission-mode auto --rc -w'
 alias ccautotw='claude --permission-mode auto --rc -w --tmux'
+
+# --- Herdr cockpit ---
+[[ -f "$HOME/.dotfiles/config/zsh/cockpit.zsh" ]] && source "$HOME/.dotfiles/config/zsh/cockpit.zsh"
+
 # --- Chrome CDP (browser automation) ---
 _chrome_cdp_ready() {
   local port="${1:-9222}"
