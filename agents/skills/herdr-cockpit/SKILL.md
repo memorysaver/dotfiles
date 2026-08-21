@@ -1,13 +1,14 @@
 ---
 name: herdr-cockpit
-description: "Guide the main agent in starting, assigning, observing, and integrating work across the user's four-pane Herdr coding cockpit."
+description: "Guide the main agent in starting, assigning, observing, and integrating work across the user's four-agent, five-pane Herdr coding cockpit."
 license: MIT
 ---
 
 # Herdr Cockpit
 
-This skill defines the operating model for the user's four-pane Herdr coding
-cockpit. It is guidance for the main agent after the human starts the layout;
+This skill defines the operating model for the user's four-agent, five-pane
+Herdr coding cockpit. It is guidance for the main agent after the human starts
+the layout;
 it is not a second Herdr launcher and it must never start a nested Herdr
 session.
 
@@ -26,14 +27,20 @@ this layout:
 ┌──────────────────────┬──────────────────────┐
 │ main / Codex         │ builder / Claude      │
 │ codexyolo            │ ccyolo                │
+│                      ├──────────────────────┤
+│                      │ scout / Pi            │
+│                      │ pi                    │
 ├──────────────────────┼──────────────────────┤
-│ reviewer / agy       │ scout / Pi            │
-│ agyolo               │ pi                    │
+│ reviewer / agy       │ lazygit / utility     │
+│ agyolo               │ lazygit               │
 └──────────────────────┴──────────────────────┘
 ```
 
-It is idempotent for the expected four-agent layout and fails closed when the
-current tab already contains an unrelated multi-pane layout. Do not run bare
+It is idempotent for the expected four-agent plus lazygit layout and fails
+closed when the current tab already contains an unrelated multi-pane layout.
+The previous four-agent layout is not upgraded automatically because doing so
+would require stopping the existing Pi process. Open a new single-pane tab for
+the new layout. Do not run bare
 `herdr` from a managed pane: Herdr's nested-launch guard is intentional. For
 control calls, require `HERDR_ENV=1` and use the existing Herdr CLI/socket API.
 
@@ -52,11 +59,14 @@ roles, not independent owners of the overall task:
 - `scout / pi`: perform fast repository reconnaissance, documentation lookup,
   test reproduction, or small read-only experiments. It should not edit shared
   files unless the main agent explicitly reassigns it as an implementer.
+- `lazygit / utility`: provide a visual Git status and diff surface. It is not
+  an agent and should not be used to stage, commit, reset, or publish changes
+  without an explicit main-agent decision.
 
-All four panes initially use the same checkout. Therefore, never assign
-overlapping write tasks to multiple panes. If parallel implementation is
-necessary, create separate worktrees first and keep integration in the main
-pane.
+All agent panes and the utility pane initially use the same checkout.
+Therefore, never assign overlapping write tasks to multiple panes. If parallel
+implementation is necessary, create separate worktrees first and keep
+integration in the main pane.
 
 ## Main-agent control loop
 

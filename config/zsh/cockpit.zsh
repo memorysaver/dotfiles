@@ -69,14 +69,37 @@ _hc_wait_for_agent_kind() {
   return 1
 }
 
+_hc_wait_for_process_name() {
+  emulate -L zsh
+  local pane_id="$1"
+  local expected_name="$2"
+  local process_info
+  local attempt
+
+  for attempt in {1..120}; do
+    if process_info="$(_hc_call pane process-info --pane "$pane_id" 2>/dev/null)" &&
+       print -r -- "$process_info" | command jq -e --arg expected "$expected_name" '
+         any(.result.process_info.foreground_processes[]?;
+           ((.name // .argv0 // "") == $expected)
+         )
+       ' >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 0.25
+  done
+
+  print -u2 -- "Pane $pane_id did not report process $expected_name within 30 seconds."
+  return 1
+}
+
 _hc_run_alias() {
   emulate -L zsh
   local pane_id="$1"
-  local alias_name="$2"
+  local command_text="$2"
   local run_output
 
-  if ! run_output="$(_hc_call pane run "$pane_id" "$alias_name" 2>&1)"; then
-    print -u2 -- "Failed to run $alias_name in pane $pane_id."
+  if ! run_output="$(_hc_call pane run "$pane_id" "$command_text" 2>&1)"; then
+    print -u2 -- "Failed to run $command_text in pane $pane_id."
     print -u2 -- "$run_output"
     return 1
   fi
@@ -89,7 +112,7 @@ hc() {
   if (( $# > 0 )); then
     if [[ "$1" == '-h' || "$1" == '--help' ]]; then
       print -r -- 'Usage: hc'
-      print -r -- '  Detect the current Herdr workspace, tab, and project folder, then start the four-pane cockpit there.'
+      print -r -- '  Detect the current Herdr workspace, tab, and project folder, then start the four-agent, five-pane cockpit there.'
       return 0
     fi
     print -u2 -- 'Usage: hc'
@@ -102,7 +125,7 @@ hc() {
   fi
 
   local required_command
-  for required_command in herdr jq sleep claude agy codex pi; do
+  for required_command in herdr jq sleep claude agy codex pi lazygit; do
     if ! command -v "$required_command" >/dev/null 2>&1; then
       print -u2 -- "hc requires command: $required_command"
       return 1
@@ -154,12 +177,13 @@ hc() {
   fi
 
   local same_cockpit
-  if [[ "$tab_pane_count" == 4 ]]; then
+  if [[ "$tab_pane_count" == 5 ]]; then
     same_cockpit="$(print -r -- "$workspace_panes" | command jq -er --arg tab "$tab_id" --arg cwd "$cockpit_cwd" '
       [.result.panes[] | select(.tab_id == $tab)] as $panes
       | (
-          ($panes | length) == 4
-          and (($panes | map(.agent // "") | sort) == ["agy", "claude", "codex", "pi"])
+          ($panes | length) == 5
+          and (($panes | map(.agent // "") | sort) == ["", "agy", "claude", "codex", "pi"])
+          and ([$panes[] | select((.agent // "") == "" and (.terminal_title_stripped // "") == "lazygit")] | length == 1)
           and ($panes | all(.[]; ((.cwd // .foreground_cwd // "") == $cwd)))
         )
     ' 2>/dev/null)"
@@ -167,7 +191,12 @@ hc() {
       print -r -- "Herdr cockpit already active in workspace $workspace_id, tab $tab_id, folder $cockpit_cwd."
       return 0
     fi
-    print -u2 -- 'The current tab already has four panes, but they are not the expected current-folder cockpit; refusing to rearrange them.'
+    print -u2 -- 'The current tab already has five panes, but they are not the expected current-folder cockpit; refusing to rearrange them.'
+    return 1
+  fi
+
+  if [[ "$tab_pane_count" == 4 ]]; then
+    print -u2 -- 'The current tab contains the previous four-pane cockpit. Open a new single-pane tab to create the updated layout; hc will not stop or move the existing Pi agent.'
     return 1
   fi
 
@@ -181,33 +210,41 @@ hc() {
     return 1
   fi
 
-  local split_json top_right_pane bottom_left_pane bottom_right_pane
-  if ! split_json="$(_hc_call pane split "$controller_pane" --direction right --cwd "$cockpit_cwd" --no-focus)" ||
-     ! top_right_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
-    print -u2 -- 'hc could not create the top-right pane.'
-    return 1
-  fi
+  local split_json top_right_pane bottom_left_pane pi_pane lazygit_pane
   if ! split_json="$(_hc_call pane split "$controller_pane" --direction down --cwd "$cockpit_cwd" --no-focus)" ||
      ! bottom_left_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
     print -u2 -- 'hc could not create the bottom-left pane.'
     return 1
   fi
+  if ! split_json="$(_hc_call pane split "$controller_pane" --direction right --cwd "$cockpit_cwd" --no-focus)" ||
+     ! top_right_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
+    print -u2 -- 'hc could not create the top-right pane.'
+    return 1
+  fi
   if ! split_json="$(_hc_call pane split "$top_right_pane" --direction down --cwd "$cockpit_cwd" --no-focus)" ||
-     ! bottom_right_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
-    print -u2 -- 'hc could not create the bottom-right pane.'
+     ! pi_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
+    print -u2 -- 'hc could not create the Pi pane below Claude.'
+    return 1
+  fi
+  if ! split_json="$(_hc_call pane split "$bottom_left_pane" --direction right --cwd "$cockpit_cwd" --no-focus)" ||
+     ! lazygit_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
+    print -u2 -- 'hc could not create the bottom-right lazygit pane.'
     return 1
   fi
 
   _hc_wait_for_shell "$top_right_pane" || return 1
   _hc_wait_for_shell "$bottom_left_pane" || return 1
-  _hc_wait_for_shell "$bottom_right_pane" || return 1
+  _hc_wait_for_shell "$pi_pane" || return 1
+  _hc_wait_for_shell "$lazygit_pane" || return 1
 
   _hc_run_alias "$top_right_pane" ccyolo || return 1
   _hc_wait_for_agent_kind "$top_right_pane" claude || return 1
+  _hc_run_alias "$pi_pane" pi || return 1
+  _hc_wait_for_agent_kind "$pi_pane" pi || return 1
   _hc_run_alias "$bottom_left_pane" agyolo || return 1
   _hc_wait_for_agent_kind "$bottom_left_pane" agy || return 1
-  _hc_run_alias "$bottom_right_pane" pi || return 1
-  _hc_wait_for_agent_kind "$bottom_right_pane" pi || return 1
+  _hc_run_alias "$lazygit_pane" lazygit || return 1
+  _hc_wait_for_process_name "$lazygit_pane" lazygit || return 1
 
   if [[ -z "$current_agent" ]]; then
     # The current shell is executing hc. Queue the main agent last so the
@@ -221,6 +258,7 @@ hc() {
   print -r -- "folder: $cockpit_cwd"
   print -r -- "top-left main/codexyolo: $controller_pane"
   print -r -- "top-right builder/ccyolo: $top_right_pane"
+  print -r -- "middle-right scout/pi: $pi_pane"
   print -r -- "bottom-left reviewer/agyolo: $bottom_left_pane"
-  print -r -- "bottom-right scout/pi: $bottom_right_pane"
+  print -r -- "bottom-right lazygit: $lazygit_pane"
 }
