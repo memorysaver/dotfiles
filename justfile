@@ -30,7 +30,7 @@ update-agents:
 validate-skills:
   @bash {{dotfiles}}/tools/validate-agent-skills.sh
 
-# Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless
+# Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless, mole (macOS)
 tools:
   @bash {{dotfiles}}/install/tools.sh
 
