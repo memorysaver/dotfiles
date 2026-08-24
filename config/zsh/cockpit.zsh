@@ -1,9 +1,11 @@
 # Herdr cockpit entrypoint.
 #
 # Open Herdr, select any workspace tab, cd to the project folder, and type
-# `hc`. This function controls the existing Herdr server through its pane API.
-# It never invokes bare `herdr`, which would try to launch a nested Herdr
-# session from inside the current pane.
+# `hc`. Codex, workers, and lazygit use that project folder; the named
+# idea-center Claude pane always uses ~/Documents/github/idea.
+# This function controls the existing Herdr server through its pane API. It
+# never invokes bare `herdr`, which would try to launch a nested Herdr session
+# from inside the current pane.
 
 _hc_call() {
   if ! test "${HERDR_ENV:-}" = 1; then
@@ -105,6 +107,36 @@ _hc_run_alias() {
   fi
 }
 
+_hc_start_agent() {
+  emulate -L zsh
+  local pane_id="$1"
+  local agent_name="$2"
+  local agent_kind="$3"
+  shift 3
+  local -a start_args
+  local start_output
+
+  start_args=(agent start "$agent_name" --kind "$agent_kind" --pane "$pane_id")
+  if (( $# > 0 )); then
+    start_args+=(-- "$@")
+  fi
+
+  if ! start_output="$(_hc_call "${start_args[@]}" 2>&1)"; then
+    print -u2 -- "Failed to start $agent_name in pane $pane_id."
+    print -u2 -- "$start_output"
+    return 1
+  fi
+}
+
+_hc_named_agents_ready() {
+  emulate -L zsh
+  local agent_name
+
+  for agent_name in idea-center worker-1 worker-2 worker-3; do
+    _hc_call agent get "$agent_name" >/dev/null 2>&1 || return 1
+  done
+}
+
 hc() {
   emulate -L zsh
   setopt localoptions pipefail
@@ -112,7 +144,7 @@ hc() {
   if (( $# > 0 )); then
     if [[ "$1" == '-h' || "$1" == '--help' ]]; then
       print -r -- 'Usage: hc'
-      print -r -- '  Detect the current Herdr workspace, tab, and project folder, then start the four-agent, five-pane cockpit there.'
+      print -r -- '  Detect the current Herdr workspace, tab, and project folder, then start the six-pane Codex cockpit.'
       return 0
     fi
     print -u2 -- 'Usage: hc'
@@ -133,7 +165,7 @@ hc() {
   done
 
   local required_alias
-  for required_alias in ccyolo agyolo codexyolo; do
+  for required_alias in codexyolo; do
     if ! alias "$required_alias" >/dev/null 2>&1; then
       print -u2 -- "hc requires zsh alias $required_alias; reload ~/.zshrc first."
       return 1
@@ -143,6 +175,13 @@ hc() {
   local cockpit_cwd="${PWD:A}"
   if [[ ! -d "$cockpit_cwd" ]]; then
     print -u2 -- "Current folder is not available: $cockpit_cwd"
+    return 1
+  fi
+
+  local idea_cwd="${HOME}/Documents/github/idea"
+  idea_cwd="${idea_cwd:A}"
+  if [[ ! -d "$idea_cwd" || ! -e "$idea_cwd/.git" ]]; then
+    print -u2 -- "Idea center repo is not available: $idea_cwd"
     return 1
   fi
 
@@ -177,31 +216,28 @@ hc() {
   fi
 
   local same_cockpit
-  if [[ "$tab_pane_count" == 5 ]]; then
-    same_cockpit="$(print -r -- "$workspace_panes" | command jq -er --arg tab "$tab_id" --arg cwd "$cockpit_cwd" '
+  if [[ "$tab_pane_count" == 6 ]]; then
+    same_cockpit="$(print -r -- "$workspace_panes" | command jq -er \
+      --arg tab "$tab_id" --arg project_cwd "$cockpit_cwd" --arg idea_cwd "$idea_cwd" '
       [.result.panes[] | select(.tab_id == $tab)] as $panes
       | (
-          ($panes | length) == 5
-          and (($panes | map(.agent // "") | sort) == ["", "agy", "claude", "codex", "pi"])
-          and ([$panes[] | select((.agent // "") == "" and (.terminal_title_stripped // "") == "lazygit")] | length == 1)
-          and ($panes | all(.[]; ((.cwd // .foreground_cwd // "") == $cwd)))
+          ($panes | length) == 6
+          and (($panes | map(.agent // "") | sort) == ["", "agy", "claude", "codex", "pi", "pi"])
+          and ([$panes[] | select((.agent // "") == "" and (.terminal_title_stripped // "") == "lazygit" and ((.cwd // .foreground_cwd // "") == $project_cwd))] | length == 1)
+          and ([$panes[] | select((.agent // "") == "claude" and ((.cwd // .foreground_cwd // "") == $idea_cwd))] | length == 1)
+          and ([$panes[] | select((.agent // "") != "claude" and ((.cwd // .foreground_cwd // "") == $project_cwd))] | length == 5)
         )
     ' 2>/dev/null)"
-    if [[ "$same_cockpit" == true ]]; then
-      print -r -- "Herdr cockpit already active in workspace $workspace_id, tab $tab_id, folder $cockpit_cwd."
+    if [[ "$same_cockpit" == true ]] && _hc_named_agents_ready; then
+      print -r -- "Herdr cockpit already active in workspace $workspace_id, tab $tab_id, project $cockpit_cwd, idea-center $idea_cwd."
       return 0
     fi
-    print -u2 -- 'The current tab already has five panes, but they are not the expected current-folder cockpit; refusing to rearrange them.'
-    return 1
-  fi
-
-  if [[ "$tab_pane_count" == 4 ]]; then
-    print -u2 -- 'The current tab contains the previous four-pane cockpit. Open a new single-pane tab to create the updated layout; hc will not stop or move the existing Pi agent.'
+    print -u2 -- 'The current tab already has six panes, but they are not the expected six-pane cockpit; refusing to rearrange them.'
     return 1
   fi
 
   if [[ "$tab_pane_count" != 1 ]]; then
-    print -u2 -- "The current tab has $tab_pane_count panes; hc only expands a single-pane tab and will not rearrange existing panes."
+    print -u2 -- "The current tab has $tab_pane_count panes; hc only expands a single-pane tab into the six-pane cockpit and will not rearrange existing panes."
     return 1
   fi
 
@@ -210,41 +246,49 @@ hc() {
     return 1
   fi
 
-  local split_json top_right_pane bottom_left_pane pi_pane lazygit_pane
-  if ! split_json="$(_hc_call pane split "$controller_pane" --direction down --cwd "$cockpit_cwd" --no-focus)" ||
-     ! bottom_left_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
-    print -u2 -- 'hc could not create the bottom-left pane.'
+  local split_json lazygit_pane claude_pane worker_1_pane worker_2_pane worker_3_pane
+  if ! split_json="$(_hc_call pane split "$controller_pane" --direction down --cwd "$idea_cwd" --no-focus)" ||
+     ! claude_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
+    print -u2 -- 'hc could not create the bottom-left Claude pane.'
     return 1
   fi
   if ! split_json="$(_hc_call pane split "$controller_pane" --direction right --cwd "$cockpit_cwd" --no-focus)" ||
-     ! top_right_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
-    print -u2 -- 'hc could not create the top-right pane.'
-    return 1
-  fi
-  if ! split_json="$(_hc_call pane split "$top_right_pane" --direction down --cwd "$cockpit_cwd" --no-focus)" ||
-     ! pi_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
-    print -u2 -- 'hc could not create the Pi pane below Claude.'
-    return 1
-  fi
-  if ! split_json="$(_hc_call pane split "$bottom_left_pane" --direction right --cwd "$cockpit_cwd" --no-focus)" ||
      ! lazygit_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
-    print -u2 -- 'hc could not create the bottom-right lazygit pane.'
+    print -u2 -- 'hc could not create the top-right lazygit pane.'
+    return 1
+  fi
+  if ! split_json="$(_hc_call pane split "$lazygit_pane" --direction down --cwd "$cockpit_cwd" --no-focus)" ||
+     ! worker_1_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
+    print -u2 -- 'hc could not create worker-1 below lazygit.'
+    return 1
+  fi
+  if ! split_json="$(_hc_call pane split "$claude_pane" --direction right --cwd "$cockpit_cwd" --no-focus)" ||
+     ! worker_2_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
+    print -u2 -- 'hc could not create worker-2 beside Claude.'
+    return 1
+  fi
+  if ! split_json="$(_hc_call pane split "$worker_2_pane" --direction down --cwd "$cockpit_cwd" --no-focus)" ||
+     ! worker_3_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
+    print -u2 -- 'hc could not create worker-3 below worker-2.'
     return 1
   fi
 
-  _hc_wait_for_shell "$top_right_pane" || return 1
-  _hc_wait_for_shell "$bottom_left_pane" || return 1
-  _hc_wait_for_shell "$pi_pane" || return 1
   _hc_wait_for_shell "$lazygit_pane" || return 1
+  _hc_wait_for_shell "$worker_1_pane" || return 1
+  _hc_wait_for_shell "$worker_2_pane" || return 1
+  _hc_wait_for_shell "$worker_3_pane" || return 1
+  _hc_wait_for_shell "$claude_pane" || return 1
 
-  _hc_run_alias "$top_right_pane" ccyolo || return 1
-  _hc_wait_for_agent_kind "$top_right_pane" claude || return 1
-  _hc_run_alias "$pi_pane" pi || return 1
-  _hc_wait_for_agent_kind "$pi_pane" pi || return 1
-  _hc_run_alias "$bottom_left_pane" agyolo || return 1
-  _hc_wait_for_agent_kind "$bottom_left_pane" agy || return 1
   _hc_run_alias "$lazygit_pane" lazygit || return 1
   _hc_wait_for_process_name "$lazygit_pane" lazygit || return 1
+  _hc_start_agent "$worker_1_pane" worker-1 agy --dangerously-skip-permissions || return 1
+  _hc_wait_for_agent_kind "$worker_1_pane" agy || return 1
+  _hc_start_agent "$worker_2_pane" worker-2 pi || return 1
+  _hc_wait_for_agent_kind "$worker_2_pane" pi || return 1
+  _hc_start_agent "$worker_3_pane" worker-3 pi || return 1
+  _hc_wait_for_agent_kind "$worker_3_pane" pi || return 1
+  _hc_start_agent "$claude_pane" idea-center claude --dangerously-skip-permissions --rc || return 1
+  _hc_wait_for_agent_kind "$claude_pane" claude || return 1
 
   if [[ -z "$current_agent" ]]; then
     # The current shell is executing hc. Queue the main agent last so the
@@ -255,10 +299,12 @@ hc() {
   print -r -- 'Herdr cockpit started without launching a nested Herdr session.'
   print -r -- "workspace: $workspace_id"
   print -r -- "tab: $tab_id"
-  print -r -- "folder: $cockpit_cwd"
-  print -r -- "top-left main/codexyolo: $controller_pane"
-  print -r -- "top-right builder/ccyolo: $top_right_pane"
-  print -r -- "middle-right scout/pi: $pi_pane"
-  print -r -- "bottom-left reviewer/agyolo: $bottom_left_pane"
-  print -r -- "bottom-right lazygit: $lazygit_pane"
+  print -r -- "project folder: $cockpit_cwd"
+  print -r -- "idea-center folder: $idea_cwd"
+  print -r -- "top-left orchestrator/codexyolo: $controller_pane"
+  print -r -- "bottom-left idea-center/claude: $claude_pane"
+  print -r -- "right-top lazygit: $lazygit_pane"
+  print -r -- "right-worker-1/agy: $worker_1_pane"
+  print -r -- "right-worker-2/pi: $worker_2_pane"
+  print -r -- "right-worker-3/pi: $worker_3_pane"
 }
