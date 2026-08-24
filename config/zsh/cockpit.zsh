@@ -94,6 +94,32 @@ _hc_wait_for_process_name() {
   return 1
 }
 
+_hc_wait_for_all() {
+  emulate -L zsh
+  local -a pids=("$@")
+  local failed=0
+  local pid
+
+  for pid in "${pids[@]}"; do
+    wait "$pid" || failed=1
+  done
+
+  return "$failed"
+}
+
+_hc_wait_for_shells() {
+  emulate -L zsh
+  local -a pids=()
+  local pane_id
+
+  for pane_id in "$@"; do
+    _hc_wait_for_shell "$pane_id" &
+    pids+=("$!")
+  done
+
+  _hc_wait_for_all "${pids[@]}"
+}
+
 _hc_run_alias() {
   emulate -L zsh
   local pane_id="$1"
@@ -126,6 +152,135 @@ _hc_start_agent() {
     print -u2 -- "$start_output"
     return 1
   fi
+}
+
+_hc_start_lazygit_and_wait() {
+  emulate -L zsh
+  local pane_id="$1"
+
+  _hc_run_alias "$pane_id" lazygit || return 1
+  _hc_wait_for_process_name "$pane_id" lazygit
+}
+
+_hc_start_agent_and_wait() {
+  emulate -L zsh
+  local pane_id="$1"
+  local agent_name="$2"
+  local agent_kind="$3"
+  shift 3
+
+  _hc_start_agent "$pane_id" "$agent_name" "$agent_kind" "$@" || return 1
+  _hc_wait_for_agent_kind "$pane_id" "$agent_kind"
+}
+
+_hc_start_all_components() {
+  emulate -L zsh
+  local lazygit_pane="$1"
+  local worker_1_pane="$2"
+  local worker_2_pane="$3"
+  local worker_3_pane="$4"
+  local claude_pane="$5"
+  local -a pids=()
+
+  # `agent start` waits for interactive readiness. Put every startup request
+  # in its own job so one slow agent cannot delay the others from launching.
+  _hc_start_lazygit_and_wait "$lazygit_pane" &
+  pids+=("$!")
+  _hc_start_agent_and_wait "$worker_1_pane" worker-1 agy --dangerously-skip-permissions &
+  pids+=("$!")
+  _hc_start_agent_and_wait "$worker_2_pane" worker-2 pi &
+  pids+=("$!")
+  _hc_start_agent_and_wait "$worker_3_pane" worker-3 pi &
+  pids+=("$!")
+  _hc_start_agent_and_wait "$claude_pane" idea-center claude --dangerously-skip-permissions --rc &
+  pids+=("$!")
+
+  _hc_wait_for_all "${pids[@]}"
+}
+
+_hc_bootstrap_cockpit() {
+  emulate -L zsh
+  local controller_pane="$1"
+  local current_agent="$2"
+  local lazygit_pane="$3"
+  local worker_1_pane="$4"
+  local worker_2_pane="$5"
+  local worker_3_pane="$6"
+  local claude_pane="$7"
+
+  # The caller backgrounds this bootstrap after the layout exists. The
+  # current shell is therefore free for pane run to start Codex immediately;
+  # readiness checks and every other component can continue independently.
+  if [[ -z "$current_agent" ]]; then
+    _hc_run_alias "$controller_pane" codexyolo || return 1
+  fi
+
+  _hc_wait_for_shells \
+    "$lazygit_pane" \
+    "$worker_1_pane" \
+    "$worker_2_pane" \
+    "$worker_3_pane" \
+    "$claude_pane" || return 1
+
+  _hc_start_all_components \
+    "$lazygit_pane" \
+    "$worker_1_pane" \
+    "$worker_2_pane" \
+    "$worker_3_pane" \
+    "$claude_pane"
+}
+
+_hc_find_existing_cockpit_tab() {
+  emulate -L zsh
+  local project_cwd="$1"
+  local idea_cwd="$2"
+
+  command jq -r --arg project_cwd "$project_cwd" --arg idea_cwd "$idea_cwd" '
+    [.result.panes[]] | group_by(.tab_id)
+    | map(select(
+        (length == 6)
+        and ((map(.agent // "") | sort) == ["", "agy", "claude", "codex", "pi", "pi"])
+        and ([(.[] | select(
+          (.agent // "") == ""
+          and (.terminal_title_stripped // "") == "lazygit"
+          and ((.cwd // .foreground_cwd // "") == $project_cwd)
+        ))] | length == 1)
+        and ([(.[] | select(
+          (.agent // "") == "claude"
+          and ((.cwd // .foreground_cwd // "") == $idea_cwd)
+        ))] | length == 1)
+        and ([(.[] | select(
+          (.agent // "") != "claude"
+          and ((.cwd // .foreground_cwd // "") == $project_cwd)
+        ))] | length == 5)
+      ))
+    | .[0][0].tab_id // empty
+  '
+}
+
+_hc_require_named_agents_available() {
+  emulate -L zsh
+  local agent_list
+  if ! agent_list="$(_hc_call agent list 2>/dev/null)"; then
+    print -u2 -- 'hc could not inspect existing Herdr agent names; refusing to create panes.'
+    return 1
+  fi
+
+  local agent_name conflict_location
+  for agent_name in idea-center worker-1 worker-2 worker-3; do
+    if ! conflict_location="$(print -r -- "$agent_list" | command jq -c --arg name "$agent_name" '
+      [.result.agents[]? | select(.name == $name)
+       | {workspace_id, tab_id, pane_id}]
+      | .[0] // empty
+    ')"; then
+      print -u2 -- "hc could not parse the Herdr agent list while checking $agent_name."
+      return 1
+    fi
+    if [[ -n "$conflict_location" ]]; then
+      print -u2 -- "Agent name $agent_name is already in use ($conflict_location); refusing to create a duplicate cockpit."
+      return 1
+    fi
+  done
 }
 
 _hc_named_agents_ready() {
@@ -215,6 +370,20 @@ hc() {
     return 1
   fi
 
+  local existing_cockpit_tab
+  if ! existing_cockpit_tab="$(print -r -- "$workspace_panes" | \
+      _hc_find_existing_cockpit_tab "$cockpit_cwd" "$idea_cwd")"; then
+    print -u2 -- 'hc could not inspect existing cockpit layouts in the workspace.'
+    return 1
+  fi
+  if [[ -n "$existing_cockpit_tab" ]]; then
+    print -r -- "Herdr cockpit already active in workspace $workspace_id, tab $existing_cockpit_tab, project $cockpit_cwd, idea-center $idea_cwd."
+    if [[ "$existing_cockpit_tab" != "$tab_id" ]]; then
+      print -r -- "Current tab $tab_id was left untouched; switch to tab $existing_cockpit_tab to use it."
+    fi
+    return 0
+  fi
+
   local same_cockpit
   if [[ "$tab_pane_count" == 6 ]]; then
     same_cockpit="$(print -r -- "$workspace_panes" | command jq -er \
@@ -246,6 +415,8 @@ hc() {
     return 1
   fi
 
+  _hc_require_named_agents_available || return 1
+
   local split_json lazygit_pane claude_pane worker_1_pane worker_2_pane worker_3_pane
   if ! split_json="$(_hc_call pane split "$controller_pane" --direction down --cwd "$idea_cwd" --no-focus)" ||
      ! claude_pane="$(print -r -- "$split_json" | command jq -er '.result.pane.pane_id')"; then
@@ -273,30 +444,18 @@ hc() {
     return 1
   fi
 
-  _hc_wait_for_shell "$lazygit_pane" || return 1
-  _hc_wait_for_shell "$worker_1_pane" || return 1
-  _hc_wait_for_shell "$worker_2_pane" || return 1
-  _hc_wait_for_shell "$worker_3_pane" || return 1
-  _hc_wait_for_shell "$claude_pane" || return 1
+  # Keep the current pane responsive so pane run can launch codexyolo first.
+  # The helper starts Codex before waiting for or starting any other pane.
+  _hc_bootstrap_cockpit \
+    "$controller_pane" \
+    "$current_agent" \
+    "$lazygit_pane" \
+    "$worker_1_pane" \
+    "$worker_2_pane" \
+    "$worker_3_pane" \
+    "$claude_pane" &!
 
-  _hc_run_alias "$lazygit_pane" lazygit || return 1
-  _hc_wait_for_process_name "$lazygit_pane" lazygit || return 1
-  _hc_start_agent "$worker_1_pane" worker-1 agy --dangerously-skip-permissions || return 1
-  _hc_wait_for_agent_kind "$worker_1_pane" agy || return 1
-  _hc_start_agent "$worker_2_pane" worker-2 pi || return 1
-  _hc_wait_for_agent_kind "$worker_2_pane" pi || return 1
-  _hc_start_agent "$worker_3_pane" worker-3 pi || return 1
-  _hc_wait_for_agent_kind "$worker_3_pane" pi || return 1
-  _hc_start_agent "$claude_pane" idea-center claude --dangerously-skip-permissions --rc || return 1
-  _hc_wait_for_agent_kind "$claude_pane" claude || return 1
-
-  if [[ -z "$current_agent" ]]; then
-    # The current shell is executing hc. Queue the main agent last so the
-    # command starts after this function returns to that shell.
-    _hc_run_alias "$controller_pane" codexyolo || return 1
-  fi
-
-  print -r -- 'Herdr cockpit started without launching a nested Herdr session.'
+  print -r -- 'Herdr cockpit layout created; codexyolo is launching first and the other panes are starting in the background.'
   print -r -- "workspace: $workspace_id"
   print -r -- "tab: $tab_id"
   print -r -- "project folder: $cockpit_cwd"
