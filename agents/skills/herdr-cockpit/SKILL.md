@@ -25,23 +25,32 @@ inside Herdr:   choose a workspace and any tab, cd to the project, type hc
 workspace, current tab, and current `$PWD` for the active project, then expands
 a single-pane tab into this layout. The left column has two large controller
 panes; the right column has four stacked worker/utility panes. Claude is always
-launched from `~/Documents/github/idea` and is named `idea-center`:
+launched from `~/Documents/github/idea`. Every named worker/Claude agent
+receives a workspace-qualified live name, for example `w1-idea-center`:
 
 ```text
 ┌──────────────────────┬──────────────────────┐
 │ main / Codex         │ lazygit / utility     │
 │ orchestrator         │ lazygit               │
 │                      ├──────────────────────┤
-│                      │ worker-1 / Agy        │
+│                      │ w1-worker-1 / Agy     │
 │                      │ agy                   │
 ├──────────────────────┼──────────────────────┤
-│ idea-center / Claude │ worker-2 / Pi         │
+│ w1-idea-center /     │ w1-worker-2 / Pi      │
+│ Claude               │                       │
 │ claude               │ pi                    │
 │                      ├──────────────────────┤
-│                      │ worker-3 / Pi         │
+│                      │ w1-worker-3 / Pi      │
 │                      │ pi                    │
 └──────────────────────┴──────────────────────┘
 ```
+
+The `w1` prefix above is illustrative. At runtime `hc` uses the current
+`HERDR_WORKSPACE_ID` as a lowercase namespace, so `wC` becomes `wc` and a
+second workspace gets a separate name such as `w2-worker-1` instead of
+colliding with `w1-worker-1`. The role labels `idea-center`, `worker-1`,
+`worker-2`, and `worker-3` remain logical roles; use the workspace-qualified
+live name for Herdr commands.
 
 It is idempotent for the expected six-pane layout and fails closed when the
 current tab already contains an unrelated multi-pane layout. Existing four- and
@@ -123,8 +132,9 @@ of user authority. Every prompt must still state its scope, boundaries, and
 evidence requirements; no worker may decide to push, merge, deploy, contact an
 external service, or handle secrets unless Codex has explicit authorization.
 
-The pane's live agent name is only a control handle. Codex must keep a durable
-task record separate from Herdr names and pane IDs. At minimum, each task
+The pane's workspace-qualified live agent name is only a control handle. Codex
+must keep a durable task record separate from Herdr names and pane IDs. At
+minimum, each task
 record contains:
 
 - `task_id` and exactly one `owner_agent`;
@@ -163,16 +173,24 @@ At the beginning of a task, the main agent should:
    and only then update the ledger or assign the next step.
 9. Integrate changes and perform the final verification from the main pane.
 
-Use Herdr's agent control sequence for recognized agents. The stable live name
-for each named worker is `idea-center`, `worker-1`, `worker-2`, or `worker-3`:
+Use Herdr's agent control sequence for recognized agents. Resolve the current
+workspace namespace first. For workspace `w1`, the live names are
+`w1-idea-center`, `w1-worker-1`, `w1-worker-2`, and `w1-worker-3`; another
+workspace has different names:
 
 ```bash
+workspace_namespace="${HERDR_WORKSPACE_ID:l}"
+idea_agent="${workspace_namespace}-idea-center"
+agy_agent="${workspace_namespace}-worker-1"
+pi_agent_2="${workspace_namespace}-worker-2"
+pi_agent_3="${workspace_namespace}-worker-3"
+
 herdr agent list
-herdr agent prompt idea-center "<question plus current-project context>" --wait --timeout 120000
-herdr agent read idea-center --source recent-unwrapped --lines 120
-herdr agent prompt worker-1 "<bounded Agy assignment>" --wait --timeout 120000
-herdr agent prompt worker-2 "<bounded Pi assignment>" --wait --timeout 120000
-herdr agent prompt worker-3 "<bounded Pi assignment>" --wait --timeout 120000
+herdr agent prompt "$idea_agent" "<question plus current-project context>" --wait --timeout 120000
+herdr agent read "$idea_agent" --source recent-unwrapped --lines 120
+herdr agent prompt "$agy_agent" "<bounded Agy assignment>" --wait --timeout 120000
+herdr agent prompt "$pi_agent_2" "<bounded Pi assignment>" --wait --timeout 120000
+herdr agent prompt "$pi_agent_3" "<bounded Pi assignment>" --wait --timeout 120000
 ```
 
 Use `pane run` for ordinary shell commands, tests, or starting a process in a
@@ -186,6 +204,7 @@ Every helper prompt should state:
 
 ```text
 ROLE: idea-center | worker-1 | worker-2 | worker-3
+LIVE_AGENT_NAME: <lowercase-workspace-id>-<logical-role>
 WORKFLOW: idea-maintenance | idea-center-project-discovery | brainstorm-to-land | status-explain | context-audit | scout-research | eli5-project-state | build | review-verify
 TASK_ID: durable task identifier
 OWNER_AGENT: exactly one named live owner

@@ -160,7 +160,7 @@ otherwise match the user's language:
 STATUS: done | in-progress | blocked | unknown
 WORKFLOW: idea-center-project-discovery
 TASK_ID: durable task identifier
-OWNER_AGENT: idea-center
+OWNER_AGENT: <workspace-namespace>-idea-center
 USER_INTENT: normalized desired outcome
 DECISION_QUESTION: the question this brief helps Codex decide
 TARGET_SNAPSHOT: observed target state and SHA/dirty boundary
@@ -186,7 +186,7 @@ return that negative result with the search scope; do not invent a connection.
 ROLE: idea-center
 WORKFLOW: idea-center-project-discovery
 TASK_ID: <durable task id>
-OWNER_AGENT: idea-center
+OWNER_AGENT: <workspace-namespace>-idea-center
 OBJECTIVE: Find idea/research relevant to the user's current project goal and propose bounded landing directions.
 USER_INTENT: <user's desired outcome>
 DECISION_QUESTION: <what Codex needs to decide>

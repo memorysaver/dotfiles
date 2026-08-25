@@ -16,6 +16,10 @@ The bottom-left Claude pane is different: `idea-center` owns the idea repo as a
 small upstream incubation space. It maintains ideas and helps reason about how
 the current project could land them. It does not implement the current project.
 
+`idea-center`, `worker-1`, `worker-2`, and `worker-3` are logical cockpit roles.
+Their live Herdr names are workspace-qualified, such as the lowercase form of
+`${HERDR_WORKSPACE_ID}-worker-1`; resolve the live name before every dispatch.
+
 There is exactly one owner per delegated task. The orchestrator remains the
 source of truth for the overall task, even when a worker produces an artifact
 or a useful recommendation.
@@ -227,9 +231,9 @@ current HEAD and the user's requested outcome.
 
 Send this to the live Agy agent, normally the available worker hosting Agy.
 Resolve the name and current state from Herdr first; do not guess that
-`worker-1` is still the Agy pane. If Agy is busy, queue the request or report
-that it is waiting. Do not silently substitute Pi when the user explicitly
-asked for Agy.
+the logical `worker-1` role is still the Agy pane. If Agy is busy, queue the
+request or report that it is waiting. Do not silently substitute Pi when the
+user explicitly asked for Agy.
 
 ```text
 ROLE: worker-N / agy
@@ -301,8 +305,9 @@ acceptance step.
 
 ## Dynamic dispatch rules
 
-- Check live agent availability before assigning. Use stable live names, not
-  pane positions or historical IDs.
+- Check live agent availability before assigning. Resolve the current
+  workspace-qualified live name from `herdr agent list` (for example,
+  `w1-worker-1`), not a bare logical role, pane position, or historical ID.
 - Give parallel workers non-overlapping evidence slices. Sequence tasks when
   the second task depends on files or decisions produced by the first.
 - Any write-capable right-side task gets an isolated worktree. Read-only status,

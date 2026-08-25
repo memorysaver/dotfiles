@@ -1,8 +1,8 @@
 # Herdr cockpit entrypoint.
 #
 # Open Herdr, select any workspace tab, cd to the project folder, and type
-# `hc`. Codex, workers, and lazygit use that project folder; the named
-# idea-center Claude pane always uses ~/Documents/github/idea.
+# `hc`. Codex, workers, and lazygit use that project folder; the workspace-
+# namespaced idea-center Claude pane always uses ~/Documents/github/idea.
 # This function controls the existing Herdr server through its pane API. It
 # never invokes bare `herdr`, which would try to launch a nested Herdr session
 # from inside the current pane.
@@ -27,6 +27,48 @@ _hc_call() {
       return 2
       ;;
   esac
+}
+
+_hc_workspace_namespace() {
+  emulate -L zsh
+  local workspace_id="$1"
+  local workspace_namespace="${workspace_id:l}"
+
+  if [[ -z "$workspace_namespace" ]]; then
+    print -u2 -- 'hc cannot create an agent namespace without a workspace ID.'
+    return 1
+  fi
+
+  print -r -- "$workspace_namespace"
+}
+
+_hc_agent_name() {
+  emulate -L zsh
+  local workspace_id="$1"
+  local role="$2"
+  local workspace_namespace
+  local agent_name
+
+  if [[ -z "$workspace_id" || -z "$role" ]]; then
+    print -u2 -- 'hc cannot create a namespaced agent name without a workspace and role.'
+    return 1
+  fi
+
+  if ! workspace_namespace="$(_hc_workspace_namespace "$workspace_id")"; then
+    return 1
+  fi
+  agent_name="${workspace_namespace}-${role}"
+
+  # Herdr agent names are globally unique live handles and must match
+  # [a-z][a-z0-9_-]{0,31}. Mixed-case workspace IDs are lowercased into the
+  # namespace; fail closed if a future Herdr version returns an ID that cannot
+  # fit instead of truncating it into a possible collision.
+  if [[ ! "$agent_name" =~ '^[a-z][a-z0-9_-]*$' || ${#agent_name} -gt 32 ]]; then
+    print -u2 -- "Workspace $workspace_id (namespace $workspace_namespace) cannot namespace role $role as a valid Herdr agent name: $agent_name"
+    return 1
+  fi
+
+  print -r -- "$agent_name"
 }
 
 _hc_wait_for_shell() {
@@ -175,24 +217,34 @@ _hc_start_agent_and_wait() {
 
 _hc_start_all_components() {
   emulate -L zsh
+  local workspace_id="$1"
+  shift
   local lazygit_pane="$1"
   local worker_1_pane="$2"
   local worker_2_pane="$3"
   local worker_3_pane="$4"
   local claude_pane="$5"
   local -a pids=()
+  local idea_agent_name worker_1_agent_name worker_2_agent_name worker_3_agent_name
+
+  if ! idea_agent_name="$(_hc_agent_name "$workspace_id" idea-center)" ||
+     ! worker_1_agent_name="$(_hc_agent_name "$workspace_id" worker-1)" ||
+     ! worker_2_agent_name="$(_hc_agent_name "$workspace_id" worker-2)" ||
+     ! worker_3_agent_name="$(_hc_agent_name "$workspace_id" worker-3)"; then
+    return 1
+  fi
 
   # `agent start` waits for interactive readiness. Put every startup request
   # in its own job so one slow agent cannot delay the others from launching.
   _hc_start_lazygit_and_wait "$lazygit_pane" &
   pids+=("$!")
-  _hc_start_agent_and_wait "$worker_1_pane" worker-1 agy --dangerously-skip-permissions &
+  _hc_start_agent_and_wait "$worker_1_pane" "$worker_1_agent_name" agy --dangerously-skip-permissions &
   pids+=("$!")
-  _hc_start_agent_and_wait "$worker_2_pane" worker-2 pi &
+  _hc_start_agent_and_wait "$worker_2_pane" "$worker_2_agent_name" pi &
   pids+=("$!")
-  _hc_start_agent_and_wait "$worker_3_pane" worker-3 pi &
+  _hc_start_agent_and_wait "$worker_3_pane" "$worker_3_agent_name" pi &
   pids+=("$!")
-  _hc_start_agent_and_wait "$claude_pane" idea-center claude --dangerously-skip-permissions --rc &
+  _hc_start_agent_and_wait "$claude_pane" "$idea_agent_name" claude --dangerously-skip-permissions --rc &
   pids+=("$!")
 
   _hc_wait_for_all "${pids[@]}"
@@ -200,13 +252,14 @@ _hc_start_all_components() {
 
 _hc_bootstrap_cockpit() {
   emulate -L zsh
-  local controller_pane="$1"
-  local current_agent="$2"
-  local lazygit_pane="$3"
-  local worker_1_pane="$4"
-  local worker_2_pane="$5"
-  local worker_3_pane="$6"
-  local claude_pane="$7"
+  local workspace_id="$1"
+  local controller_pane="$2"
+  local current_agent="$3"
+  local lazygit_pane="$4"
+  local worker_1_pane="$5"
+  local worker_2_pane="$6"
+  local worker_3_pane="$7"
+  local claude_pane="$8"
 
   # The caller backgrounds this bootstrap after the layout exists. The
   # current shell is therefore free for pane run to start Codex immediately;
@@ -223,6 +276,7 @@ _hc_bootstrap_cockpit() {
     "$claude_pane" || return 1
 
   _hc_start_all_components \
+    "$workspace_id" \
     "$lazygit_pane" \
     "$worker_1_pane" \
     "$worker_2_pane" \
@@ -260,14 +314,18 @@ _hc_find_existing_cockpit_tab() {
 
 _hc_require_named_agents_available() {
   emulate -L zsh
+  local workspace_id="$1"
   local agent_list
   if ! agent_list="$(_hc_call agent list 2>/dev/null)"; then
     print -u2 -- 'hc could not inspect existing Herdr agent names; refusing to create panes.'
     return 1
   fi
 
-  local agent_name conflict_location
-  for agent_name in idea-center worker-1 worker-2 worker-3; do
+  local role agent_name conflict_location
+  for role in idea-center worker-1 worker-2 worker-3; do
+    if ! agent_name="$(_hc_agent_name "$workspace_id" "$role")"; then
+      return 1
+    fi
     if ! conflict_location="$(print -r -- "$agent_list" | command jq -c --arg name "$agent_name" '
       [.result.agents[]? | select(.name == $name)
        | {workspace_id, tab_id, pane_id}]
@@ -277,7 +335,7 @@ _hc_require_named_agents_available() {
       return 1
     fi
     if [[ -n "$conflict_location" ]]; then
-      print -u2 -- "Agent name $agent_name is already in use ($conflict_location); refusing to create a duplicate cockpit."
+      print -u2 -- "Agent name $agent_name is already in use ($conflict_location); refusing to create a duplicate cockpit in workspace $workspace_id."
       return 1
     fi
   done
@@ -285,9 +343,11 @@ _hc_require_named_agents_available() {
 
 _hc_named_agents_ready() {
   emulate -L zsh
-  local agent_name
+  local workspace_id="$1"
+  local role agent_name
 
-  for agent_name in idea-center worker-1 worker-2 worker-3; do
+  for role in idea-center worker-1 worker-2 worker-3; do
+    agent_name="$(_hc_agent_name "$workspace_id" "$role")" || return 1
     _hc_call agent get "$agent_name" >/dev/null 2>&1 || return 1
   done
 }
@@ -346,7 +406,7 @@ hc() {
     return 1
   fi
 
-  local workspace_id tab_id controller_pane current_agent
+  local workspace_id tab_id controller_pane current_agent workspace_namespace
   if ! workspace_id="$(print -r -- "$current_json" | command jq -er '.result.pane.workspace_id')" ||
      ! tab_id="$(print -r -- "$current_json" | command jq -er '.result.pane.tab_id')" ||
      ! controller_pane="$(print -r -- "$current_json" | command jq -er '.result.pane.pane_id')"; then
@@ -359,6 +419,10 @@ hc() {
         "${HERDR_TAB_ID:-}" != "$tab_id" ||
         "${HERDR_PANE_ID:-}" != "$controller_pane" ]]; then
     print -u2 -- 'Herdr caller context does not match the current-pane response; refusing to continue.'
+    return 1
+  fi
+
+  if ! workspace_namespace="$(_hc_workspace_namespace "$workspace_id")"; then
     return 1
   fi
 
@@ -397,7 +461,7 @@ hc() {
           and ([$panes[] | select((.agent // "") != "claude" and ((.cwd // .foreground_cwd // "") == $project_cwd))] | length == 5)
         )
     ' 2>/dev/null)"
-    if [[ "$same_cockpit" == true ]] && _hc_named_agents_ready; then
+    if [[ "$same_cockpit" == true ]] && _hc_named_agents_ready "$workspace_id"; then
       print -r -- "Herdr cockpit already active in workspace $workspace_id, tab $tab_id, project $cockpit_cwd, idea-center $idea_cwd."
       return 0
     fi
@@ -415,7 +479,7 @@ hc() {
     return 1
   fi
 
-  _hc_require_named_agents_available || return 1
+  _hc_require_named_agents_available "$workspace_id" || return 1
 
   local split_json lazygit_pane claude_pane worker_1_pane worker_2_pane worker_3_pane
   if ! split_json="$(_hc_call pane split "$controller_pane" --direction down --cwd "$idea_cwd" --no-focus)" ||
@@ -447,6 +511,7 @@ hc() {
   # Keep the current pane responsive so pane run can launch codexyolo first.
   # The helper starts Codex before waiting for or starting any other pane.
   _hc_bootstrap_cockpit \
+    "$workspace_id" \
     "$controller_pane" \
     "$current_agent" \
     "$lazygit_pane" \
@@ -457,6 +522,11 @@ hc() {
 
   print -r -- 'Herdr cockpit layout created; codexyolo is launching first and the other panes are starting in the background.'
   print -r -- "workspace: $workspace_id"
+  print -r -- "agent namespace: ${workspace_namespace}-<role>"
+  print -r -- "idea-center/claude agent: ${workspace_namespace}-idea-center"
+  print -r -- "worker-1/agy agent: ${workspace_namespace}-worker-1"
+  print -r -- "worker-2/pi agent: ${workspace_namespace}-worker-2"
+  print -r -- "worker-3/pi agent: ${workspace_namespace}-worker-3"
   print -r -- "tab: $tab_id"
   print -r -- "project folder: $cockpit_cwd"
   print -r -- "idea-center folder: $idea_cwd"
