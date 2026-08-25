@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless
+# Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless, mole (macOS)
 source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing CLI tools..."
@@ -93,6 +93,25 @@ if ! has portless; then
   fi
 else
   ok "portless already installed"
+fi
+
+# --- Mole --- macOS system maintenance: clean, uninstall, analyze, monitor
+# The binary is `mole`, with `mo` symlinked at it; both land in the prefix.
+# macOS only, and not by our choice: the homebrew-core formula declares
+# `depends_on :macos`, so the Linux arm every other tool here carries would just
+# fail. Same shape as the Ghostty gate in core.sh -- install and check stay on
+# the same platform, so the repo never points at something it would not install.
+if ! has mole; then
+  case "$DOTFILES_OS" in
+    macos)
+      info "Installing Mole..."
+      brew install mole
+      ;;
+    *) ok "Mole is macOS-only -- skipping" ;;
+  esac
+else
+  # `mole --version` opens with a blank line, so match the version line by name.
+  ok "Mole already installed ($(mole --version 2>/dev/null | awk '/^Mole version/{print $3; exit}'))"
 fi
 
 # Skill-backing CLIs (opencli, podwise, wavespeed-cli, qmd, uipro-cli) are no longer
