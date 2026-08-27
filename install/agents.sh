@@ -86,7 +86,7 @@ else
       ok "Skill '$skill' already installed"
     else
       info "$VERB skill '$skill' (global)..."
-      npx skills@1.5.20 add "$repo" --skill "$skill" -a '*' -g -y \
+      npx --yes skills@1.5.20 add "$repo" --skill "$skill" -a '*' -g -y \
         || warn "Skill '$skill' install failed"
     fi
   done
