@@ -36,7 +36,7 @@ check_symlink "$HOME/.tmux.conf"                           "$D/config/tmux/.tmux
 check_symlink "$HOME/.gitconfig"                           "$D/config/git/.gitconfig"
 check_symlink "$HOME/.gitmessage"                          "$D/config/git/.gitmessage"
 check_symlink "$HOME/.config/nvim"                         "$D/config/nvim"
-check_symlink "$HOME/.config/starship.toml"                "$D/config/starship/starship.toml"
+check_symlink "$HOME/.config/starship.toml"                "$D/config/starship/macos.toml"
 check_symlink "$HOME/.config/lazygit/config.yml"           "$D/config/lazygit/config.yml"
 check_symlink "$HOME/.config/herdr/config.toml"            "$D/config/herdr/config.toml"
 # Agent configs are NOT symlinked -- `just seed-agents` copies them once and each

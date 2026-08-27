@@ -109,6 +109,29 @@ ensure_symlink() {
   ok "Linked $(basename "$dest") → $src"
 }
 
+# Append an exact source/include line without replacing the host-owned file.
+ensure_source_line() {
+  local file="$1" line="$2"
+  [ -f "$file" ] || { fail "Required host config is missing: $file"; return 1; }
+  if grep -Fqx -- "$line" "$file"; then
+    ok "Source line already present in $file"
+  else
+    printf '\n%s\n' "$line" >>"$file"
+    ok "Added dotfiles source line to $file"
+  fi
+}
+
+remove_source_line() {
+  local file="$1" line="$2" tmp
+  [ -f "$file" ] || return 0
+  grep -Fqx -- "$line" "$file" || return 0
+  tmp="$(mktemp "${file}.dotfiles.XXXXXX")"
+  awk -v exact="$line" '$0 != exact' "$file" >"$tmp"
+  chmod --reference="$file" "$tmp" 2>/dev/null || true
+  mv "$tmp" "$file"
+  ok "Removed dotfiles source line from $file"
+}
+
 # Ensure a directory exists
 ensure_dir() {
   local dir="$1"

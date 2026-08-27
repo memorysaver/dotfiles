@@ -21,7 +21,7 @@ just setup
 
 | Recipe | Tools |
 |--------|-------|
-| `just core` | zsh, oh-my-zsh, tmux, starship, nvim, lazygit, direnv |
+| `just core` | platform shell, tmux, starship, nvim, lazygit, git-lfs, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
 | `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Antigravity CLI (agy), Grok Build, Pi |
 | `just tools` | gh, glab, jq, yq, just, agent-browser, portless, mole (macOS only) |
@@ -82,9 +82,34 @@ working configuration as a side effect. Run `just link-dry-run` first. Linking
 refuses existing paths by default; `DOTFILES_LINK_MODE=backup just link` moves
 each conflict to a timestamped backup before creating its symlink.
 
-On Omarchy, the repository deliberately preserves Omarchy's Neovim, Starship,
-Lazygit, Ghostty, Hyprland, and Omarchy Shell configuration. Omarchy owns system
-packages and desktop defaults; this repository owns portable CLI configuration.
+On Omarchy, the repository preserves Omarchy's Bash foundation, Neovim, Foot,
+Ghostty, Herdr, Hyprland, and Omarchy Shell configuration. It adds a small Bash
+overlay, tracks an Omarchy-specific Starship profile, and shares tmux and Lazygit
+with macOS. Omarchy owns system packages and desktop defaults; this repository
+owns portable CLI configuration.
+
+## Terminal configuration by platform
+
+macOS uses Zsh + Oh My Zsh and the tracked Ghostty profile. Omarchy stays on
+Bash: `just link` adds one source line to the existing Omarchy `~/.bashrc`, which
+loads shared personal aliases, environment, and browser helpers after Omarchy's
+own Mise, Starship, Zoxide, FZF, completion, editor, and browser setup.
+
+```text
+config/shell/common/                 # Bash/Zsh-compatible personal additions
+config/shell/omarchy/dotfiles.bash   # Additive Omarchy Bash adapter
+config/zsh/                          # macOS Zsh + Oh My Zsh entrypoints
+config/starship/macos.toml           # Full macOS powerline prompt
+config/starship/omarchy.toml         # Compact Omarchy prompt
+config/terminal/macos/ghostty.conf   # macOS Ghostty and CJK font chain
+config/terminal/omarchy/README.md    # Why Omarchy terminal files stay host-owned
+config/lazygit/config.yml            # Shared
+config/tmux/.tmux.conf               # Shared; pbcopy/wl-copy selected at runtime
+```
+
+Foot and Ghostty on Omarchy retain their dynamic theme includes under
+`~/.local/state/omarchy/current/theme/`; the dotfiles repository never replaces
+those terminal files.
 
 ## Agent Configs Are Machine-Local
 
@@ -176,11 +201,13 @@ docker exec -it dev zsh
 docker stop dev && docker rm dev
 ```
 
-The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seeded agent configs plus the 3 global skills (asserting they are real files, not links), and 22 commands — if anything is broken, the build fails.
+The build itself runs `verify.sh`, which checks the Debian/macOS-style config
+links, seeded agent configs, global skills, and installed commands. Platform
+smoke tests separately cover the Omarchy shell overlay and Starship profile.
 
 ## Key Tools
 
-- **Shell**: zsh + oh-my-zsh + starship prompt
+- **Shell**: Zsh + Oh My Zsh on macOS; Omarchy Bash with a personal overlay
 - **Editor**: Neovim (LazyVim)
 - **Git**: lazygit TUI + gh/glab CLIs
 - **Terminal**: tmux with Tokyo Night theme; Herdr as the agent multiplexer

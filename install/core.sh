@@ -1,38 +1,35 @@
 #!/usr/bin/env bash
-# Install core tools: zsh, oh-my-zsh, tmux, starship, nvim, lazygit, git, direnv,
-# ghostty and the fonts it is configured to use
+# Install the platform shell plus tmux, starship, nvim, lazygit, git, direnv,
+# and macOS-only Ghostty/font dependencies.
 source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing core tools..."
 
-# --- Zsh ---
-ensure_installed zsh zsh zsh
+# --- macOS shell: Zsh + Oh My Zsh ---
+# Omarchy keeps its Bash shell so its defaults remain available.
+if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
+  ensure_installed zsh zsh zsh
 
-# --- Oh-My-Zsh ---
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  info "Installing Oh-My-Zsh..."
-  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  ok "Oh-My-Zsh installed"
-else
-  ok "Oh-My-Zsh already installed"
-fi
-
-# --- Zsh plugins ---
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-
-zsh_plugins=(
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-)
-
-for plugin in "${zsh_plugins[@]}"; do
-  if [ ! -d "$ZSH_CUSTOM/plugins/$plugin" ]; then
-    info "Installing $plugin..."
-    git clone --depth=1 "https://github.com/zsh-users/$plugin" "$ZSH_CUSTOM/plugins/$plugin"
+  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    info "Installing Oh-My-Zsh..."
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    ok "Oh-My-Zsh installed"
   else
-    ok "$plugin already installed"
+    ok "Oh-My-Zsh already installed"
   fi
-done
+
+  ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+  for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+    if [ ! -d "$ZSH_CUSTOM/plugins/$plugin" ]; then
+      info "Installing $plugin..."
+      git clone --depth=1 "https://github.com/zsh-users/$plugin" "$ZSH_CUSTOM/plugins/$plugin"
+    else
+      ok "$plugin already installed"
+    fi
+  done
+else
+  ok "Omarchy: keeping Bash; Zsh and Oh My Zsh skipped"
+fi
 
 # --- Starship prompt ---
 ensure_installed starship starship starship starship
@@ -98,7 +95,7 @@ else
   ok "JetBrainsMono Nerd Font skipped (macOS only)"
 fi
 
-# --- Sarasa Gothic (macOS; CJK fallback named in config/ghostty/config) ---
+# --- Sarasa Gothic (macOS; CJK fallback named in the macOS Ghostty config) ---
 # JetBrains Mono has no CJK coverage, so without this the terminal falls back per
 # codepoint across whatever Han fonts macOS ships and the weight visibly jumps
 # between characters. Sarasa keeps CJK at exactly 2x the ASCII advance.

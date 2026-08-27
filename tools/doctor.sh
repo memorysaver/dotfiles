@@ -37,22 +37,31 @@ check_link() {
   fi
 }
 
-check_link "$HOME/.zshenv"                    "$D/config/zsh/.zshenv"
-check_link "$HOME/.zshrc"                     "$D/config/zsh/.zshrc"
 check_link "$HOME/.tmux.conf"                 "$D/config/tmux/.tmux.conf"
 check_link "$HOME/.gitconfig"                 "$D/config/git/.gitconfig"
 check_link "$HOME/.gitmessage"                "$D/config/git/.gitmessage"
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
-  soft "Omarchy-managed Neovim, Starship, Lazygit, Ghostty, and Herdr configs preserved"
+  check_link "$HOME/.config/dotfiles/shell/omarchy.bash" "$D/config/shell/omarchy/dotfiles.bash"
+  source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
+  if grep -Fqx -- "$source_line" "$HOME/.bashrc"; then
+    pass "~/.bashrc sources the Omarchy dotfiles overlay"
+  else
+    hard "~/.bashrc does not source the Omarchy dotfiles overlay — run: just link"
+  fi
+  check_link "$HOME/.config/starship.toml" "$D/config/starship/omarchy.toml"
+  check_link "$HOME/.config/lazygit/config.yml" "$D/config/lazygit/config.yml"
+  soft "Omarchy-managed Neovim, Foot, Ghostty, and Herdr configs preserved"
 else
+  check_link "$HOME/.zshenv"                  "$D/config/zsh/.zshenv"
+  check_link "$HOME/.zshrc"                   "$D/config/zsh/.zshrc"
   check_link "$HOME/.config/herdr/config.toml" "$D/config/herdr/config.toml"
   check_link "$HOME/.config/nvim"             "$D/config/nvim"
-  check_link "$HOME/.config/starship.toml"    "$D/config/starship/starship.toml"
+  check_link "$HOME/.config/starship.toml"    "$D/config/starship/macos.toml"
 fi
 if [ "$DOTFILES_PLATFORM" = macos ]; then
   check_link "$HOME/Library/Application Support/lazygit/config.yml" "$D/config/lazygit/config.yml"
   # Ghostty is linked on macOS only, matching where core.sh installs it.
-  check_link "$HOME/Library/Application Support/com.mitchellh.ghostty/config" "$D/config/ghostty/config"
+  check_link "$HOME/Library/Application Support/com.mitchellh.ghostty/config" "$D/config/terminal/macos/ghostty.conf"
 elif [ "$DOTFILES_PLATFORM" != omarchy ]; then
   check_link "$HOME/.config/lazygit/config.yml" "$D/config/lazygit/config.yml"
 fi
@@ -64,7 +73,8 @@ check_cmd() {
   if has "$1"; then pass "$1"; else hard "$1 not found — run: just $2"; fi
 }
 
-for c in zsh tmux nvim lazygit git direnv starship;   do check_cmd "$c" core;     done
+for c in tmux nvim lazygit git direnv starship; do check_cmd "$c" core; done
+if [ "$DOTFILES_PLATFORM" != omarchy ]; then check_cmd zsh core; fi
 if [ "$DOTFILES_PLATFORM" = omarchy ] || [ "$DOTFILES_PLATFORM" = arch ]; then
   check_cmd mise runtimes
   for c in uv node npm bun rustc cargo; do check_cmd "$c" runtimes; done
