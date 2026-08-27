@@ -64,6 +64,7 @@ just setup
 just setup             # Detect platform; install tools and seed new agent configs
 just setup-macos       # Require macOS, then install the shared tool set
 just setup-omarchy     # Require Omarchy; use Omarchy packages + Mise
+just setup-omarchy-terminal # Open Omarchy setup in a terminal for sudo input
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just link              # Create all config symlinks (idempotent)
@@ -81,6 +82,12 @@ recipes. Tool installation and config linking are separate: setup never replaces
 working configuration as a side effect. Run `just link-dry-run` first. Linking
 refuses existing paths by default; `DOTFILES_LINK_MODE=backup just link` moves
 each conflict to a timestamped backup before creating its symlink.
+
+When run in a terminal, `just setup-omarchy` asks for sudo authentication once
+at the beginning and subsequent package operations reuse that authorization.
+Agents and graphical launchers should use `just setup-omarchy-terminal`, which
+opens the same recipe in Omarchy's visible terminal so the password never passes
+through automation.
 
 On Omarchy, the repository installs and verifies command-line tools but preserves
 Omarchy's application configuration. Git, tmux, Starship, Lazygit, Neovim,

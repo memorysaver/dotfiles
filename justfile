@@ -15,7 +15,13 @@ setup-macos:
 
 setup-omarchy:
     @bash {{ dotfiles }}/install/platform-check.sh omarchy
+    @echo "Omarchy package installation needs sudo; authenticate once to begin."
+    @sudo -v
     @just _setup
+
+# Open setup in a visible terminal when inline sudo input is unavailable.
+setup-omarchy-terminal:
+    @bash {{ dotfiles }}/tools/omarchy-setup-terminal.sh
 
 setup-arch:
     @bash {{ dotfiles }}/install/platform-check.sh arch
