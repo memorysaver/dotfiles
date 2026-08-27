@@ -75,7 +75,7 @@ for c in tmux nvim lazygit git direnv starship; do check_cmd "$c" core; done
 if [ "$DOTFILES_PLATFORM" != omarchy ]; then check_cmd zsh core; fi
 if [ "$DOTFILES_PLATFORM" = omarchy ] || [ "$DOTFILES_PLATFORM" = arch ]; then
   check_cmd mise runtimes
-  for c in uv node npm bun rustc cargo; do check_cmd "$c" runtimes; done
+  for c in python uv node npm bun rustc cargo; do check_cmd "$c" runtimes; done
 else
   for c in pyenv uv node npm bun rustc cargo; do check_cmd "$c" runtimes; done
 fi

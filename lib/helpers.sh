@@ -52,6 +52,23 @@ has_working() {
   command -v "$1" >/dev/null 2>&1 && "$1" --version >/dev/null 2>&1
 }
 
+# Retry transient network operations without hiding a persistent failure.
+# Usage: retry <attempts> <delay-seconds> <command> [args...]
+retry() {
+  local attempts="$1" delay="$2" current=1
+  shift 2
+
+  until "$@"; do
+    if [ "$current" -ge "$attempts" ]; then
+      fail "Command failed after $attempts attempts: $*"
+      return 1
+    fi
+    warn "Attempt $current/$attempts failed; retrying in ${delay}s: $*"
+    current=$((current + 1))
+    sleep "$delay"
+  done
+}
+
 # Install a package if the command is not already available
 # Usage: ensure_installed <command> <brew_pkg> [debian_pkg] [arch_pkg]
 ensure_installed() {
