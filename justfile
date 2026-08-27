@@ -20,6 +20,7 @@ setup-omarchy:
     @just _setup
     @just omarchy-apps
     @just link
+    @just doctor
 
 setup-arch:
     @bash {{ dotfiles }}/install/platform-check.sh arch
@@ -33,7 +34,7 @@ setup-debian:
 # a working machine's configuration as a side effect of installing tools.
 _setup: core runtimes agents tools seed-agents
     @echo ""
-    @echo "Tools installed. Review with 'just link-dry-run', then run 'just link'."
+    @echo "Tools installed."
 
 # Install the platform shell plus tmux, starship, nvim, lazygit, git, and direnv
 core:

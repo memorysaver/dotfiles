@@ -80,11 +80,16 @@ if ! command -v git &>/dev/null; then
 fi
 
 # --- Clone dotfiles ---
-if [ ! -d "$DOTFILES_DIR" ]; then
+if [ ! -e "$DOTFILES_DIR" ]; then
   echo "Cloning dotfiles..."
   git clone "$REPO" "$DOTFILES_DIR"
+elif [ -d "$DOTFILES_DIR/.git" ]; then
+  echo "Updating existing dotfiles clone..."
+  git -C "$DOTFILES_DIR" pull --ff-only
 else
-  echo "Dotfiles already at $DOTFILES_DIR"
+  echo "ERROR: $DOTFILES_DIR exists but is not a git clone" >&2
+  echo "Move it aside and rerun bootstrap." >&2
+  exit 1
 fi
 
 # --- Just (task runner) ---

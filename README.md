@@ -147,6 +147,8 @@ The Omarchy path performs the following recovery steps:
 3. Adds the portable aliases, paths, and functions to Omarchy's existing Bash
    setup without replacing its defaults.
 4. Leaves every application configuration under Omarchy ownership.
+5. Runs `just doctor` as a final gate; bootstrap does not report success while a
+   declared command, application, skill, or shell link is missing.
 
 The explicit application set is:
 
