@@ -4,16 +4,36 @@
 
 set -euo pipefail
 
-# --- OS Detection ---
-detect_os() {
+# --- Platform Detection ---
+# Keep distributions separate: package names and ownership conventions differ.
+detect_platform() {
   case "$(uname -s)" in
-    Darwin) echo "macos" ;;
-    Linux)  echo "linux" ;;
-    *)      echo "unknown" ;;
+    Darwin) echo "macos"; return ;;
+    Linux) ;;
+    *) echo "unknown"; return ;;
+  esac
+
+  if command -v omarchy >/dev/null 2>&1 || [ -r /etc/omarchy-release ]; then
+    echo "omarchy"
+    return
+  fi
+
+  local distro="" distro_like=""
+  if [ -r /etc/os-release ]; then
+    distro="$(. /etc/os-release; printf '%s' "${ID:-}")"
+    distro_like="$(. /etc/os-release; printf '%s' "${ID_LIKE:-}")"
+  fi
+
+  case " $distro $distro_like " in
+    *" arch "*) echo "arch" ;;
+    *" debian "*|*" ubuntu "*) echo "debian" ;;
+    *) echo "unknown" ;;
   esac
 }
 
-DOTFILES_OS="${DOTFILES_OS:-$(detect_os)}"
+DOTFILES_PLATFORM="${DOTFILES_PLATFORM:-${DOTFILES_OS:-$(detect_platform)}}"
+# Compatibility for older scripts while they migrate to DOTFILES_PLATFORM.
+DOTFILES_OS="$DOTFILES_PLATFORM"
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
 
 # --- Logging ---
@@ -27,27 +47,33 @@ fail()  { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; }
 # Check if a command exists
 has() { command -v "$1" &>/dev/null; }
 
+# A shim can exist while its backing tool is absent (Mise behaves this way).
+has_working() {
+  command -v "$1" >/dev/null 2>&1 && "$1" --version >/dev/null 2>&1
+}
+
 # Install a package if the command is not already available
-# Usage: ensure_installed <command_name> <brew_pkg> [apt_pkg]
-# If apt_pkg is omitted, uses brew_pkg name
+# Usage: ensure_installed <command> <brew_pkg> [debian_pkg] [arch_pkg]
 ensure_installed() {
-  local cmd="$1" brew_pkg="$2" apt_pkg="${3:-$2}"
+  local cmd="$1" brew_pkg="$2" debian_pkg="${3:-$2}" arch_pkg="${4:-${3:-$2}}"
   if has "$cmd"; then
     ok "$cmd already installed"
     return 0
   fi
   info "Installing $cmd..."
-  pkg_install "$brew_pkg" "$apt_pkg"
+  pkg_install "$brew_pkg" "$debian_pkg" "$arch_pkg"
 }
 
 # Install a package via the OS package manager
-# Usage: pkg_install <brew_pkg> [apt_pkg]
+# Usage: pkg_install <brew_pkg> [debian_pkg] [arch_pkg]
 pkg_install() {
-  local brew_pkg="$1" apt_pkg="${2:-$1}"
-  case "$DOTFILES_OS" in
+  local brew_pkg="$1" debian_pkg="${2:-$1}" arch_pkg="${3:-${2:-$1}}"
+  case "$DOTFILES_PLATFORM" in
     macos) brew install "$brew_pkg" ;;
-    linux) sudo apt-get install -y "$apt_pkg" ;;
-    *)     fail "Unsupported OS: $DOTFILES_OS"; return 1 ;;
+    omarchy) omarchy pkg add "$arch_pkg" ;;
+    arch) sudo pacman -S --needed --noconfirm "$arch_pkg" ;;
+    debian) sudo apt-get install -y "$debian_pkg" ;;
+    *) fail "Unsupported platform: $DOTFILES_PLATFORM"; return 1 ;;
   esac
 }
 
@@ -61,12 +87,49 @@ ensure_symlink() {
     ok "$(basename "$dest") already linked"
     return 0
   fi
-  # Remove existing file/symlink/directory at dest
+  # Never silently destroy a user's existing configuration.
   if [ -e "$dest" ] || [ -L "$dest" ]; then
-    rm -rf "$dest"
+    case "${DOTFILES_LINK_MODE:-refuse}" in
+      backup)
+        local backup="${dest}.pre-dotfiles.$(date +%Y%m%d%H%M%S)"
+        mv "$dest" "$backup"
+        warn "Backed up $dest to $backup"
+        ;;
+      replace)
+        rm -rf -- "$dest"
+        ;;
+      *)
+        warn "Refusing to replace existing path: $dest"
+        warn "Review it, then rerun with DOTFILES_LINK_MODE=backup (recommended)"
+        return 1
+        ;;
+    esac
   fi
   ln -s "$src" "$dest"
   ok "Linked $(basename "$dest") → $src"
+}
+
+# Append an exact source/include line without replacing the host-owned file.
+ensure_source_line() {
+  local file="$1" line="$2"
+  [ -f "$file" ] || { fail "Required host config is missing: $file"; return 1; }
+  if grep -Fqx -- "$line" "$file"; then
+    ok "Source line already present in $file"
+  else
+    printf '\n%s\n' "$line" >>"$file"
+    ok "Added dotfiles source line to $file"
+  fi
+}
+
+remove_source_line() {
+  local file="$1" line="$2" tmp
+  [ -f "$file" ] || return 0
+  grep -Fqx -- "$line" "$file" || return 0
+  tmp="$(mktemp "${file}.dotfiles.XXXXXX")"
+  awk -v exact="$line" '$0 != exact' "$file" >"$tmp"
+  chmod --reference="$file" "$tmp" 2>/dev/null || true
+  mv "$tmp" "$file"
+  ok "Removed dotfiles source line from $file"
 }
 
 # Ensure a directory exists

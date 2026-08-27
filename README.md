@@ -1,6 +1,7 @@
 # dotfiles
 
-Modular, idempotent, cross-platform dotfiles with `just` orchestration.
+Modular, idempotent dotfiles with explicit macOS, Omarchy, Arch, and
+Debian-family installation paths, orchestrated with `just`.
 
 ## Quick Start
 
@@ -20,7 +21,7 @@ just setup
 
 | Recipe | Tools |
 |--------|-------|
-| `just core` | zsh, oh-my-zsh, tmux, starship, nvim, lazygit, direnv |
+| `just core` | platform shell, tmux, starship, nvim, lazygit, git-lfs, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
 | `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Antigravity CLI (agy), Grok Build, Pi |
 | `just tools` | gh, glab, jq, yq, just, agent-browser, portless, mole (macOS only) |
@@ -60,8 +61,14 @@ just setup
 ## Just Recipes
 
 ```bash
-just setup             # Full setup: core + runtimes + agents + tools + link + seed-agents
+just setup             # Detect platform; install tools and seed new agent configs
+just setup-macos       # Require macOS, then install the shared tool set
+just setup-omarchy     # Require Omarchy; use Omarchy packages + Mise
+just omarchy-apps      # Install the personal Omarchy desktop app set
+just setup-arch        # Require Arch; use pacman + Mise
+just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just link              # Create all config symlinks (idempotent)
+just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
 just seed-agents       # Copy agent config templates to ~ (never overwrites)
 just doctor            # Health-check this machine (read-only, exits 1 on failure)
@@ -70,10 +77,99 @@ just infra             # Install infrastructure tools (opt-in)
 just --list            # Show all available recipes
 ```
 
+`just setup` detects the platform and dispatches to one of the explicit setup
+recipes. Tool installation and config linking are separate: setup never replaces
+working configuration as a side effect. Run `just link-dry-run` first. Linking
+refuses existing paths by default; `DOTFILES_LINK_MODE=backup just link` moves
+each conflict to a timestamped backup before creating its symlink.
+
+`just setup-omarchy` asks for sudo authentication once at the beginning,
+installs tools and applications, and activates the safe Bash overlay. Subsequent
+package operations reuse that authorization. Run it from a terminal so the
+password prompt is visible.
+
+On Omarchy, the repository installs and verifies command-line tools but preserves
+Omarchy's application configuration. Git, tmux, Starship, Lazygit, Neovim,
+Herdr, terminals, Hyprland, and Omarchy Shell remain machine-local and follow
+Omarchy defaults. The only linked integration is a small, optional Bash overlay
+for personal aliases, paths, and functions.
+
+## Terminal configuration by platform
+
+macOS uses Zsh + Oh My Zsh and the tracked Ghostty profile. Omarchy stays on
+Bash: `just link` adds one source line to the existing Omarchy `~/.bashrc`, which
+loads shared personal aliases, environment, and browser helpers after Omarchy's
+own Mise, Starship, Zoxide, FZF, completion, editor, and browser setup.
+
+```text
+config/shell/common/                 # Bash/Zsh-compatible personal additions
+config/shell/omarchy/dotfiles.bash   # Additive Omarchy Bash adapter
+config/zsh/                          # macOS Zsh + Oh My Zsh entrypoints
+config/starship/macos.toml           # macOS-only powerline prompt
+config/terminal/macos/ghostty.conf   # macOS Ghostty and CJK font chain
+config/terminal/omarchy/README.md    # Omarchy configuration ownership policy
+config/lazygit/config.yml            # macOS and non-Omarchy Linux only
+config/tmux/.tmux.conf               # macOS and non-Omarchy Linux only
+```
+
+On Omarchy, `just link` does not replace any application configuration. This
+keeps dynamic themes, keybindings, and future Omarchy migrations intact.
+
+## Omarchy tool ownership
+
+`just setup-omarchy` ensures the workstation tools are installed; it does not
+adopt their configuration. The main groups are:
+
+| Group | Installed or verified |
+| --- | --- |
+| Terminal/core | tmux, Starship, Neovim, Lazygit, Git LFS, direnv |
+| Development runtimes | Mise, uv, Node.js/npm, Bun, Rust |
+| CLI utilities | GitHub CLI, GitLab CLI, jq, yq, just, agent-browser, portless |
+| Coding agents | Herdr, Claude Code, Codex, OpenCode, Antigravity, Grok, Pi |
+
+Desktop applications already supplied by Omarchy remain Omarchy's
+responsibility. Platform-specific additions belong in the Omarchy installation
+path, never in macOS configuration-linking logic. Run `just doctor` to report
+missing commands and which configuration is intentionally Omarchy-managed.
+
+## Omarchy workstation recovery
+
+On a fresh Omarchy laptop, run the bootstrap command from a terminal:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/bootstrap.sh)"
+```
+
+The Omarchy path performs the following recovery steps:
+
+1. Installs the shared CLI tools, development runtimes, and coding agents.
+2. Ensures the personal desktop application set is installed.
+3. Adds the portable aliases, paths, and functions to Omarchy's existing Bash
+   setup without replacing its defaults.
+4. Leaves every application configuration under Omarchy ownership.
+5. Runs `just doctor` as a final gate; bootstrap does not report success while a
+   declared command, application, skill, or shell link is missing.
+
+The explicit application set is:
+
+| Application | Installation route | Configuration ownership |
+| --- | --- | --- |
+| 1Password + `op` CLI | `omarchy install service 1password` | Machine-local; sign in interactively |
+| Chromium | `omarchy pkg add chromium` | Omarchy |
+| Obsidian | `omarchy pkg add obsidian` | Machine-local vault and settings |
+| Voxtype | `omarchy pkg add voxtype-bin` | Machine-local model and settings |
+
+Chromium and Obsidian are normally Omarchy preinstalls, but they are listed
+explicitly so a restored workstation does not depend on a particular Omarchy
+release's default app selection. Installation is idempotent; already-installed
+packages are left in place. Authentication, vault data, and downloaded Voxtype
+models are intentionally not stored in this repository.
+
 ## Agent Configs Are Machine-Local
 
-Everything under `config/` is symlinked into `~` — one source of truth across
-machines. Everything under `agents/` is **not**. Claude Code, Codex, Pi and OpenCode
+Portable entries under `config/` are symlinked into `~` — one source of truth
+across machines. Omarchy-managed application configs are intentionally excluded
+on Omarchy. Everything under `agents/` is **not**. Claude Code, Codex, Pi and OpenCode
 each rewrite their own config in place (trusted paths, plugin state, sandbox mode,
 app internals), and their formats change faster than a shared repo can usefully
 track. A symlink turned every one of those writes into an uncommitted diff here.
@@ -159,14 +255,16 @@ docker exec -it dev zsh
 docker stop dev && docker rm dev
 ```
 
-The build itself runs `verify.sh` which checks the 8 config symlinks, the 8 seeded agent configs plus the 3 global skills (asserting they are real files, not links), and 22 commands — if anything is broken, the build fails.
+The build itself runs `verify.sh`, which checks the Debian/macOS-style config
+links, seeded agent configs, global skills, and installed commands. Platform
+smoke tests separately cover the Omarchy shell overlay and ownership boundary.
 
 ## Key Tools
 
-- **Shell**: zsh + oh-my-zsh + starship prompt
+- **Shell**: Zsh + Oh My Zsh on macOS; Omarchy Bash with a personal overlay
 - **Editor**: Neovim (LazyVim)
-- **Git**: lazygit TUI + gh/glab CLIs
-- **Terminal**: tmux with Tokyo Night theme; Herdr as the agent multiplexer
+- **Git**: Lazygit TUI + gh/glab CLIs; configuration follows the host platform
+- **Terminal**: macOS uses the tracked tmux theme; Omarchy keeps its defaults
 - **AI Agents**: Claude Code, Codex, OpenCode, Antigravity CLI (`agy`), Grok Build (`grok`), Pi
 - **Shared Skills**: authored once under `agents/skills/`, installed per project via the skills CLI
 - **Dev Envs**: `ccdev`, `opendev`, `codexdev` — tmux sessions with lazygit + AI agent

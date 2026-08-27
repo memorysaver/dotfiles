@@ -1,49 +1,38 @@
 #!/usr/bin/env bash
-# Install core tools: zsh, oh-my-zsh, tmux, starship, nvim, lazygit, git, direnv,
-# ghostty and the fonts it is configured to use
+# Install core command-line tools. Configuration ownership is decided by
+# `just link`; on Omarchy these applications retain their native defaults.
 source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing core tools..."
 
-# --- Zsh ---
-ensure_installed zsh zsh zsh
+# --- macOS shell: Zsh + Oh My Zsh ---
+# Omarchy keeps its Bash shell so its defaults remain available.
+if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
+  ensure_installed zsh zsh zsh
 
-# --- Oh-My-Zsh ---
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  info "Installing Oh-My-Zsh..."
-  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  ok "Oh-My-Zsh installed"
-else
-  ok "Oh-My-Zsh already installed"
-fi
-
-# --- Zsh plugins ---
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-
-zsh_plugins=(
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-)
-
-for plugin in "${zsh_plugins[@]}"; do
-  if [ ! -d "$ZSH_CUSTOM/plugins/$plugin" ]; then
-    info "Installing $plugin..."
-    git clone --depth=1 "https://github.com/zsh-users/$plugin" "$ZSH_CUSTOM/plugins/$plugin"
+  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    info "Installing Oh-My-Zsh..."
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    ok "Oh-My-Zsh installed"
   else
-    ok "$plugin already installed"
+    ok "Oh-My-Zsh already installed"
   fi
-done
+
+  ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+  for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+    if [ ! -d "$ZSH_CUSTOM/plugins/$plugin" ]; then
+      info "Installing $plugin..."
+      git clone --depth=1 "https://github.com/zsh-users/$plugin" "$ZSH_CUSTOM/plugins/$plugin"
+    else
+      ok "$plugin already installed"
+    fi
+  done
+else
+  ok "Omarchy: keeping Bash; Zsh and Oh My Zsh skipped"
+fi
 
 # --- Starship prompt ---
-if ! has starship; then
-  info "Installing starship..."
-  case "$DOTFILES_OS" in
-    macos) brew install starship ;;
-    linux) curl -sS https://starship.rs/install.sh | sh -s -- -y ;;
-  esac
-else
-  ok "starship already installed"
-fi
+ensure_installed starship starship starship starship
 
 # --- tmux ---
 ensure_installed tmux tmux tmux
@@ -54,9 +43,11 @@ ensure_installed nvim neovim neovim
 # --- Lazygit ---
 if ! has lazygit; then
   info "Installing lazygit..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install lazygit ;;
-    linux)
+    omarchy) omarchy pkg add lazygit ;;
+    arch) sudo pacman -S --needed --noconfirm lazygit ;;
+    debian)
       LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
       ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_${ARCH}.tar.gz"
@@ -70,6 +61,7 @@ fi
 
 # --- Git ---
 ensure_installed git git git
+ensure_installed git-lfs git-lfs git-lfs git-lfs
 
 # --- Direnv ---
 ensure_installed direnv direnv direnv
@@ -80,7 +72,7 @@ ensure_installed direnv direnv direnv
 # pinned to whatever version was first installed while the app moves ahead on its
 # own -- that gap is expected and `brew upgrade` is a no-op, so don't chase it
 # with a reinstall (which would swap the bundle out from under a running session).
-if [ "$DOTFILES_OS" = "macos" ]; then
+if [ "$DOTFILES_PLATFORM" = "macos" ]; then
   if ! brew list --cask ghostty &>/dev/null; then
     info "Installing Ghostty..."
     brew install --cask ghostty
@@ -92,7 +84,7 @@ else
 fi
 
 # --- JetBrainsMono Nerd Font (macOS; used by terminal, starship, lazygit) ---
-if [ "$DOTFILES_OS" = "macos" ]; then
+if [ "$DOTFILES_PLATFORM" = "macos" ]; then
   if ! brew list --cask font-jetbrains-mono-nerd-font &>/dev/null; then
     info "Installing JetBrainsMono Nerd Font..."
     brew install --cask font-jetbrains-mono-nerd-font
@@ -103,11 +95,11 @@ else
   ok "JetBrainsMono Nerd Font skipped (macOS only)"
 fi
 
-# --- Sarasa Gothic (macOS; CJK fallback named in config/ghostty/config) ---
+# --- Sarasa Gothic (macOS; CJK fallback named in the macOS Ghostty config) ---
 # JetBrains Mono has no CJK coverage, so without this the terminal falls back per
 # codepoint across whatever Han fonts macOS ships and the weight visibly jumps
 # between characters. Sarasa keeps CJK at exactly 2x the ASCII advance.
-if [ "$DOTFILES_OS" = "macos" ]; then
+if [ "$DOTFILES_PLATFORM" = "macos" ]; then
   if ! brew list --cask font-sarasa-gothic &>/dev/null; then
     info "Installing Sarasa Gothic (CJK)..."
     brew install --cask font-sarasa-gothic

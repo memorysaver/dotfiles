@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
-ENV DOTFILES_OS=linux
+ENV DOTFILES_PLATFORM=debian
 ENV NVM_DIR=/home/dev/.nvm
 ENV PATH="/home/dev/.pyenv/bin:/home/dev/.bun/bin:/home/dev/.cargo/bin:/home/dev/.local/bin:${PATH}"
 ENV LANG=en_US.UTF-8
@@ -44,7 +44,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 just agents
 just tools
-just link
+DOTFILES_LINK_MODE=backup just link
 SCRIPT
 
 # 6. Verify all symlinks and installed commands
