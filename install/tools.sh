@@ -5,11 +5,13 @@ source "$(dirname "$0")/../lib/helpers.sh"
 info "Installing CLI tools..."
 
 # --- GitHub CLI ---
-if ! has gh; then
+if ! has_working gh; then
   info "Installing GitHub CLI..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install gh ;;
-    linux)
+    omarchy) omarchy pkg add github-cli ;;
+    arch) sudo pacman -S --needed --noconfirm github-cli ;;
+    debian)
       (type -p wget >/dev/null || sudo apt-get install -y wget) \
         && sudo mkdir -p -m 755 /etc/apt/keyrings \
         && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null \
@@ -23,11 +25,13 @@ else
 fi
 
 # --- GitLab CLI ---
-if ! has glab; then
+if ! has_working glab; then
   info "Installing GitLab CLI..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install glab ;;
-    linux)
+    omarchy) omarchy pkg add glab ;;
+    arch) sudo pacman -S --needed --noconfirm glab ;;
+    debian)
       GLAB_VERSION=$(curl -s "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
       ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       curl -Lo /tmp/glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/${GLAB_VERSION}/downloads/glab_${GLAB_VERSION#v}_linux_${ARCH}.tar.gz"
@@ -45,9 +49,11 @@ ensure_installed jq jq jq
 # --- yq ---
 if ! has yq; then
   info "Installing yq..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install yq ;;
-    linux)
+    omarchy) omarchy pkg add yq ;;
+    arch) sudo pacman -S --needed --noconfirm yq ;;
+    debian)
       YQ_VERSION=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest" | grep -Po '"tag_name": "\K[^"]*')
       ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       sudo curl -Lo /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}"
@@ -61,9 +67,11 @@ fi
 # --- Just (task runner) ---
 if ! has just; then
   info "Installing just..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install just ;;
-    linux)
+    omarchy) omarchy pkg add just ;;
+    arch) sudo pacman -S --needed --noconfirm just ;;
+    debian)
       curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
       ;;
   esac
@@ -102,7 +110,7 @@ fi
 # fail. Same shape as the Ghostty gate in core.sh -- install and check stay on
 # the same platform, so the repo never points at something it would not install.
 if ! has mole; then
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos)
       info "Installing Mole..."
       brew install mole

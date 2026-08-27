@@ -1,14 +1,19 @@
 # ~/.zshrc — managed by ~/.dotfiles
 # Source: config/zsh/.zshrc
 
-# --- Homebrew (must be first for macOS) ---
-export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+# --- Platform path ---
+if [[ "$(uname -s)" == Darwin ]]; then
+  export BREW_PREFIX="${BREW_PREFIX:-/opt/homebrew}"
+  export PATH="$BREW_PREFIX/bin:/usr/local/bin:$PATH"
+else
+  export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+fi
 
 # --- Oh-My-Zsh ---
 export ZSH="$HOME/.oh-my-zsh"
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 # opencli completion
-fpath=(/Users/memorysaver/.zsh/completions $fpath)
+[[ -d "$HOME/.zsh/completions" ]] && fpath=("$HOME/.zsh/completions" $fpath)
 source "$ZSH/oh-my-zsh.sh"
 
 # --- Editor ---
@@ -52,7 +57,9 @@ alias agyolo='agy --dangerously-skip-permissions'
 alias codexyolo='codex --yolo'
 alias ccyolow='claude --dangerously-skip-permissions --rc -w'
 alias ccyolotw='claude --dangerously-skip-permissions --rc -w --tmux'
-alias obsidian='Obsidian'
+if [[ "$(uname -s)" == Darwin ]]; then
+  alias obsidian='open -a Obsidian'
+fi
 alias ccauto='claude --permission-mode auto --rc'
 alias ccautow='claude --permission-mode auto --rc -w'
 alias ccautotw='claude --permission-mode auto --rc -w --tmux'
@@ -103,12 +110,20 @@ chrome-cdp() {
 
   _chrome_cdp_clear_stale_locks "$dir" || return 1
 
-  # LaunchServices keeps Chrome alive after the shell exits. Direct background
-  # launches from automation shells can be reaped before CDP is usable.
-  open -na "Google Chrome" --args \
-    --remote-debugging-port="$port" \
-    --remote-allow-origins="*" \
-    --user-data-dir="$dir"
+  if [[ "$(uname -s)" == Darwin ]]; then
+    open -na "Google Chrome" --args \
+      --remote-debugging-port="$port" \
+      --remote-allow-origins="*" \
+      --user-data-dir="$dir"
+  else
+    local browser
+    browser="$(command -v chromium || command -v google-chrome || true)"
+    [[ -n "$browser" ]] || { echo "Chromium/Chrome not found" >&2; return 1; }
+    setsid "$browser" \
+      --remote-debugging-port="$port" \
+      --remote-allow-origins="*" \
+      --user-data-dir="$dir" >/dev/null 2>&1 &
+  fi
 
   local i
   for i in {1..20}; do

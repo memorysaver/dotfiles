@@ -42,14 +42,18 @@ check_link "$HOME/.zshrc"                     "$D/config/zsh/.zshrc"
 check_link "$HOME/.tmux.conf"                 "$D/config/tmux/.tmux.conf"
 check_link "$HOME/.gitconfig"                 "$D/config/git/.gitconfig"
 check_link "$HOME/.gitmessage"                "$D/config/git/.gitmessage"
-check_link "$HOME/.config/nvim"               "$D/config/nvim"
-check_link "$HOME/.config/starship.toml"      "$D/config/starship/starship.toml"
-check_link "$HOME/.config/herdr/config.toml"  "$D/config/herdr/config.toml"
-if [ "$DOTFILES_OS" = macos ]; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  soft "Omarchy-managed Neovim, Starship, Lazygit, Ghostty, and Herdr configs preserved"
+else
+  check_link "$HOME/.config/herdr/config.toml" "$D/config/herdr/config.toml"
+  check_link "$HOME/.config/nvim"             "$D/config/nvim"
+  check_link "$HOME/.config/starship.toml"    "$D/config/starship/starship.toml"
+fi
+if [ "$DOTFILES_PLATFORM" = macos ]; then
   check_link "$HOME/Library/Application Support/lazygit/config.yml" "$D/config/lazygit/config.yml"
   # Ghostty is linked on macOS only, matching where core.sh installs it.
   check_link "$HOME/Library/Application Support/com.mitchellh.ghostty/config" "$D/config/ghostty/config"
-else
+elif [ "$DOTFILES_PLATFORM" != omarchy ]; then
   check_link "$HOME/.config/lazygit/config.yml" "$D/config/lazygit/config.yml"
 fi
 
@@ -61,10 +65,15 @@ check_cmd() {
 }
 
 for c in zsh tmux nvim lazygit git direnv starship;   do check_cmd "$c" core;     done
-for c in pyenv uv node npm bun rustc cargo;           do check_cmd "$c" runtimes; done
+if [ "$DOTFILES_PLATFORM" = omarchy ] || [ "$DOTFILES_PLATFORM" = arch ]; then
+  check_cmd mise runtimes
+  for c in uv node npm bun rustc cargo; do check_cmd "$c" runtimes; done
+else
+  for c in pyenv uv node npm bun rustc cargo; do check_cmd "$c" runtimes; done
+fi
 for c in gh jq yq just agent-browser portless;        do check_cmd "$c" tools;    done
 # Mole is macOS-only, matching where tools.sh installs it.
-if [ "$DOTFILES_OS" = macos ]; then check_cmd mole tools; fi
+if [ "$DOTFILES_PLATFORM" = macos ]; then check_cmd mole tools; fi
 for c in herdr claude codex agy grok;                 do check_cmd "$c" agents;   done
 if has pi || has pi-agent; then pass "pi"; else hard "pi not found — run: just agents"; fi
 
@@ -99,7 +108,7 @@ fi
 # --- Homebrew --------------------------------------------------------------
 # A tap whose remote is gone makes `brew update` fail outright, which silently
 # staleness-freezes every brew install the repo does.
-if [ "$DOTFILES_OS" = macos ] && has brew; then
+if [ "$DOTFILES_PLATFORM" = macos ] && has brew; then
   head_ "Homebrew taps"
   for t in $(brew tap 2>/dev/null); do
     repo="$(brew --repo "$t" 2>/dev/null)"
@@ -125,7 +134,7 @@ fi
 # thing worth measuring: run it from the terminal that is misbehaving. Warned
 # rather than failed, since this is a transient runtime state and not a defect
 # in how this repo is installed.
-if [ "$DOTFILES_OS" = macos ]; then
+if [ "$DOTFILES_PLATFORM" = macos ]; then
   head_ "Protected folders (this process tree only)"
   for dir in "$HOME/Documents" "$HOME/Desktop"; do
     [ -d "$dir" ] || continue

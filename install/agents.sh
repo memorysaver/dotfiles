@@ -43,16 +43,16 @@ should_setup() {
 # safe to run mid-session -- the new version applies to panes started afterwards.
 if ! has herdr; then
   info "Installing Herdr..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install herdr ;;
-    linux) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr install failed" ;;
+    omarchy|arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr install failed" ;;
     *)     warn "Unsupported OS for Herdr -- skipping" ;;
   esac
 elif [ "$UPGRADE" = 1 ]; then
   info "Upgrading Herdr..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew upgrade herdr || ok "Herdr already at the latest release" ;;
-    linux) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr upgrade failed" ;;
+    omarchy|arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr upgrade failed" ;;
   esac
 else
   ok "Herdr already installed ($(herdr --version 2>/dev/null))"

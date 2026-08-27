@@ -1,6 +1,7 @@
 # dotfiles
 
-Modular, idempotent, cross-platform dotfiles with `just` orchestration.
+Modular, idempotent dotfiles with explicit macOS, Omarchy, Arch, and
+Debian-family installation paths, orchestrated with `just`.
 
 ## Quick Start
 
@@ -60,8 +61,13 @@ just setup
 ## Just Recipes
 
 ```bash
-just setup             # Full setup: core + runtimes + agents + tools + link + seed-agents
+just setup             # Detect platform; install tools and seed new agent configs
+just setup-macos       # Require macOS, then install the shared tool set
+just setup-omarchy     # Require Omarchy; use Omarchy packages + Mise
+just setup-arch        # Require Arch; use pacman + Mise
+just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just link              # Create all config symlinks (idempotent)
+just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
 just seed-agents       # Copy agent config templates to ~ (never overwrites)
 just doctor            # Health-check this machine (read-only, exits 1 on failure)
@@ -70,10 +76,21 @@ just infra             # Install infrastructure tools (opt-in)
 just --list            # Show all available recipes
 ```
 
+`just setup` detects the platform and dispatches to one of the explicit setup
+recipes. Tool installation and config linking are separate: setup never replaces
+working configuration as a side effect. Run `just link-dry-run` first. Linking
+refuses existing paths by default; `DOTFILES_LINK_MODE=backup just link` moves
+each conflict to a timestamped backup before creating its symlink.
+
+On Omarchy, the repository deliberately preserves Omarchy's Neovim, Starship,
+Lazygit, Ghostty, Hyprland, and Omarchy Shell configuration. Omarchy owns system
+packages and desktop defaults; this repository owns portable CLI configuration.
+
 ## Agent Configs Are Machine-Local
 
-Everything under `config/` is symlinked into `~` — one source of truth across
-machines. Everything under `agents/` is **not**. Claude Code, Codex, Pi and OpenCode
+Portable entries under `config/` are symlinked into `~` — one source of truth
+across machines. Omarchy-managed application configs are intentionally excluded
+on Omarchy. Everything under `agents/` is **not**. Claude Code, Codex, Pi and OpenCode
 each rewrite their own config in place (trusted paths, plugin state, sandbox mode,
 app internals), and their formats change faster than a shared repo can usefully
 track. A symlink turned every one of those writes into an uncommitted diff here.

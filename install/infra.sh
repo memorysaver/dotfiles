@@ -7,9 +7,11 @@ info "Installing infrastructure tools..."
 # --- Terraform ---
 if ! has terraform; then
   info "Installing Terraform..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install terraform ;;
-    linux)
+    omarchy) omarchy pkg aur add terraform ;;
+    arch) sudo pacman -S --needed --noconfirm terraform ;;
+    debian)
       wget -qO- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
       echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
       sudo apt-get update && sudo apt-get install -y terraform

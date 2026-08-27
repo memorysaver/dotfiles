@@ -35,15 +35,7 @@ for plugin in "${zsh_plugins[@]}"; do
 done
 
 # --- Starship prompt ---
-if ! has starship; then
-  info "Installing starship..."
-  case "$DOTFILES_OS" in
-    macos) brew install starship ;;
-    linux) curl -sS https://starship.rs/install.sh | sh -s -- -y ;;
-  esac
-else
-  ok "starship already installed"
-fi
+ensure_installed starship starship starship starship
 
 # --- tmux ---
 ensure_installed tmux tmux tmux
@@ -54,9 +46,11 @@ ensure_installed nvim neovim neovim
 # --- Lazygit ---
 if ! has lazygit; then
   info "Installing lazygit..."
-  case "$DOTFILES_OS" in
+  case "$DOTFILES_PLATFORM" in
     macos) brew install lazygit ;;
-    linux)
+    omarchy) omarchy pkg add lazygit ;;
+    arch) sudo pacman -S --needed --noconfirm lazygit ;;
+    debian)
       LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
       ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_${ARCH}.tar.gz"
@@ -70,6 +64,7 @@ fi
 
 # --- Git ---
 ensure_installed git git git
+ensure_installed git-lfs git-lfs git-lfs git-lfs
 
 # --- Direnv ---
 ensure_installed direnv direnv direnv
@@ -80,7 +75,7 @@ ensure_installed direnv direnv direnv
 # pinned to whatever version was first installed while the app moves ahead on its
 # own -- that gap is expected and `brew upgrade` is a no-op, so don't chase it
 # with a reinstall (which would swap the bundle out from under a running session).
-if [ "$DOTFILES_OS" = "macos" ]; then
+if [ "$DOTFILES_PLATFORM" = "macos" ]; then
   if ! brew list --cask ghostty &>/dev/null; then
     info "Installing Ghostty..."
     brew install --cask ghostty
@@ -92,7 +87,7 @@ else
 fi
 
 # --- JetBrainsMono Nerd Font (macOS; used by terminal, starship, lazygit) ---
-if [ "$DOTFILES_OS" = "macos" ]; then
+if [ "$DOTFILES_PLATFORM" = "macos" ]; then
   if ! brew list --cask font-jetbrains-mono-nerd-font &>/dev/null; then
     info "Installing JetBrainsMono Nerd Font..."
     brew install --cask font-jetbrains-mono-nerd-font
@@ -107,7 +102,7 @@ fi
 # JetBrains Mono has no CJK coverage, so without this the terminal falls back per
 # codepoint across whatever Han fonts macOS ships and the weight visibly jumps
 # between characters. Sarasa keeps CJK at exactly 2x the ASCII advance.
-if [ "$DOTFILES_OS" = "macos" ]; then
+if [ "$DOTFILES_PLATFORM" = "macos" ]; then
   if ! brew list --cask font-sarasa-gothic &>/dev/null; then
     info "Installing Sarasa Gothic (CJK)..."
     brew install --cask font-sarasa-gothic

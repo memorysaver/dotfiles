@@ -8,16 +8,28 @@ REPO="https://github.com/memorysaver/dotfiles.git"
 
 echo "=== Dotfiles Bootstrap ==="
 
-# --- Detect OS ---
+# --- Detect platform ---
 case "$(uname -s)" in
-  Darwin) OS="macos" ;;
-  Linux)  OS="linux" ;;
+  Darwin) PLATFORM="macos" ;;
+  Linux)
+    if command -v omarchy >/dev/null 2>&1 || [ -r /etc/omarchy-release ]; then
+      PLATFORM="omarchy"
+    else
+      distro="$(. /etc/os-release 2>/dev/null; printf '%s' "${ID:-}")"
+      distro_like="$(. /etc/os-release 2>/dev/null; printf '%s' "${ID_LIKE:-}")"
+      case " $distro $distro_like " in
+        *" arch "*) PLATFORM="arch" ;;
+        *" debian "*|*" ubuntu "*) PLATFORM="debian" ;;
+        *) PLATFORM="unknown" ;;
+      esac
+    fi
+    ;;
   *)      echo "Unsupported OS: $(uname -s)"; exit 1 ;;
 esac
-echo "Detected OS: $OS"
+echo "Detected platform: $PLATFORM"
 
 # --- Install foundation ---
-if [ "$OS" = "macos" ]; then
+if [ "$PLATFORM" = "macos" ]; then
   # Xcode CLI tools
   if ! xcode-select -p &>/dev/null; then
     echo "Installing Xcode CLI tools (accept the GUI dialog if it appears)..."
@@ -41,18 +53,27 @@ if [ "$OS" = "macos" ]; then
       exit 1
     fi
   fi
-else
-  # Linux: ensure essentials
-  echo "Updating package lists..."
+elif [ "$PLATFORM" = "omarchy" ]; then
+  omarchy pkg add git curl wget base-devel
+elif [ "$PLATFORM" = "arch" ]; then
+  sudo pacman -S --needed git curl wget base-devel
+elif [ "$PLATFORM" = "debian" ]; then
   sudo apt-get update -y
   sudo apt-get install -y git curl wget build-essential
+else
+  echo "Unsupported Linux distribution" >&2
+  exit 1
 fi
 
 # --- Git ---
 if ! command -v git &>/dev/null; then
   echo "Installing git..."
-  if [ "$OS" = "macos" ]; then
+  if [ "$PLATFORM" = "macos" ]; then
     brew install git
+  elif [ "$PLATFORM" = "omarchy" ]; then
+    omarchy pkg add git
+  elif [ "$PLATFORM" = "arch" ]; then
+    sudo pacman -S --needed git
   else
     sudo apt-get install -y git
   fi
@@ -66,37 +87,22 @@ else
   echo "Dotfiles already at $DOTFILES_DIR"
 fi
 
-# --- Zsh (needed before oh-my-zsh) ---
-if ! command -v zsh &>/dev/null; then
-  echo "Installing zsh..."
-  if [ "$OS" = "macos" ]; then
-    brew install zsh
-  else
-    sudo apt-get install -y zsh
-  fi
-fi
-
-# Set zsh as default shell if it isn't already
-if [ "$(basename "$SHELL")" != "zsh" ]; then
-  echo "Setting zsh as default shell..."
-  chsh -s "$(command -v zsh)" || echo "WARN: chsh failed; run 'chsh -s $(command -v zsh)' manually later."
-fi
-
 # --- Just (task runner) ---
 if ! command -v just &>/dev/null; then
   echo "Installing just..."
-  if [ "$OS" = "macos" ]; then
-    brew install just
-  else
-    curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
-  fi
+  case "$PLATFORM" in
+    macos) brew install just ;;
+    omarchy) omarchy pkg add just ;;
+    arch) sudo pacman -S --needed just ;;
+    debian) curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin ;;
+  esac
 fi
 
 # --- Hand off to just ---
 echo ""
 echo "=== Running just setup ==="
 cd "$DOTFILES_DIR"
-just setup
+just "setup-$PLATFORM"
 
 echo ""
 echo "=== Bootstrap complete! ==="

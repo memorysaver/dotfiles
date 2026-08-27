@@ -5,10 +5,31 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 dotfiles := env("HOME") / ".dotfiles"
 
-# Run full setup (idempotent — safe to re-run)
-setup: core runtimes agents tools link seed-agents
+# Detect the platform and run its explicit setup recipe.
+setup:
+  @platform="$$(bash -c 'source {{dotfiles}}/lib/helpers.sh; printf %s "$$DOTFILES_PLATFORM"')"; just "setup-$$platform"
+
+setup-macos:
+  @bash {{dotfiles}}/install/platform-check.sh macos
+  @just _setup
+
+setup-omarchy:
+  @bash {{dotfiles}}/install/platform-check.sh omarchy
+  @just _setup
+
+setup-arch:
+  @bash {{dotfiles}}/install/platform-check.sh arch
+  @just _setup
+
+setup-debian:
+  @bash {{dotfiles}}/install/platform-check.sh debian
+  @just _setup
+
+# Shared orchestration. Linking is deliberately separate so setup never replaces
+# a working machine's configuration as a side effect of installing tools.
+_setup: core runtimes agents tools seed-agents
   @echo ""
-  @echo "Setup complete! Restart your shell or run: source ~/.zshrc"
+  @echo "Tools installed. Review with 'just link-dry-run', then run 'just link'."
 
 # Install core tools: zsh, oh-my-zsh, tmux, starship, nvim, lazygit, direnv
 core:
@@ -57,19 +78,31 @@ link:
   ensure_symlink "{{dotfiles}}/config/git/.gitconfig" "$HOME/.gitconfig"
   ensure_symlink "{{dotfiles}}/config/git/.gitmessage" "$HOME/.gitmessage"
 
-  # Editors & tools
-  ensure_symlink "{{dotfiles}}/config/nvim" "$HOME/.config/nvim"
-  ensure_symlink "{{dotfiles}}/config/starship/starship.toml" "$HOME/.config/starship.toml"
+  # Editors & tools. Omarchy owns the defaults for these applications; keep
+  # those intact until an explicit overlay/adoption workflow is implemented.
+  if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
+    ensure_symlink "{{dotfiles}}/config/nvim" "$HOME/.config/nvim"
+    ensure_symlink "{{dotfiles}}/config/starship/starship.toml" "$HOME/.config/starship.toml"
+  else
+    warn "Omarchy: preserving ~/.config/nvim and ~/.config/starship.toml"
+  fi
 
-  # Herdr (link the file only -- the dir also holds sockets, logs, session state)
-  ensure_dir "$HOME/.config/herdr"
-  ensure_symlink "{{dotfiles}}/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+  # Herdr's tracked config currently contains macOS IME behavior. Preserve the
+  # machine-local Omarchy config until platform overlays are split further.
+  if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
+    ensure_dir "$HOME/.config/herdr"
+    ensure_symlink "{{dotfiles}}/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+  else
+    warn "Omarchy: preserving ~/.config/herdr/config.toml"
+  fi
 
   # Lazygit (OS-dependent path)
-  if [ "$DOTFILES_OS" = "macos" ]; then
+  if [ "$DOTFILES_PLATFORM" = "macos" ]; then
     ensure_symlink "{{dotfiles}}/config/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
-  else
+  elif [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
     ensure_symlink "{{dotfiles}}/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+  else
+    warn "Omarchy: preserving ~/.config/lazygit/config.yml"
   fi
 
   # Ghostty (macOS only, matching where core.sh installs it -- linking a config
@@ -77,7 +110,7 @@ link:
   # target shape). Link one location only: Ghostty reads both this path and
   # ~/.config/ghostty/config, and font-family appends rather than replaces, so
   # linking both would silently double the fallback chain.
-  if [ "$DOTFILES_OS" = "macos" ]; then
+  if [ "$DOTFILES_PLATFORM" = "macos" ]; then
     ensure_symlink "{{dotfiles}}/config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
   fi
 
@@ -89,6 +122,31 @@ link:
   # project via the skills CLI; see docs/agent-skills-sources.md.
 
   ok "All symlinks created"
+
+# Show exactly which managed targets already exist; never writes anything.
+link-dry-run:
+  #!/usr/bin/env bash
+  source {{dotfiles}}/lib/helpers.sh
+  targets=(
+    "$HOME/.zshenv"
+    "$HOME/.zshrc"
+    "$HOME/.tmux.conf"
+    "$HOME/.gitconfig"
+    "$HOME/.gitmessage"
+  )
+  if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
+    targets+=("$HOME/.config/herdr/config.toml" "$HOME/.config/nvim" "$HOME/.config/starship.toml" "$HOME/.config/lazygit/config.yml")
+  fi
+  printf 'Platform: %s\n' "$DOTFILES_PLATFORM"
+  for target in "${targets[@]}"; do
+    if [ -L "$target" ]; then
+      printf 'LINK     %s -> %s\n' "$target" "$(readlink "$target")"
+    elif [ -e "$target" ]; then
+      printf 'PRESERVE %s (link will refuse without DOTFILES_LINK_MODE=backup)\n' "$target"
+    else
+      printf 'CREATE   %s\n' "$target"
+    fi
+  done
 
 # Copy agent config templates to a fresh machine (never overwrites an existing file)
 seed-agents:
@@ -107,15 +165,18 @@ seed-agents:
     fi
   }
 
-  # Claude Code
-  seed "{{dotfiles}}/agents/claude/settings.json"  "$HOME/.claude/settings.json"
-  seed "{{dotfiles}}/agents/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
-  seed "{{dotfiles}}/agents/claude/output-styles"  "$HOME/.claude/output-styles"
-  [ -f "$HOME/.claude/statusline.sh" ] && chmod +x "$HOME/.claude/statusline.sh"
-
-  # Codex CLI
-  seed "{{dotfiles}}/agents/codex/config.toml" "$HOME/.codex/config.toml"
-  seed "{{dotfiles}}/agents/codex/AGENTS.md"   "$HOME/.codex/AGENTS.md"
+  # The current Claude/Codex templates contain macOS paths. Do not seed those
+  # onto Linux; each CLI will create a clean machine-local config on first run.
+  if [ "$DOTFILES_PLATFORM" = "macos" ]; then
+    seed "{{dotfiles}}/agents/claude/settings.json"  "$HOME/.claude/settings.json"
+    seed "{{dotfiles}}/agents/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
+    seed "{{dotfiles}}/agents/claude/output-styles"  "$HOME/.claude/output-styles"
+    [ -f "$HOME/.claude/statusline.sh" ] && chmod +x "$HOME/.claude/statusline.sh"
+    seed "{{dotfiles}}/agents/codex/config.toml" "$HOME/.codex/config.toml"
+    seed "{{dotfiles}}/agents/codex/AGENTS.md"   "$HOME/.codex/AGENTS.md"
+  else
+    warn "Skipping macOS-specific Claude and Codex templates on $DOTFILES_PLATFORM"
+  fi
 
   # Pi
   seed "{{dotfiles}}/agents/pi/settings.json" "$HOME/.pi/agent/settings.json"

@@ -4,6 +4,23 @@ source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing language runtimes..."
 
+# Omarchy ships Mise and uses it as the single runtime manager. Keep Arch-based
+# machines on the same model instead of layering pyenv, nvm, and rustup on top.
+if [ "$DOTFILES_PLATFORM" = "omarchy" ] || [ "$DOTFILES_PLATFORM" = "arch" ]; then
+  if ! has mise; then
+    if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
+      omarchy pkg add mise-bin
+    else
+      sudo pacman -S --needed --noconfirm mise
+    fi
+  fi
+
+  info "Installing runtimes with Mise..."
+  mise use --global node@lts python@latest rust@stable bun@latest uv@latest
+  ok "Language runtimes managed by Mise"
+  exit 0
+fi
+
 # --- Pyenv ---
 if ! has pyenv; then
   info "Installing pyenv..."
