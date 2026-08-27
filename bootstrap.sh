@@ -106,4 +106,8 @@ just "setup-$PLATFORM"
 
 echo ""
 echo "=== Bootstrap complete! ==="
-echo "Restart your shell or run: exec zsh"
+if [ "$PLATFORM" = omarchy ]; then
+  echo "Open a new terminal or run: exec bash"
+else
+  echo "Restart your shell or run: exec zsh"
+fi

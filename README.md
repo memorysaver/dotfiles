@@ -64,6 +64,7 @@ just setup
 just setup             # Detect platform; install tools and seed new agent configs
 just setup-macos       # Require macOS, then install the shared tool set
 just setup-omarchy     # Require Omarchy; use Omarchy packages + Mise
+just omarchy-apps      # Install the personal Omarchy desktop app set
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just link              # Create all config symlinks (idempotent)
@@ -82,9 +83,10 @@ working configuration as a side effect. Run `just link-dry-run` first. Linking
 refuses existing paths by default; `DOTFILES_LINK_MODE=backup just link` moves
 each conflict to a timestamped backup before creating its symlink.
 
-`just setup-omarchy` asks for sudo authentication once at the beginning and
-subsequent package operations reuse that authorization. Run it from a terminal
-so the password prompt is visible.
+`just setup-omarchy` asks for sudo authentication once at the beginning,
+installs tools and applications, and activates the safe Bash overlay. Subsequent
+package operations reuse that authorization. Run it from a terminal so the
+password prompt is visible.
 
 On Omarchy, the repository installs and verifies command-line tools but preserves
 Omarchy's application configuration. Git, tmux, Starship, Lazygit, Neovim,
@@ -129,6 +131,37 @@ Desktop applications already supplied by Omarchy remain Omarchy's
 responsibility. Platform-specific additions belong in the Omarchy installation
 path, never in macOS configuration-linking logic. Run `just doctor` to report
 missing commands and which configuration is intentionally Omarchy-managed.
+
+## Omarchy workstation recovery
+
+On a fresh Omarchy laptop, run the bootstrap command from a terminal:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/memorysaver/dotfiles/main/bootstrap.sh)"
+```
+
+The Omarchy path performs the following recovery steps:
+
+1. Installs the shared CLI tools, development runtimes, and coding agents.
+2. Ensures the personal desktop application set is installed.
+3. Adds the portable aliases, paths, and functions to Omarchy's existing Bash
+   setup without replacing its defaults.
+4. Leaves every application configuration under Omarchy ownership.
+
+The explicit application set is:
+
+| Application | Installation route | Configuration ownership |
+| --- | --- | --- |
+| 1Password + `op` CLI | `omarchy install service 1password` | Machine-local; sign in interactively |
+| Chromium | `omarchy pkg add chromium` | Omarchy |
+| Obsidian | `omarchy pkg add obsidian` | Machine-local vault and settings |
+| Voxtype | `omarchy pkg add voxtype-bin` | Machine-local model and settings |
+
+Chromium and Obsidian are normally Omarchy preinstalls, but they are listed
+explicitly so a restored workstation does not depend on a particular Omarchy
+release's default app selection. Installation is idempotent; already-installed
+packages are left in place. Authentication, vault data, and downloaded Voxtype
+models are intentionally not stored in this repository.
 
 ## Agent Configs Are Machine-Local
 

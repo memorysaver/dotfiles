@@ -18,6 +18,8 @@ setup-omarchy:
     @echo "Omarchy package installation needs sudo; authenticate once to begin."
     @sudo -v
     @just _setup
+    @just omarchy-apps
+    @just link
 
 setup-arch:
     @bash {{ dotfiles }}/install/platform-check.sh arch
@@ -56,6 +58,10 @@ validate-skills:
 # Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless, mole (macOS)
 tools:
     @bash {{ dotfiles }}/install/tools.sh
+
+# Install the desktop apps expected on the personal Omarchy workstation
+omarchy-apps:
+    @bash {{ dotfiles }}/install/omarchy-apps.sh
 
 # Install infrastructure tools: Terraform, Pulumi, SST (opt-in)
 infra:

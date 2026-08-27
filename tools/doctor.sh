@@ -85,6 +85,13 @@ if [ "$DOTFILES_PLATFORM" = macos ]; then check_cmd mole tools; fi
 for c in herdr claude codex agy grok;                 do check_cmd "$c" agents;   done
 if has pi || has pi-agent; then pass "pi"; else hard "pi not found — run: just agents"; fi
 
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  head_ "Omarchy applications"
+  for c in 1password op chromium obsidian voxtype; do
+    check_cmd "$c" omarchy-apps
+  done
+fi
+
 # --- Global agent skills ---------------------------------------------------
 # The only skills installed globally; everything else is per project. See
 # docs/agent-skills-sources.md. ~/.agents/skills holds the canonical copy.

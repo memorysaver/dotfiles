@@ -14,4 +14,9 @@ for platform in macos omarchy arch debian; do
   }
 done
 
+rg -F '@just omarchy-apps' "$repo_root/justfile" >/dev/null
+rg -F '@just link' "$repo_root/justfile" >/dev/null
+rg -F 'omarchy install service 1password' "$repo_root/install/omarchy-apps.sh" >/dev/null
+rg -F 'omarchy pkg add chromium obsidian voxtype-bin' "$repo_root/install/omarchy-apps.sh" >/dev/null
+
 echo "platform smoke test passed (host: $actual)"
