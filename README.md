@@ -82,11 +82,11 @@ working configuration as a side effect. Run `just link-dry-run` first. Linking
 refuses existing paths by default; `DOTFILES_LINK_MODE=backup just link` moves
 each conflict to a timestamped backup before creating its symlink.
 
-On Omarchy, the repository preserves Omarchy's Bash foundation, Neovim, Foot,
-Ghostty, Herdr, Hyprland, and Omarchy Shell configuration. It adds a small Bash
-overlay, tracks an Omarchy-specific Starship profile, and shares tmux and Lazygit
-with macOS. Omarchy owns system packages and desktop defaults; this repository
-owns portable CLI configuration.
+On Omarchy, the repository installs and verifies command-line tools but preserves
+Omarchy's application configuration. Git, tmux, Starship, Lazygit, Neovim,
+Herdr, terminals, Hyprland, and Omarchy Shell remain machine-local and follow
+Omarchy defaults. The only linked integration is a small, optional Bash overlay
+for personal aliases, paths, and functions.
 
 ## Terminal configuration by platform
 
@@ -99,17 +99,32 @@ own Mise, Starship, Zoxide, FZF, completion, editor, and browser setup.
 config/shell/common/                 # Bash/Zsh-compatible personal additions
 config/shell/omarchy/dotfiles.bash   # Additive Omarchy Bash adapter
 config/zsh/                          # macOS Zsh + Oh My Zsh entrypoints
-config/starship/macos.toml           # Full macOS powerline prompt
-config/starship/omarchy.toml         # Compact Omarchy prompt
+config/starship/macos.toml           # macOS-only powerline prompt
 config/terminal/macos/ghostty.conf   # macOS Ghostty and CJK font chain
-config/terminal/omarchy/README.md    # Why Omarchy terminal files stay host-owned
-config/lazygit/config.yml            # Shared
-config/tmux/.tmux.conf               # Shared; pbcopy/wl-copy selected at runtime
+config/terminal/omarchy/README.md    # Omarchy configuration ownership policy
+config/lazygit/config.yml            # macOS and non-Omarchy Linux only
+config/tmux/.tmux.conf               # macOS and non-Omarchy Linux only
 ```
 
-Foot and Ghostty on Omarchy retain their dynamic theme includes under
-`~/.local/state/omarchy/current/theme/`; the dotfiles repository never replaces
-those terminal files.
+On Omarchy, `just link` does not replace any application configuration. This
+keeps dynamic themes, keybindings, and future Omarchy migrations intact.
+
+## Omarchy tool ownership
+
+`just setup-omarchy` ensures the workstation tools are installed; it does not
+adopt their configuration. The main groups are:
+
+| Group | Installed or verified |
+| --- | --- |
+| Terminal/core | tmux, Starship, Neovim, Lazygit, Git LFS, direnv |
+| Development runtimes | Mise, uv, Node.js/npm, Bun, Rust |
+| CLI utilities | GitHub CLI, GitLab CLI, jq, yq, just, agent-browser, portless |
+| Coding agents | Herdr, Claude Code, Codex, OpenCode, Antigravity, Grok, Pi |
+
+Desktop applications already supplied by Omarchy remain Omarchy's
+responsibility. Platform-specific additions belong in the Omarchy installation
+path, never in macOS configuration-linking logic. Run `just doctor` to report
+missing commands and which configuration is intentionally Omarchy-managed.
 
 ## Agent Configs Are Machine-Local
 
@@ -203,14 +218,14 @@ docker stop dev && docker rm dev
 
 The build itself runs `verify.sh`, which checks the Debian/macOS-style config
 links, seeded agent configs, global skills, and installed commands. Platform
-smoke tests separately cover the Omarchy shell overlay and Starship profile.
+smoke tests separately cover the Omarchy shell overlay and ownership boundary.
 
 ## Key Tools
 
 - **Shell**: Zsh + Oh My Zsh on macOS; Omarchy Bash with a personal overlay
 - **Editor**: Neovim (LazyVim)
-- **Git**: lazygit TUI + gh/glab CLIs
-- **Terminal**: tmux with Tokyo Night theme; Herdr as the agent multiplexer
+- **Git**: Lazygit TUI + gh/glab CLIs; configuration follows the host platform
+- **Terminal**: macOS uses the tracked tmux theme; Omarchy keeps its defaults
 - **AI Agents**: Claude Code, Codex, OpenCode, Antigravity CLI (`agy`), Grok Build (`grok`), Pi
 - **Shared Skills**: authored once under `agents/skills/`, installed per project via the skills CLI
 - **Dev Envs**: `ccdev`, `opendev`, `codexdev` — tmux sessions with lazygit + AI agent

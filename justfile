@@ -79,40 +79,24 @@ link:
       ensure_symlink "{{ dotfiles }}/config/zsh/.zshenv" "$HOME/.zshenv"
       ensure_symlink "{{ dotfiles }}/config/zsh/.zshrc" "$HOME/.zshrc"
     fi
-    ensure_symlink "{{ dotfiles }}/config/tmux/.tmux.conf" "$HOME/.tmux.conf"
-
-    # Git
-    ensure_symlink "{{ dotfiles }}/config/git/.gitconfig" "$HOME/.gitconfig"
-    ensure_symlink "{{ dotfiles }}/config/git/.gitmessage" "$HOME/.gitmessage"
-
-    # Editors. Omarchy keeps its Neovim defaults.
+    # Omarchy owns application configuration. The dotfiles only install/check
+    # tools and add the optional shell fragment above.
     if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
+      ensure_symlink "{{ dotfiles }}/config/tmux/.tmux.conf" "$HOME/.tmux.conf"
+      ensure_symlink "{{ dotfiles }}/config/git/.gitconfig" "$HOME/.gitconfig"
+      ensure_symlink "{{ dotfiles }}/config/git/.gitmessage" "$HOME/.gitmessage"
       ensure_symlink "{{ dotfiles }}/config/nvim" "$HOME/.config/nvim"
-    else
-      warn "Omarchy: preserving ~/.config/nvim"
-    fi
-
-    # Starship has complete platform profiles rather than a lossy merged file.
-    if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
-      starship_profile=omarchy
-    else
-      starship_profile=macos
-    fi
-    ensure_symlink "{{ dotfiles }}/config/starship/${starship_profile}.toml" "$HOME/.config/starship.toml"
-
-    # Herdr's tracked config currently contains macOS IME behavior. Preserve the
-    # machine-local Omarchy config until platform overlays are split further.
-    if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
       ensure_dir "$HOME/.config/herdr"
       ensure_symlink "{{ dotfiles }}/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+      ensure_symlink "{{ dotfiles }}/config/starship/macos.toml" "$HOME/.config/starship.toml"
     else
-      warn "Omarchy: preserving ~/.config/herdr/config.toml"
+      warn "Omarchy: preserving Git, tmux, Starship, Lazygit, Neovim, Herdr, and terminal configs"
     fi
 
-    # Lazygit (OS-dependent path)
+    # Lazygit is managed by Omarchy on that platform.
     if [ "$DOTFILES_PLATFORM" = "macos" ]; then
       ensure_symlink "{{ dotfiles }}/config/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
-    else
+    elif [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
       ensure_symlink "{{ dotfiles }}/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
     fi
 
@@ -138,13 +122,7 @@ link:
 link-dry-run:
     #!/usr/bin/env bash
     source {{ dotfiles }}/lib/helpers.sh
-    targets=(
-      "$HOME/.tmux.conf"
-      "$HOME/.gitconfig"
-      "$HOME/.gitmessage"
-      "$HOME/.config/starship.toml"
-      "$HOME/.config/lazygit/config.yml"
-    )
+    targets=()
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       targets+=("$HOME/.config/dotfiles/shell/omarchy.bash")
       source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
@@ -154,7 +132,17 @@ link-dry-run:
         printf 'APPEND   one source line to %s\n' "$HOME/.bashrc"
       fi
     else
-      targets+=("$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.config/herdr/config.toml" "$HOME/.config/nvim")
+      targets+=(
+        "$HOME/.zshenv"
+        "$HOME/.zshrc"
+        "$HOME/.tmux.conf"
+        "$HOME/.gitconfig"
+        "$HOME/.gitmessage"
+        "$HOME/.config/starship.toml"
+        "$HOME/.config/lazygit/config.yml"
+        "$HOME/.config/herdr/config.toml"
+        "$HOME/.config/nvim"
+      )
     fi
     printf 'Platform: %s\n' "$DOTFILES_PLATFORM"
     for target in "${targets[@]}"; do
@@ -210,21 +198,24 @@ seed-agents:
 unlink:
     #!/usr/bin/env bash
     source {{ dotfiles }}/lib/helpers.sh
-    links=(
-      "$HOME/.zshenv"
-      "$HOME/.zshrc"
-      "$HOME/.tmux.conf"
-      "$HOME/.gitconfig"
-      "$HOME/.gitmessage"
-      "$HOME/.config/nvim"
-      "$HOME/.config/starship.toml"
-      "$HOME/.config/herdr/config.toml"
-    )
+    links=()
+    if [ "$DOTFILES_PLATFORM" != omarchy ]; then
+      links+=(
+        "$HOME/.zshenv"
+        "$HOME/.zshrc"
+        "$HOME/.tmux.conf"
+        "$HOME/.gitconfig"
+        "$HOME/.gitmessage"
+        "$HOME/.config/nvim"
+        "$HOME/.config/starship.toml"
+        "$HOME/.config/herdr/config.toml"
+      )
+    fi
     # Lazygit (OS-dependent path) and Ghostty (macOS only, as linked)
     if [ "$(uname)" = "Darwin" ]; then
       links+=("$HOME/Library/Application Support/lazygit/config.yml")
       links+=("$HOME/Library/Application Support/com.mitchellh.ghostty/config")
-    else
+    elif [ "$DOTFILES_PLATFORM" != omarchy ]; then
       links+=("$HOME/.config/lazygit/config.yml")
     fi
     # Agent configs and skills are not symlinked, so there is nothing to unlink for

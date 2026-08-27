@@ -33,14 +33,16 @@ HOME="$test_home" DOTFILES_PLATFORM=omarchy bash --noprofile --norc -c '
   ! grep -Fqx "$line" "$config"
 '
 
-for profile in macos omarchy; do
-  HOME="$test_home" XDG_CACHE_HOME="$test_home/.cache" \
-    TERM=xterm-256color STARSHIP_CONFIG="$repo_root/config/starship/$profile.toml" \
-    starship prompt >/dev/null
-done
+HOME="$test_home" XDG_CACHE_HOME="$test_home/.cache" \
+  TERM=xterm-256color STARSHIP_CONFIG="$repo_root/config/starship/macos.toml" \
+  starship prompt >/dev/null
 
-if rg -n 'ensure_symlink.*config/(foot|ghostty)|ensure_symlink.*\.config/(foot|ghostty)' "$repo_root/justfile" >/dev/null; then
-  echo "Omarchy terminal config must remain host-owned" >&2
+rg -F 'warn "Omarchy: preserving Git, tmux, Starship, Lazygit, Neovim, Herdr, and terminal configs"' \
+  "$repo_root/justfile" >/dev/null
+
+if rg -n 'config/starship/omarchy|starship_profile=omarchy' \
+  "$repo_root/justfile" "$repo_root/README.md" "$repo_root/tools" >/dev/null; then
+  echo "Omarchy Starship config must remain host-owned" >&2
   exit 1
 fi
 

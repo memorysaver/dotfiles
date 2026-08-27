@@ -1,7 +1,8 @@
-# Omarchy terminal ownership
+# Omarchy configuration ownership
 
-Omarchy owns the active terminal configuration. This dotfiles repository does
-not symlink over `~/.config/foot/foot.ini` or `~/.config/ghostty/config`.
+Omarchy owns its active application configuration. This dotfiles repository
+installs and checks tools, but does not symlink over Git, tmux, Starship,
+Lazygit, Neovim, Herdr, Hyprland, Omarchy Shell, Foot, or Ghostty configuration.
 
 The stock files intentionally include dynamic theme output from:
 
@@ -10,6 +11,6 @@ The stock files intentionally include dynamic theme output from:
 ~/.local/state/omarchy/current/theme/ghostty.conf
 ```
 
-Personal terminal changes should be applied as small Omarchy-safe overlays and
-must retain those includes. The current default terminal is selected through
-Omarchy, not through this repository.
+Changes to those applications should be made through Omarchy or in their local
+user configuration. The only repository-managed Omarchy integration is an
+optional additive Bash fragment for personal aliases, paths, and functions.

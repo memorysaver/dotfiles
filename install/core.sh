@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Install the platform shell plus tmux, starship, nvim, lazygit, git, direnv,
-# and macOS-only Ghostty/font dependencies.
+# Install core command-line tools. Configuration ownership is decided by
+# `just link`; on Omarchy these applications retain their native defaults.
 source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing core tools..."

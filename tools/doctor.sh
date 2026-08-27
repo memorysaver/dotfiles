@@ -37,9 +37,6 @@ check_link() {
   fi
 }
 
-check_link "$HOME/.tmux.conf"                 "$D/config/tmux/.tmux.conf"
-check_link "$HOME/.gitconfig"                 "$D/config/git/.gitconfig"
-check_link "$HOME/.gitmessage"                "$D/config/git/.gitmessage"
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   check_link "$HOME/.config/dotfiles/shell/omarchy.bash" "$D/config/shell/omarchy/dotfiles.bash"
   source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
@@ -48,10 +45,11 @@ if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   else
     hard "~/.bashrc does not source the Omarchy dotfiles overlay — run: just link"
   fi
-  check_link "$HOME/.config/starship.toml" "$D/config/starship/omarchy.toml"
-  check_link "$HOME/.config/lazygit/config.yml" "$D/config/lazygit/config.yml"
-  soft "Omarchy-managed Neovim, Foot, Ghostty, and Herdr configs preserved"
+  pass "Omarchy owns Git, tmux, Starship, Lazygit, Neovim, Herdr, terminal, and desktop configs"
 else
+  check_link "$HOME/.tmux.conf"               "$D/config/tmux/.tmux.conf"
+  check_link "$HOME/.gitconfig"               "$D/config/git/.gitconfig"
+  check_link "$HOME/.gitmessage"              "$D/config/git/.gitmessage"
   check_link "$HOME/.zshenv"                  "$D/config/zsh/.zshenv"
   check_link "$HOME/.zshrc"                   "$D/config/zsh/.zshrc"
   check_link "$HOME/.config/herdr/config.toml" "$D/config/herdr/config.toml"
