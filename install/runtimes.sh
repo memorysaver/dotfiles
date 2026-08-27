@@ -16,7 +16,7 @@ if [ "$DOTFILES_PLATFORM" = "omarchy" ] || [ "$DOTFILES_PLATFORM" = "arch" ]; th
   fi
 
   info "Installing runtimes with Mise..."
-  mise use --global node@lts python@latest rust@stable bun@latest uv@latest
+  retry 3 5 mise use --global node@lts python@latest rust@stable bun@latest uv@latest
   ok "Language runtimes managed by Mise"
   exit 0
 fi
