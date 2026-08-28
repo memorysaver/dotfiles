@@ -9,7 +9,7 @@ if ! has terraform; then
   info "Installing Terraform..."
   case "$DOTFILES_PLATFORM" in
     macos) brew install terraform ;;
-    omarchy) omarchy pkg aur add terraform ;;
+    omarchy) omarchy pkg add terraform ;;
     arch) sudo pacman -S --needed --noconfirm terraform ;;
     debian)
       wget -qO- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
@@ -24,7 +24,10 @@ fi
 # --- Pulumi ---
 if ! has pulumi; then
   info "Installing Pulumi..."
-  curl -fsSL https://get.pulumi.com | sh
+  case "$DOTFILES_PLATFORM" in
+    omarchy) omarchy pkg add pulumi ;;
+    *) curl -fsSL https://get.pulumi.com | sh ;;
+  esac
 else
   ok "Pulumi already installed"
 fi

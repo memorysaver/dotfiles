@@ -94,7 +94,7 @@ if has pi || has pi-agent; then pass "pi"; else hard "pi not found — run: just
 
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   head_ "Omarchy applications"
-  for c in 1password op btop chromium moonlight obsidian voxtype; do
+  for c in 1password op tailscale btop chromium moonlight obsidian voxtype; do
     check_cmd "$c" omarchy-apps
   done
   moonlight_config="${XDG_CONFIG_HOME:-$HOME/.config}/Moonlight Game Streaming Project/Moonlight.conf"

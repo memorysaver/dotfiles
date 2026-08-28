@@ -16,7 +16,13 @@ if [ "$DOTFILES_PLATFORM" = "omarchy" ] || [ "$DOTFILES_PLATFORM" = "arch" ]; th
   fi
 
   info "Installing runtimes with Mise..."
-  retry 3 5 mise use --global node@lts python@latest rust@stable bun@latest uv@latest
+  if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
+    # Omarchy provisions current Node, not the LTS channel. Preserve that
+    # default while adding the personal cross-platform runtime set.
+    retry 3 5 mise use --global node@latest python@latest rust@stable bun@latest uv@latest
+  else
+    retry 3 5 mise use --global node@lts python@latest rust@stable bun@latest uv@latest
+  fi
   ok "Language runtimes managed by Mise"
   exit 0
 fi

@@ -165,9 +165,41 @@ adopt their configuration. The main groups are:
 | Group | Installed or verified |
 | --- | --- |
 | Terminal/core | tmux, Starship, Neovim, Lazygit, Git LFS, direnv |
-| Development runtimes | Mise, uv, Node.js/npm, Bun, Rust |
+| Development runtimes | Mise; Omarchy's `node@latest`; personal Python, uv, Bun, and Rust additions |
 | CLI utilities | GitHub CLI, GitLab CLI, jq, yq, just, agent-browser, portless |
 | Coding agents | Herdr, Claude Code, Codex, OpenCode, Antigravity, Grok, Pi |
+
+Omarchy-supported command-line agents are installed with
+`omarchy-mise-install`, matching Omarchy's own installer design. This creates
+small commands in `~/.local/bin` that resolve and execute the tool through Mise:
+
+| Mise-managed on Omarchy | Installation spec |
+| --- | --- |
+| GitHub CLI | `gh` |
+| Claude Code | `claude` |
+| Codex CLI | `codex` |
+| OpenCode | `opencode` |
+| Grok | `npm:@xai-official/grok` |
+| Pi | `pi` |
+| agent-browser, portless | Personal npm tools, also wrapped through Mise |
+
+Herdr is an Omarchy system package rather than a Mise tool. Omarchy installs it
+as `/usr/bin/herdr`, seeds `~/.config/herdr/config.toml`, and upgrades it through
+`omarchy update`; `omarchy refresh herdr` explicitly restores Omarchy's shipped
+configuration. Antigravity (`agy`) is the remaining personal addition not
+supplied by Omarchy, so it retains its official installation route. macOS also
+retains the existing Homebrew/vendor routes; this ownership rule is specific to
+Omarchy.
+
+Other declared Omarchy tools follow their native owner as well:
+
+| Owner | Dotfiles selections |
+| --- | --- |
+| Omarchy base packages | Chromium, Obsidian, Git, jq, Lazygit, Neovim, Starship, tmux, Herdr |
+| Arch packages through `omarchy pkg add` | Git LFS, direnv, glab, yq, just, Terraform, Pulumi |
+| Omarchy service/setup commands | 1Password and Voxtype |
+| Omarchy Mise wrappers | gh and the supported coding agents listed above |
+| Personal additions | `agy`, SST, agent-browser, portless, and global agent skills |
 
 Desktop applications already supplied by Omarchy remain Omarchy's
 responsibility. Platform-specific additions belong in the Omarchy installation
@@ -199,11 +231,12 @@ The explicit application set is:
 | Application | Installation route | Configuration ownership |
 | --- | --- | --- |
 | 1Password + `op` CLI | `omarchy install service 1password` | Machine-local; sign in interactively |
+| Tailscale | `omarchy install service tailscale` | Omarchy service/bar integration; authenticate interactively |
 | btop | `omarchy pkg add btop` | Omarchy |
 | Chromium | `omarchy pkg add chromium` | Omarchy |
 | Moonlight | `omarchy pkg add moonlight-qt` | Module in this repo; hosts and pairing remain local |
 | Obsidian | `omarchy pkg add obsidian` | Machine-local vault and settings |
-| Voxtype | `omarchy pkg add voxtype-bin` | Machine-local model and settings |
+| Voxtype | `omarchy voxtype install` | Omarchy setup; machine-local model and settings |
 
 Chromium and Obsidian are normally Omarchy preinstalls, but they are listed
 explicitly so a restored workstation does not depend on a particular Omarchy

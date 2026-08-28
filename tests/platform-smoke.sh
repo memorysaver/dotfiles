@@ -19,13 +19,24 @@ rg -F '@just omarchy-moonlight' "$repo_root/justfile" >/dev/null
 rg -F '@just link' "$repo_root/justfile" >/dev/null
 rg -F '@just doctor' "$repo_root/justfile" >/dev/null
 rg -F 'omarchy install service 1password' "$repo_root/install/omarchy-apps.sh" >/dev/null
-rg -F 'omarchy pkg add btop chromium moonlight-qt obsidian voxtype-bin' "$repo_root/install/omarchy-apps.sh" >/dev/null
+rg -F 'omarchy install service tailscale' "$repo_root/install/omarchy-apps.sh" >/dev/null
+rg -F 'omarchy pkg add btop chromium moonlight-qt obsidian' "$repo_root/install/omarchy-apps.sh" >/dev/null
+rg -F 'omarchy voxtype install' "$repo_root/install/omarchy-apps.sh" >/dev/null
 rg -F 'config/hypr/remote_desktop.lua' "$repo_root/justfile" >/dev/null
 rg -F 'no_shortcuts_inhibit = true' "$repo_root/config/hypr/remote_desktop.lua" >/dev/null
 rg -F 'capturesyskeys=2' "$repo_root/install/omarchy-moonlight.sh" >/dev/null
-rg -F 'moonlight obsidian voxtype' "$repo_root/tools/doctor.sh" >/dev/null
+rg -F 'tailscale btop chromium moonlight obsidian voxtype' "$repo_root/tools/doctor.sh" >/dev/null
 rg -F 'Moonlight remote-desktop mode' "$repo_root/tools/doctor.sh" >/dev/null
 rg -F 'npx --yes skills@1.5.20 add' "$repo_root/install/agents.sh" >/dev/null
-rg -F 'retry 3 5 mise use --global' "$repo_root/install/runtimes.sh" >/dev/null
+rg -F 'mise use --global node@latest' "$repo_root/install/runtimes.sh" >/dev/null
+rg -F 'omarchy-mise-install claude' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'omarchy-mise-install codex' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'omarchy-mise-install opencode' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'omarchy-mise-install npm:@xai-official/grok grok' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'omarchy-mise-install pi' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'omarchy-mise-install gh' "$repo_root/install/tools.sh" >/dev/null
+rg -F 'omarchy) omarchy pkg add herdr' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'omarchy) omarchy pkg add terraform' "$repo_root/install/infra.sh" >/dev/null
+rg -F 'omarchy) omarchy pkg add pulumi' "$repo_root/install/infra.sh" >/dev/null
 
 echo "platform smoke test passed (host: $actual)"
