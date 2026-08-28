@@ -155,6 +155,7 @@ The explicit application set is:
 | Application | Installation route | Configuration ownership |
 | --- | --- | --- |
 | 1Password + `op` CLI | `omarchy install service 1password` | Machine-local; sign in interactively |
+| btop | `omarchy pkg add btop` | Omarchy |
 | Chromium | `omarchy pkg add chromium` | Omarchy |
 | Obsidian | `omarchy pkg add obsidian` | Machine-local vault and settings |
 | Voxtype | `omarchy pkg add voxtype-bin` | Machine-local model and settings |

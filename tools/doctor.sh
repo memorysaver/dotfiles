@@ -87,7 +87,7 @@ if has pi || has pi-agent; then pass "pi"; else hard "pi not found — run: just
 
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   head_ "Omarchy applications"
-  for c in 1password op chromium obsidian voxtype; do
+  for c in 1password op btop chromium obsidian voxtype; do
     check_cmd "$c" omarchy-apps
   done
 fi

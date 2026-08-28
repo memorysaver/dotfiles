@@ -18,7 +18,7 @@ rg -F '@just omarchy-apps' "$repo_root/justfile" >/dev/null
 rg -F '@just link' "$repo_root/justfile" >/dev/null
 rg -F '@just doctor' "$repo_root/justfile" >/dev/null
 rg -F 'omarchy install service 1password' "$repo_root/install/omarchy-apps.sh" >/dev/null
-rg -F 'omarchy pkg add chromium obsidian voxtype-bin' "$repo_root/install/omarchy-apps.sh" >/dev/null
+rg -F 'omarchy pkg add btop chromium obsidian voxtype-bin' "$repo_root/install/omarchy-apps.sh" >/dev/null
 rg -F 'npx --yes skills@1.5.20 add' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'retry 3 5 mise use --global' "$repo_root/install/runtimes.sh" >/dev/null
 
