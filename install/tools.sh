@@ -5,11 +5,15 @@ source "$(dirname "$0")/../lib/helpers.sh"
 info "Installing CLI tools..."
 
 # --- GitHub CLI ---
-if ! has_working gh; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  # Always refresh the wrapper: a system gh or an older standalone binary must
+  # not prevent a restored Omarchy machine from adopting Mise ownership.
+  omarchy-mise-install gh
+  ok "gh managed by Omarchy + Mise"
+elif ! has_working gh; then
   info "Installing GitHub CLI..."
   case "$DOTFILES_PLATFORM" in
     macos) brew install gh ;;
-    omarchy) omarchy pkg add github-cli ;;
     arch) sudo pacman -S --needed --noconfirm github-cli ;;
     debian)
       (type -p wget >/dev/null || sudo apt-get install -y wget) \
@@ -80,7 +84,10 @@ else
 fi
 
 # --- Agent Browser (Vercel) ---
-if ! has agent-browser; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  omarchy-mise-install npm:agent-browser agent-browser
+  ok "agent-browser managed by Omarchy + Mise"
+elif ! has agent-browser; then
   info "Installing agent-browser..."
   if has npm; then
     npm install -g agent-browser || warn "agent-browser install failed"
@@ -92,7 +99,10 @@ else
 fi
 
 # --- Portless (Vercel) ---
-if ! has portless; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  omarchy-mise-install npm:portless portless
+  ok "portless managed by Omarchy + Mise"
+elif ! has portless; then
   info "Installing portless..."
   if has npm; then
     npm install -g portless || warn "portless install failed"

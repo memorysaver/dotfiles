@@ -61,10 +61,16 @@ fi
 tool-update() {
   local failed=0
   echo "Updating AI tools..."
-  curl -fsSL https://claude.ai/install.sh | bash || { echo "Claude Code failed"; failed=$((failed+1)); }
-  curl -fsSL https://opencode.ai/install | bash || { echo "OpenCode failed"; failed=$((failed+1)); }
-  CODEX_NON_INTERACTIVE=1 curl -fsSL https://chatgpt.com/codex/install.sh | sh \
-    || { echo "Codex failed"; failed=$((failed+1)); }
+  if command -v omarchy &>/dev/null || [[ -r /etc/omarchy-release ]]; then
+    omarchy-mise-install claude || { echo "Claude Code failed"; failed=$((failed+1)); }
+    omarchy-mise-install codex || { echo "Codex failed"; failed=$((failed+1)); }
+    omarchy-mise-install opencode || { echo "OpenCode failed"; failed=$((failed+1)); }
+  else
+    curl -fsSL https://claude.ai/install.sh | bash || { echo "Claude Code failed"; failed=$((failed+1)); }
+    CODEX_NON_INTERACTIVE=1 curl -fsSL https://chatgpt.com/codex/install.sh | sh \
+      || { echo "Codex failed"; failed=$((failed+1)); }
+    curl -fsSL https://opencode.ai/install | bash || { echo "OpenCode failed"; failed=$((failed+1)); }
+  fi
   [ $failed -eq 0 ] && echo "All AI tools updated!" || echo "$failed tool(s) failed"
 }
 

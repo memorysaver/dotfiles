@@ -57,6 +57,10 @@ update-agents:
 validate-skills:
     @bash {{ dotfiles }}/tools/validate-agent-skills.sh
 
+# Audit the Moshi + Herdr remote-access security baseline (read-only; uses sudo)
+audit-remote-access:
+    @bash {{ dotfiles }}/tools/audit-remote-access.sh
+
 # Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless, mole (macOS)
 tools:
     @bash {{ dotfiles }}/install/tools.sh

@@ -25,6 +25,23 @@ PI_NPM_PACKAGE="${PI_NPM_PACKAGE:-@earendil-works/pi-coding-agent}"
 PI_AGENT_BIN="${PI_AGENT_BIN:-pi}"
 PI_ALT_BIN="${PI_ALT_BIN:-pi-agent}"
 
+# Omarchy deliberately exposes fast-moving agents through small ~/.local/bin
+# wrappers. Each wrapper asks Mise for the latest release on first run, then
+# executes it in Mise's environment. Keep that ownership model intact instead
+# of replacing the wrappers with each vendor's standalone installer.
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  if ! has omarchy-mise-install; then
+    fail "omarchy-mise-install is missing; update or repair Omarchy first"
+  fi
+
+  info "Installing Omarchy-supported agents with Mise..."
+  omarchy-mise-install claude
+  omarchy-mise-install codex
+  omarchy-mise-install opencode
+  omarchy-mise-install npm:@xai-official/grok grok
+  omarchy-mise-install pi
+fi
+
 # Do we need to install/upgrade <cmd>? Yes in upgrade mode, or if it's missing.
 should_setup() {
   [ "$UPGRADE" = 1 ] && return 0
@@ -33,8 +50,8 @@ should_setup() {
 }
 
 # --- Herdr --- the multiplexer the agents below run inside
-# In homebrew-core, so no tap. Linux has no formula; the official installer drops a
-# static binary in ~/.local/bin and re-running it upgrades in place.
+# In homebrew-core, so no tap. Omarchy ships its own `herdr` package and config;
+# other Linux platforms use the official installer in ~/.local/bin.
 # Deliberately NOT using should_setup: it returns true in upgrade mode, which would send
 # us down the `brew install` path, where an already-installed formula is a no-op warning
 # and the upgrade silently never happens. The curl-based agents below are safe with
@@ -45,14 +62,16 @@ if ! has herdr; then
   info "Installing Herdr..."
   case "$DOTFILES_PLATFORM" in
     macos) brew install herdr ;;
-    omarchy|arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr install failed" ;;
+    omarchy) omarchy pkg add herdr ;;
+    arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr install failed" ;;
     *)     warn "Unsupported OS for Herdr -- skipping" ;;
   esac
 elif [ "$UPGRADE" = 1 ]; then
   info "Upgrading Herdr..."
   case "$DOTFILES_PLATFORM" in
     macos) brew upgrade herdr || ok "Herdr already at the latest release" ;;
-    omarchy|arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr upgrade failed" ;;
+    omarchy) ok "Herdr upgrades with omarchy update" ;;
+    arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr upgrade failed" ;;
   esac
 else
   ok "Herdr already installed ($(herdr --version 2>/dev/null))"
@@ -93,7 +112,9 @@ else
 fi
 
 # --- Claude Code --- (curl installer is idempotent and upgrades in place)
-if should_setup claude; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  ok "Claude Code managed by Omarchy + Mise"
+elif should_setup claude; then
   info "$VERB Claude Code..."
   curl -fsSL https://claude.ai/install.sh | bash
 else
@@ -108,7 +129,9 @@ fi
 # Re-running the installer upgrades in place. ~/.local/bin is already on PATH
 # ahead of /opt/homebrew/bin (config/zsh/.zshrc), so CODEX_NON_INTERACTIVE keeps
 # it from prompting or editing any shell profile; PATH order shadows older copies.
-if has codex && codex --version >/dev/null 2>&1 && [ "$UPGRADE" != 1 ]; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  ok "Codex CLI managed by Omarchy + Mise"
+elif has codex && codex --version >/dev/null 2>&1 && [ "$UPGRADE" != 1 ]; then
   ok "Codex CLI already installed ($(codex --version 2>/dev/null))"
 else
   if has codex && ! codex --version >/dev/null 2>&1; then
@@ -119,7 +142,9 @@ else
 fi
 
 # --- OpenCode --- (curl installer is idempotent and upgrades in place)
-if should_setup opencode; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  ok "OpenCode managed by Omarchy + Mise"
+elif should_setup opencode; then
   info "$VERB OpenCode..."
   curl -fsSL https://opencode.ai/install | bash
 else
@@ -148,7 +173,9 @@ fi
 # this is a no-op today -- but if xAI edits that template, it lands as an
 # unexplained diff in `git status`. Same in-place-rewrite hazard as the herdr and
 # agent configs; see the README's "Agent Configs Are Machine-Local".
-if should_setup grok; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  ok "Grok Build managed by Omarchy + Mise"
+elif should_setup grok; then
   info "$VERB Grok Build..."
   curl -fsSL https://x.ai/cli/install.sh | bash || warn "grok install failed"
 else
@@ -158,7 +185,9 @@ fi
 # --- Pi Coding Agent ---
 # Fresh install goes through npm; upgrades use Pi's built-in self-updater
 # (`pi update`), which is faster and keeps Pi's own version bookkeeping intact.
-if has "$PI_AGENT_BIN" || has "$PI_ALT_BIN"; then
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  ok "Pi managed by Omarchy + Mise"
+elif has "$PI_AGENT_BIN" || has "$PI_ALT_BIN"; then
   if [ "$UPGRADE" = 1 ]; then
     pi_bin="$(command -v "$PI_AGENT_BIN" || command -v "$PI_ALT_BIN")"
     info "Upgrading Pi coding agent (pi update)..."
