@@ -39,6 +39,8 @@ just setup
 │   ├── runtimes.sh
 │   ├── agents.sh
 │   ├── tools.sh
+│   ├── omarchy-apps.sh
+│   ├── omarchy-moonlight.sh
 │   └── infra.sh
 ├── config/               # App configs (symlinked to ~)
 │   ├── zsh/
@@ -46,7 +48,8 @@ just setup
 │   ├── git/
 │   ├── starship/
 │   ├── nvim/
-│   └── lazygit/
+│   ├── lazygit/
+│   └── hypr/                 # Additive Omarchy/Moonlight module
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
 │   ├── claude/
 │   ├── codex/
@@ -65,6 +68,7 @@ just setup             # Detect platform; install tools and seed new agent confi
 just setup-macos       # Require macOS, then install the shared tool set
 just setup-omarchy     # Require Omarchy; use Omarchy packages + Mise
 just omarchy-apps      # Install the personal Omarchy desktop app set
+just omarchy-moonlight # Set Moonlight system-shortcut capture to Always
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just link              # Create all config symlinks (idempotent)
@@ -90,9 +94,11 @@ password prompt is visible.
 
 On Omarchy, the repository installs and verifies command-line tools but preserves
 Omarchy's application configuration. Git, tmux, Starship, Lazygit, Neovim,
-Herdr, terminals, Hyprland, and Omarchy Shell remain machine-local and follow
-Omarchy defaults. The only linked integration is a small, optional Bash overlay
-for personal aliases, paths, and functions.
+Herdr, terminals, and Omarchy Shell remain machine-local and follow Omarchy
+defaults. Hyprland also remains host-owned: the only exception is one additive
+Moonlight module, linked below `~/.config/hypr/remote_desktop.lua` and enabled by
+one exact `require("hypr.remote_desktop")` line in the existing
+`~/.config/hypr/bindings.lua`. No stock binding file is replaced.
 
 ## Terminal configuration by platform
 
@@ -108,12 +114,48 @@ config/zsh/                          # macOS Zsh + Oh My Zsh entrypoints
 config/starship/macos.toml           # macOS-only powerline prompt
 config/terminal/macos/ghostty.conf   # macOS Ghostty and CJK font chain
 config/terminal/omarchy/README.md    # Omarchy configuration ownership policy
+config/hypr/remote_desktop.lua       # Additive Moonlight remote-desktop mode
 config/lazygit/config.yml            # macOS and non-Omarchy Linux only
 config/tmux/.tmux.conf               # macOS and non-Omarchy Linux only
 ```
 
-On Omarchy, `just link` does not replace any application configuration. This
-keeps dynamic themes, keybindings, and future Omarchy migrations intact.
+On Omarchy, `just link` does not replace any application configuration. It
+adds only the repository module and its `require` line, keeping dynamic themes,
+existing keybindings, and future Omarchy migrations intact. The first change to
+an existing host file gets a timestamped `.pre-dotfiles.<timestamp>` backup.
+
+## Omarchy + Moonlight remote desktop
+
+`just setup-omarchy` installs `moonlight-qt`, sets Moonlight's
+`capturesyskeys=2` preference (the app's **Always** mode), and links the
+additive Hyprland module. The Moonlight preference script edits only that one
+key; it never stores or replaces host names, pairing keys, or other private
+settings. If Moonlight is open, the script skips the edit so QSettings cannot
+race the installer; close it and rerun `just omarchy-moonlight`.
+
+The module uses the current Omarchy Lua configuration API:
+
+1. Focus the Moonlight stream and press **Super+F12**. A notification says
+   `Remote Desktop Mode ON`.
+2. While enabled, normal local Hyprland bindings are inactive, so Super,
+   Alt+Tab, and similar shortcuts can reach the Sunshine host.
+3. Press **Super+F12** again to reset the submap. A notification says
+   `Remote Desktop Mode OFF`, and local Super bindings work again.
+
+For a manually configured machine, set Moonlight's **Capture system keyboard
+shortcuts** preference to **Always** once in its settings. Validate a change
+with:
+
+```bash
+hyprctl reload
+hyprctl configerrors
+hyprctl submap
+```
+
+`hyprctl configerrors` should be empty and `hyprctl submap` should report
+`default` outside the mode. `just link-dry-run` shows the module, source-line,
+and any conflict before writing. `just unlink` removes only the repository
+symlink and exact `require` line; all timestamped backups remain available.
 
 ## Omarchy tool ownership
 
@@ -144,10 +186,12 @@ The Omarchy path performs the following recovery steps:
 
 1. Installs the shared CLI tools, development runtimes, and coding agents.
 2. Ensures the personal desktop application set is installed.
-3. Adds the portable aliases, paths, and functions to Omarchy's existing Bash
+3. Configures Moonlight's non-secret keyboard-capture preference and links the
+   additive Hyprland remote-desktop module without replacing Omarchy defaults.
+4. Adds the portable aliases, paths, and functions to Omarchy's existing Bash
    setup without replacing its defaults.
-4. Leaves every application configuration under Omarchy ownership.
-5. Runs `just doctor` as a final gate; bootstrap does not report success while a
+5. Leaves every other application configuration under Omarchy ownership.
+6. Runs `just doctor` as a final gate; bootstrap does not report success while a
    declared command, application, skill, or shell link is missing.
 
 The explicit application set is:
@@ -157,6 +201,7 @@ The explicit application set is:
 | 1Password + `op` CLI | `omarchy install service 1password` | Machine-local; sign in interactively |
 | btop | `omarchy pkg add btop` | Omarchy |
 | Chromium | `omarchy pkg add chromium` | Omarchy |
+| Moonlight | `omarchy pkg add moonlight-qt` | Module in this repo; hosts and pairing remain local |
 | Obsidian | `omarchy pkg add obsidian` | Machine-local vault and settings |
 | Voxtype | `omarchy pkg add voxtype-bin` | Machine-local model and settings |
 

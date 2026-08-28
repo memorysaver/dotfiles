@@ -45,7 +45,14 @@ if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   else
     hard "~/.bashrc does not source the Omarchy dotfiles overlay — run: just link"
   fi
-  pass "Omarchy owns Git, tmux, Starship, Lazygit, Neovim, Herdr, terminal, and desktop configs"
+  check_link "$HOME/.config/hypr/remote_desktop.lua" "$D/config/hypr/remote_desktop.lua"
+  hypr_require='require("hypr.remote_desktop")'
+  if grep -Fqx -- "$hypr_require" "$HOME/.config/hypr/bindings.lua" 2>/dev/null; then
+    pass "Hyprland bindings load Moonlight remote-desktop mode"
+  else
+    hard "Hyprland bindings do not load Moonlight remote-desktop mode — run: just link"
+  fi
+  pass "Omarchy owns Git, tmux, Starship, Lazygit, Neovim, Herdr, terminal, and desktop configs; Moonlight mode is additive"
 else
   check_link "$HOME/.tmux.conf"               "$D/config/tmux/.tmux.conf"
   check_link "$HOME/.gitconfig"               "$D/config/git/.gitconfig"
@@ -87,9 +94,29 @@ if has pi || has pi-agent; then pass "pi"; else hard "pi not found — run: just
 
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   head_ "Omarchy applications"
-  for c in 1password op btop chromium obsidian voxtype; do
+  for c in 1password op btop chromium moonlight obsidian voxtype; do
     check_cmd "$c" omarchy-apps
   done
+  moonlight_config="${XDG_CONFIG_HOME:-$HOME/.config}/Moonlight Game Streaming Project/Moonlight.conf"
+  capture_mode="$(awk '
+    BEGIN { in_general = 0 }
+    /^\[[^]]+\][[:space:]]*$/ {
+      in_general = (tolower($0) ~ /^\[general\][[:space:]]*$/)
+      next
+    }
+    in_general && $0 ~ /^[[:space:]]*capturesyskeys[[:space:]]*=/ {
+      value = $0
+      sub(/^[^=]*=/, "", value)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      print value
+      exit
+    }
+  ' "$moonlight_config" 2>/dev/null || true)"
+  if [ "$capture_mode" = 2 ]; then
+    pass "Moonlight captures system keyboard shortcuts in Always mode"
+  else
+    hard "Moonlight Capture system keyboard shortcuts is not Always — run: just omarchy-moonlight"
+  fi
 fi
 
 # --- Global agent skills ---------------------------------------------------

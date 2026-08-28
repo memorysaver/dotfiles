@@ -19,6 +19,7 @@ setup-omarchy:
     @sudo -v
     @just _setup
     @just omarchy-apps
+    @just omarchy-moonlight
     @just link
     @just doctor
 
@@ -64,6 +65,10 @@ tools:
 omarchy-apps:
     @bash {{ dotfiles }}/install/omarchy-apps.sh
 
+# Configure Moonlight capture without replacing its host list or pairing data.
+omarchy-moonlight:
+    @bash {{ dotfiles }}/install/omarchy-moonlight.sh
+
 # Install infrastructure tools: Terraform, Pulumi, SST (opt-in)
 infra:
     @bash {{ dotfiles }}/install/infra.sh
@@ -81,15 +86,42 @@ link:
     # Shell: macOS owns Zsh; Omarchy keeps its stock Bash rc and sources one
     # additive personal fragment from the repository.
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
+      # Preflight the host-owned Hyprland files before changing the shell
+      # overlay, so a partial installation cannot be left behind.
+      hypr_bindings="$HOME/.config/hypr/bindings.lua"
+      hypr_module="{{ dotfiles }}/config/hypr/remote_desktop.lua"
+      hypr_target="$HOME/.config/hypr/remote_desktop.lua"
+      hypr_require='require("hypr.remote_desktop")'
+      if [ ! -f "$hypr_bindings" ]; then
+        fail "Required Omarchy Hyprland config is missing: $hypr_bindings"
+        exit 1
+      fi
+      if [ ! -f "$hypr_module" ]; then
+        fail "Dotfiles Hyprland module is missing: $hypr_module"
+        exit 1
+      fi
+
       ensure_dir "$HOME/.config/dotfiles/shell"
       ensure_symlink "{{ dotfiles }}/config/shell/omarchy/dotfiles.bash" "$HOME/.config/dotfiles/shell/omarchy.bash"
-      ensure_source_line "$HOME/.bashrc" '[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
+      omarchy_shell_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
+      if ! grep -Fqx -- "$omarchy_shell_line" "$HOME/.bashrc"; then
+        backup_file "$HOME/.bashrc"
+      fi
+      ensure_source_line "$HOME/.bashrc" "$omarchy_shell_line"
+
+      # Add one repository-owned Lua module to Omarchy's host-owned Hyprland
+      # config.
+      ensure_symlink "$hypr_module" "$hypr_target"
+      if ! grep -Fqx -- "$hypr_require" "$hypr_bindings"; then
+        backup_file "$hypr_bindings"
+      fi
+      ensure_source_line "$hypr_bindings" "$hypr_require"
     else
       ensure_symlink "{{ dotfiles }}/config/zsh/.zshenv" "$HOME/.zshenv"
       ensure_symlink "{{ dotfiles }}/config/zsh/.zshrc" "$HOME/.zshrc"
     fi
     # Omarchy owns application configuration. The dotfiles only install/check
-    # tools and add the optional shell fragment above.
+    # tools and add the shell fragment plus the isolated Moonlight module above.
     if [ "$DOTFILES_PLATFORM" != "omarchy" ]; then
       ensure_symlink "{{ dotfiles }}/config/tmux/.tmux.conf" "$HOME/.tmux.conf"
       ensure_symlink "{{ dotfiles }}/config/git/.gitconfig" "$HOME/.gitconfig"
@@ -99,7 +131,7 @@ link:
       ensure_symlink "{{ dotfiles }}/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
       ensure_symlink "{{ dotfiles }}/config/starship/macos.toml" "$HOME/.config/starship.toml"
     else
-      warn "Omarchy: preserving Git, tmux, Starship, Lazygit, Neovim, Herdr, and terminal configs"
+      warn "Omarchy: preserving Git, tmux, Starship, Lazygit, Neovim, Herdr, and terminal configs; adding Moonlight remote-desktop mode"
     fi
 
     # Lazygit is managed by Omarchy on that platform.
@@ -134,11 +166,22 @@ link-dry-run:
     targets=()
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       targets+=("$HOME/.config/dotfiles/shell/omarchy.bash")
+      targets+=("$HOME/.config/hypr/remote_desktop.lua")
       source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
       if grep -Fqx -- "$source_line" "$HOME/.bashrc"; then
         printf 'READY    %s sources Omarchy overlay\n' "$HOME/.bashrc"
       else
         printf 'APPEND   one source line to %s\n' "$HOME/.bashrc"
+      fi
+      hypr_require='require("hypr.remote_desktop")'
+      if [ -f "$HOME/.config/hypr/bindings.lua" ]; then
+        if grep -Fqx -- "$hypr_require" "$HOME/.config/hypr/bindings.lua"; then
+          printf 'READY    %s loads Moonlight remote-desktop mode\n' "$HOME/.config/hypr/bindings.lua"
+        else
+          printf 'APPEND   one require line to %s\n' "$HOME/.config/hypr/bindings.lua"
+        fi
+      else
+        printf 'BLOCKED  missing %s\n' "$HOME/.config/hypr/bindings.lua"
       fi
     else
       targets+=(
@@ -235,8 +278,23 @@ unlink:
     done
     if [ "$DOTFILES_PLATFORM" = omarchy ]; then
       source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
+      if grep -Fqx -- "$source_line" "$HOME/.bashrc"; then
+        backup_file "$HOME/.bashrc"
+      fi
       remove_source_line "$HOME/.bashrc" "$source_line"
       [ -L "$HOME/.config/dotfiles/shell/omarchy.bash" ] && rm "$HOME/.config/dotfiles/shell/omarchy.bash"
+
+      hypr_target="$HOME/.config/hypr/remote_desktop.lua"
+      hypr_module="{{ dotfiles }}/config/hypr/remote_desktop.lua"
+      hypr_require='require("hypr.remote_desktop")'
+      if [ -L "$hypr_target" ] && [ "$(readlink "$hypr_target")" = "$hypr_module" ]; then
+        rm "$hypr_target"
+        ok "Removed $hypr_target"
+        if grep -Fqx -- "$hypr_require" "$HOME/.config/hypr/bindings.lua" 2>/dev/null; then
+          backup_file "$HOME/.config/hypr/bindings.lua"
+          remove_source_line "$HOME/.config/hypr/bindings.lua" "$hypr_require"
+        fi
+      fi
     fi
 
 # Health-check this machine: symlinks, commands, global skills, brew taps (read-only)

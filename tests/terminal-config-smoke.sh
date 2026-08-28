@@ -37,7 +37,7 @@ HOME="$test_home" XDG_CACHE_HOME="$test_home/.cache" \
   TERM=xterm-256color STARSHIP_CONFIG="$repo_root/config/starship/macos.toml" \
   starship prompt >/dev/null
 
-rg -F 'warn "Omarchy: preserving Git, tmux, Starship, Lazygit, Neovim, Herdr, and terminal configs"' \
+rg -F 'warn "Omarchy: preserving Git, tmux, Starship, Lazygit, Neovim, Herdr, and terminal configs; adding Moonlight remote-desktop mode"' \
   "$repo_root/justfile" >/dev/null
 
 if rg -n 'config/starship/omarchy|starship_profile=omarchy' \

@@ -20,6 +20,8 @@ fi
 
 # Chromium and Obsidian normally ship with Omarchy. Listing them explicitly
 # keeps recovery deterministic if the preinstall set changes or was removed.
-omarchy pkg add btop chromium obsidian voxtype-bin
+# Moonlight is part of the remote-desktop workstation profile; its host list
+# and pairing data remain outside this repository.
+omarchy pkg add btop chromium moonlight-qt obsidian voxtype-bin
 
 ok "Omarchy workstation applications installed"

@@ -126,6 +126,27 @@ ensure_symlink() {
   ok "Linked $(basename "$dest") → $src"
 }
 
+# Make a timestamped, content-preserving backup before editing a host-owned
+# file.  This follows symlinks so the backup is a snapshot rather than another
+# link to the file that will be changed.
+# Usage: backup_file <path>
+backup_file() {
+  local src="$1" stamp backup suffix=0
+  if [ ! -e "$src" ] && [ ! -L "$src" ]; then
+    return 0
+  fi
+
+  stamp="$(date +%Y%m%d%H%M%S)"
+  backup="${src}.pre-dotfiles.${stamp}"
+  while [ -e "$backup" ] || [ -L "$backup" ]; do
+    suffix=$((suffix + 1))
+    backup="${src}.pre-dotfiles.${stamp}.${suffix}"
+  done
+
+  cp -aL -- "$src" "$backup"
+  warn "Backed up $src to $backup"
+}
+
 # Append an exact source/include line without replacing the host-owned file.
 ensure_source_line() {
   local file="$1" line="$2"
