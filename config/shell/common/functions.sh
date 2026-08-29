@@ -79,5 +79,24 @@ ab-connect() {
   local port="${2:-9222}"
 
   chrome-cdp "$name" "$port" || return 1
-  agent-browser --session "$name" connect "$port"
+  env -u AGENT_BROWSER_PROFILE agent-browser --session "$name" connect "$port"
+}
+
+# Use an existing Chromium profile when a task explicitly needs the human's
+# logged-in browser state. Keep this opt-in: profile-backed sessions cannot use
+# agent-browser's --allowed-domains containment and expose the profile's cookies.
+ab-profile() {
+  local profile="${1:-mfa}"
+  local url="${2:-about:blank}"
+  local session="profile-${profile//[^[:alnum:]_-]/-}"
+
+  agent-browser --session "$session" --profile "$profile" open "$url"
+}
+
+# Start with a clean browser when a task must not inherit personal cookies.
+ab-isolated() {
+  local name="${1:-isolated}"
+  local url="${2:-about:blank}"
+
+  env -u AGENT_BROWSER_PROFILE agent-browser --session "$name" open "$url"
 }

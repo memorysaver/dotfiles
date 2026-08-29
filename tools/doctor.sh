@@ -37,6 +37,8 @@ check_link() {
   fi
 }
 
+check_link "$HOME/Work/AGENTS.md" "$D/config/workspace/AGENTS.md"
+
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   check_link "$HOME/.config/dotfiles/shell/omarchy.bash" "$D/config/shell/omarchy/dotfiles.bash"
   source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'

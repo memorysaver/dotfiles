@@ -91,6 +91,10 @@ link:
     source {{ dotfiles }}/lib/helpers.sh
     info "Linking configuration files..."
 
+    # Workspace navigation policy: portable, human-authored, and never rewritten
+    # by an application, so it remains safe to manage as a symlink.
+    ensure_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
+
     # Shell: macOS owns Zsh; Omarchy keeps its stock Bash rc and sources one
     # additive personal fragment from the repository.
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
@@ -171,7 +175,7 @@ link:
 link-dry-run:
     #!/usr/bin/env bash
     source {{ dotfiles }}/lib/helpers.sh
-    targets=()
+    targets=("$HOME/Work/AGENTS.md")
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       targets+=("$HOME/.config/dotfiles/shell/omarchy.bash")
       targets+=("$HOME/.config/hypr/remote_desktop.lua")
