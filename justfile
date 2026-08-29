@@ -73,7 +73,7 @@ omarchy-apps:
 omarchy-moonlight:
     @bash {{ dotfiles }}/install/omarchy-moonlight.sh
 
-# Opt in to a persistent 1080p virtual display for a headless Sunshine host.
+# Opt in to a persistent 16:10 virtual display for a headless Sunshine host.
 omarchy-sunshine-headless:
     @bash {{ dotfiles }}/install/omarchy-sunshine-headless.sh
 
