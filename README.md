@@ -69,6 +69,7 @@ just setup-macos       # Require macOS, then install the shared tool set
 just setup-omarchy     # Require Omarchy; use Omarchy packages + Mise
 just omarchy-apps      # Install the personal Omarchy desktop app set
 just omarchy-moonlight # Set Moonlight system-shortcut capture to Always
+just omarchy-sunshine-headless # Opt in to a 1080p virtual Sunshine display
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just link              # Create all config symlinks (idempotent)
@@ -115,6 +116,7 @@ config/starship/macos.toml           # macOS-only powerline prompt
 config/terminal/macos/ghostty.conf   # macOS Ghostty and CJK font chain
 config/terminal/omarchy/README.md    # Omarchy configuration ownership policy
 config/hypr/remote_desktop.lua       # Additive Moonlight remote-desktop mode
+config/hypr/sunshine_headless.lua    # Opt-in headless Sunshine host display
 config/lazygit/config.yml            # macOS and non-Omarchy Linux only
 config/tmux/.tmux.conf               # macOS and non-Omarchy Linux only
 ```
@@ -156,6 +158,12 @@ hyprctl submap
 `default` outside the mode. `just link-dry-run` shows the module, source-line,
 and any conflict before writing. `just unlink` removes only the repository
 symlink and exact `require` line; all timestamped backups remain available.
+
+For an Omarchy machine that runs Sunshine without a physical monitor, run
+`just omarchy-sunshine-headless`, then log out and back in. This opt-in task
+links an isolated Hyprland module and adds one exact require line to the
+host-owned `autostart.lua`. The module creates `HEADLESS-1` at 1920x1080@60
+with scale 1; it is intentionally excluded from the normal workstation setup.
 
 ## Omarchy tool ownership
 

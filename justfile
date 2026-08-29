@@ -73,6 +73,10 @@ omarchy-apps:
 omarchy-moonlight:
     @bash {{ dotfiles }}/install/omarchy-moonlight.sh
 
+# Opt in to a persistent 1080p virtual display for a headless Sunshine host.
+omarchy-sunshine-headless:
+    @bash {{ dotfiles }}/install/omarchy-sunshine-headless.sh
+
 # Install infrastructure tools: Terraform, Pulumi, SST (opt-in)
 infra:
     @bash {{ dotfiles }}/install/infra.sh
@@ -297,6 +301,18 @@ unlink:
         if grep -Fqx -- "$hypr_require" "$HOME/.config/hypr/bindings.lua" 2>/dev/null; then
           backup_file "$HOME/.config/hypr/bindings.lua"
           remove_source_line "$HOME/.config/hypr/bindings.lua" "$hypr_require"
+        fi
+      fi
+
+      sunshine_target="$HOME/.config/hypr/sunshine_headless.lua"
+      sunshine_module="{{ dotfiles }}/config/hypr/sunshine_headless.lua"
+      sunshine_require='require("hypr.sunshine_headless")'
+      if [ -L "$sunshine_target" ] && [ "$(readlink "$sunshine_target")" = "$sunshine_module" ]; then
+        rm "$sunshine_target"
+        ok "Removed $sunshine_target"
+        if grep -Fqx -- "$sunshine_require" "$HOME/.config/hypr/autostart.lua" 2>/dev/null; then
+          backup_file "$HOME/.config/hypr/autostart.lua"
+          remove_source_line "$HOME/.config/hypr/autostart.lua" "$sunshine_require"
         fi
       fi
     fi
