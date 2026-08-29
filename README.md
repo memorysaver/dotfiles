@@ -169,6 +169,67 @@ it caused remote pointer coordinate drift in this headless configuration.
 The module is a managed real file rather than a symlink because Hyprland's
 sandboxed Lua loader cannot require a target outside `~/.config/hypr`.
 
+## Tailnet SSH access policy
+
+Remote access to the Omarchy workstation runs over Tailscale, and two SSH
+services own different ports:
+
+| Port | Service | Host key |
+| --- | --- | --- |
+| 22 | Tailscale SSH, served by `tailscaled` in netstack | Generated and held by `tailscaled` |
+| 2222 | OpenSSH, key-only, reachable on `tailscale0` | The machine's `/etc/ssh` host keys |
+
+`herdr --remote <host>` and a plain `ssh <host>` both use port 22, so they are
+answered by Tailscale SSH rather than OpenSSH. That is why
+`just audit-remote-access` reports a kernel listener on TCP 22 as a soft note,
+and why the host key on port 22 can appear to change without the machine being
+compromised: reinstalling the workstation or re-enabling Tailscale SSH replaces
+the key that port presents, and OpenSSH's host key on 2222 is unrelated to it.
+
+When `REMOTE HOST IDENTIFICATION HAS CHANGED` appears for port 22, rescan the
+key and confirm the fingerprint matches the one quoted in the warning before
+trusting it:
+
+```bash
+ssh-keyscan -t ed25519 <host> | ssh-keygen -lf -   # compare with the warning
+ssh-keygen -R <host>                               # drop the stale entry
+```
+
+An `SSH-2.0-Tailscale` banner in the `ssh-keyscan` output confirms the key
+belongs to Tailscale SSH.
+
+The tailnet policy file is cloud-managed and cannot live in this repository, so
+the intended `ssh` block is recorded here (set 2026-08-30):
+
+```json
+"ssh": [
+    {
+        "action": "accept",
+        "src":    ["autogroup:member"],
+        "dst":    ["autogroup:self"],
+        "users":  ["autogroup:nonroot"],
+    },
+],
+```
+
+Two deliberate departures from Tailscale's default block:
+
+- `accept` rather than `check`. Check mode forces a browser re-authentication on
+  the connecting client, and its 12-hour default interrupts long Herdr sessions.
+  A custom `checkPeriod` would soften that, but it is a Premium/Enterprise
+  feature: saving one on a Free tailnet fails with `Functionality outside your
+  plan`. The real choice is every 12 hours or never.
+- `autogroup:nonroot` with `root` removed. This matches the `permitrootlogin no`
+  baseline the audit already enforces for OpenSSH — log in as the workstation
+  user and `sudo` on the box. Left in place, `accept` would allow passwordless
+  root logins from every device in the tailnet.
+
+Dropping check mode does not make device access permanent. Node keys still
+expire roughly every 180 days, at which point that device re-authenticates to
+Tailscale itself; that is a device-level event, unrelated to per-connection SSH
+checks. Revocation stays central too: removing a device in the admin console
+cuts its access to every node at once, with no `authorized_keys` edits.
+
 ## Omarchy tool ownership
 
 `just setup-omarchy` ensures the workstation tools are installed; it does not
