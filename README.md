@@ -49,6 +49,7 @@ just setup
 │   ├── starship/
 │   ├── nvim/
 │   ├── lazygit/
+│   ├── workspace/             # ~/Work navigation policy
 │   └── hypr/                 # Additive Omarchy/Moonlight module
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
 │   ├── claude/
@@ -194,6 +195,14 @@ small commands in `~/.local/bin` that resolve and execute the tool through Mise:
 | Grok | `npm:@xai-official/grok` |
 | Pi | `pi` |
 | agent-browser, portless | Personal npm tools, also wrapped through Mise |
+
+On Omarchy, `agent-browser` defaults to the existing `mfa` Chromium profile;
+agent-browser clones it into a temporary user-data directory, so the everyday
+browser can remain open. Use `--profile Work` or `ab-profile Work [url]` to
+switch profiles. `ab-isolated [name] [url]` starts without personal cookies,
+while `ab-connect [name] [port]` retains the older persistent isolated CDP
+profile under `~/.chrome-cdp/`. Profile-backed sessions expose that profile's
+cookies and cannot use agent-browser's `--allowed-domains` containment.
 
 Herdr is an Omarchy system package rather than a Mise tool. Omarchy installs it
 as `/usr/bin/herdr`, seeds `~/.config/herdr/config.toml`, and upgrades it through

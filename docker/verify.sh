@@ -31,6 +31,7 @@ check_cmd() {
 D=/home/dev/.dotfiles
 
 echo "=== Symlinks ==="
+check_symlink "$HOME/Work/AGENTS.md"                        "$D/config/workspace/AGENTS.md"
 check_symlink "$HOME/.zshrc"                               "$D/config/zsh/.zshrc"
 check_symlink "$HOME/.tmux.conf"                           "$D/config/tmux/.tmux.conf"
 check_symlink "$HOME/.gitconfig"                           "$D/config/git/.gitconfig"

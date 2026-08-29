@@ -18,6 +18,8 @@ HOME="$test_home" bash --noprofile --norc -c '
   source "$HOME/.dotfiles/config/shell/omarchy/dotfiles.bash"
   type chrome-cdp >/dev/null
   type ab-connect >/dev/null
+  type ab-profile >/dev/null
+  type ab-isolated >/dev/null
   alias ccyolo >/dev/null
 '
 
