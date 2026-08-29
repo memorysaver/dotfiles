@@ -307,7 +307,14 @@ unlink:
       sunshine_target="$HOME/.config/hypr/sunshine_headless.lua"
       sunshine_module="{{ dotfiles }}/config/hypr/sunshine_headless.lua"
       sunshine_require='require("hypr.sunshine_headless")'
+      sunshine_marker='-- Managed by dotfiles: omarchy-sunshine-headless'
+      sunshine_managed=false
       if [ -L "$sunshine_target" ] && [ "$(readlink "$sunshine_target")" = "$sunshine_module" ]; then
+        sunshine_managed=true
+      elif [ -f "$sunshine_target" ] && [ "$(head -n 1 "$sunshine_target")" = "$sunshine_marker" ]; then
+        sunshine_managed=true
+      fi
+      if [ "$sunshine_managed" = true ]; then
         rm "$sunshine_target"
         ok "Removed $sunshine_target"
         if grep -Fqx -- "$sunshine_require" "$HOME/.config/hypr/autostart.lua" 2>/dev/null; then
