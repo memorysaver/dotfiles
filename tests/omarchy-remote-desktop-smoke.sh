@@ -49,15 +49,28 @@ if command -v luac >/dev/null 2>&1; then
   luac -p "$repo_root/config/hypr/remote_desktop.lua"
 fi
 
-# The Sunshine host setup is separately opt-in and remains additive.
+# The Sunshine host setup is separately opt-in and uses a real file because
+# Hyprland's sandboxed Lua loader cannot require an out-of-tree symlink.
 printf '%s\n' '-- host autostart' >"$test_home/.config/hypr/autostart.lua"
 HOME="$test_home" XDG_CONFIG_HOME="$test_home/.config" \
   DOTFILES_DIR="$repo_root" DOTFILES_PLATFORM=omarchy \
   bash "$repo_root/install/omarchy-sunshine-headless.sh" >/dev/null
-[ -L "$test_home/.config/hypr/sunshine_headless.lua" ]
+[ -f "$test_home/.config/hypr/sunshine_headless.lua" ]
+[ ! -L "$test_home/.config/hypr/sunshine_headless.lua" ]
+cmp -s "$repo_root/config/hypr/sunshine_headless.lua" "$test_home/.config/hypr/sunshine_headless.lua"
 [ "$(grep -Fxc 'require("hypr.sunshine_headless")' "$test_home/.config/hypr/autostart.lua")" -eq 1 ]
 
-# Re-running the opt-in task is idempotent.
+# Migrate the broken out-of-tree symlink created by the first release, then
+# verify subsequent runs remain idempotent.
+rm "$test_home/.config/hypr/sunshine_headless.lua"
+ln -s "$repo_root/config/hypr/sunshine_headless.lua" "$test_home/.config/hypr/sunshine_headless.lua"
+HOME="$test_home" XDG_CONFIG_HOME="$test_home/.config" \
+  DOTFILES_DIR="$repo_root" DOTFILES_PLATFORM=omarchy \
+  bash "$repo_root/install/omarchy-sunshine-headless.sh" >/dev/null
+[ ! -L "$test_home/.config/hypr/sunshine_headless.lua" ]
+[ "$(grep -Fxc 'require("hypr.sunshine_headless")' "$test_home/.config/hypr/autostart.lua")" -eq 1 ]
+cmp -s "$repo_root/config/hypr/sunshine_headless.lua" "$test_home/.config/hypr/sunshine_headless.lua"
+
 HOME="$test_home" XDG_CONFIG_HOME="$test_home/.config" \
   DOTFILES_DIR="$repo_root" DOTFILES_PLATFORM=omarchy \
   bash "$repo_root/install/omarchy-sunshine-headless.sh" >/dev/null

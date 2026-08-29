@@ -1,3 +1,4 @@
+-- Managed by dotfiles: omarchy-sunshine-headless
 -- Opt-in virtual display for a headless Sunshine host.
 --
 -- Hyprland creates the output when the session starts. The explicit monitor

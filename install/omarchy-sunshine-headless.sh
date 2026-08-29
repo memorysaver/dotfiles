@@ -12,6 +12,7 @@ autostart="$hypr_dir/autostart.lua"
 module="$DOTFILES_DIR/config/hypr/sunshine_headless.lua"
 target="$hypr_dir/sunshine_headless.lua"
 require_line='require("hypr.sunshine_headless")'
+managed_marker='-- Managed by dotfiles: omarchy-sunshine-headless'
 
 if [ ! -f "$autostart" ]; then
   fail "Required Omarchy Hyprland config is missing: $autostart"
@@ -22,7 +23,25 @@ if [ ! -f "$module" ]; then
   exit 1
 fi
 
-ensure_symlink "$module" "$target"
+# Hyprland's Lua config loader is sandboxed and cannot follow a require() to a
+# symlink whose target lives outside ~/.config/hypr. Keep a marked, real copy in
+# the config directory instead. Older versions of this task created the exact
+# repository symlink below; migrate only that known target automatically.
+if [ -L "$target" ] && [ "$(readlink "$target")" = "$module" ]; then
+  rm "$target"
+  cp -- "$module" "$target"
+  ok "Migrated sunshine_headless.lua from symlink to a loader-safe copy"
+elif [ -f "$target" ] && [ "$(head -n 1 "$target")" = "$managed_marker" ]; then
+  cp -- "$module" "$target"
+  ok "Updated managed sunshine_headless.lua"
+elif [ -e "$target" ] || [ -L "$target" ]; then
+  fail "Refusing to replace unmanaged Hyprland config: $target"
+  exit 1
+else
+  cp -- "$module" "$target"
+  ok "Installed sunshine_headless.lua"
+fi
+
 if ! grep -Fqx -- "$require_line" "$autostart"; then
   backup_file "$autostart"
 fi
