@@ -163,8 +163,9 @@ For an Omarchy machine that runs Sunshine without a physical monitor, run
 `just omarchy-sunshine-headless`, then log out and back in. This opt-in task
 installs an isolated Hyprland module and adds one exact require line to the
 host-owned `autostart.lua`. The module creates `HEADLESS-1` at 1920x1200@60
-with scale 1 to keep remote pointer coordinates aligned; it is intentionally
-excluded from the normal workstation setup.
+with scale 1.25 for MacBook clients; it is intentionally excluded from the
+normal workstation setup. Keep Moonlight's experimental YUV 4:4:4 option off:
+it caused remote pointer coordinate drift in this headless configuration.
 The module is a managed real file rather than a symlink because Hyprland's
 sandboxed Lua loader cannot require a target outside `~/.config/hypr`.
 
