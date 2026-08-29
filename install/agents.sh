@@ -40,6 +40,15 @@ if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   omarchy-mise-install opencode
   omarchy-mise-install npm:@xai-official/grok grok
   omarchy-mise-install pi
+
+  # Recreating Omarchy's wrapper keeps ownership correct, but `mise use`
+  # does not advance an already-installed `latest` alias. Pi also refuses
+  # `pi update` for release binaries managed by Mise, so upgrade it through
+  # the same owner explicitly.
+  if [ "$UPGRADE" = 1 ]; then
+    info "Upgrading Pi coding agent with Mise..."
+    mise upgrade pi
+  fi
 fi
 
 # Do we need to install/upgrade <cmd>? Yes in upgrade mode, or if it's missing.
@@ -183,8 +192,8 @@ else
 fi
 
 # --- Pi Coding Agent ---
-# Fresh install goes through npm; upgrades use Pi's built-in self-updater
-# (`pi update`), which is faster and keeps Pi's own version bookkeeping intact.
+# Outside Omarchy, fresh installs go through npm and upgrades use Pi's built-in
+# self-updater. Omarchy's release binary is owned and upgraded by Mise above.
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   ok "Pi managed by Omarchy + Mise"
 elif has "$PI_AGENT_BIN" || has "$PI_ALT_BIN"; then
