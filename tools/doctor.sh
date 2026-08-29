@@ -40,6 +40,8 @@ check_link() {
 check_link "$HOME/Work/AGENTS.md" "$D/config/workspace/AGENTS.md"
 
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  check_link "$HOME/.config/ortie/config.toml" "$D/config/ortie/config.toml"
+  check_link "$HOME/.config/himalaya/config.toml" "$D/config/himalaya/config.toml"
   check_link "$HOME/.config/dotfiles/shell/omarchy.bash" "$D/config/shell/omarchy/dotfiles.bash"
   source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'
   if grep -Fqx -- "$source_line" "$HOME/.bashrc"; then
@@ -88,7 +90,10 @@ if [ "$DOTFILES_PLATFORM" = omarchy ] || [ "$DOTFILES_PLATFORM" = arch ]; then
 else
   for c in pyenv uv node npm bun rustc cargo; do check_cmd "$c" runtimes; done
 fi
-for c in gh jq yq just agent-browser portless;        do check_cmd "$c" tools;    done
+for c in gh jq yq just agent-browser portless; do check_cmd "$c" tools; done
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  for c in himalaya ortie; do check_cmd "$c" tools; done
+fi
 # Mole is macOS-only, matching where tools.sh installs it.
 if [ "$DOTFILES_PLATFORM" = macos ]; then check_cmd mole tools; fi
 for c in herdr claude codex agy grok;                 do check_cmd "$c" agents;   done

@@ -1,0 +1,13 @@
+[accounts.personal]
+default = true
+client-id = "406964657835-aq8lmia8j95dhl1a2bvharmfk3t1hgqj.apps.googleusercontent.com"
+client-secret.command = ["secret-tool", "lookup", "application", "ortie-client-secret", "account", "google-thunderbird"]
+endpoints.authorization = "https://accounts.google.com/o/oauth2/v2/auth"
+endpoints.token = "https://oauth2.googleapis.com/token"
+endpoints.redirection = "http://localhost:8765"
+scopes = ["https://www.googleapis.com/auth/gmail.readonly"]
+extras.access_type = "offline"
+extras.prompt = "consent"
+auto-refresh = true
+storage.read.command = ["secret-tool", "lookup", "application", "ortie", "account", "personal"]
+storage.write.command = "secret-tool store --label='Ortie Gmail personal token' application ortie account personal"

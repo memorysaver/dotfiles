@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Ortie's opener waits for xdg-open to exit before starting its callback server.
+# Omarchy's launcher detaches the browser, allowing the callback listener to start.
+exec omarchy launch browser "$@"

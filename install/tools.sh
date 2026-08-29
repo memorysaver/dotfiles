@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless, mole (macOS)
+# Install CLI tools: gh, glab, jq, yq, just, mail tools, agent-browser, portless, mole (macOS)
 source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing CLI tools..."
@@ -81,6 +81,17 @@ if ! has just; then
   esac
 else
   ok "just already installed"
+fi
+
+# --- Agent mail tools ---
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  omarchy pkg add himalaya
+  omarchy-mise-install cargo:ortie ortie
+  ok "Himalaya and Ortie managed by Omarchy"
+elif ! has himalaya || ! has ortie; then
+  warn "Himalaya/Ortie are configured automatically on Omarchy only"
+else
+  ok "Himalaya and Ortie already installed"
 fi
 
 # --- Agent Browser (Vercel) ---
