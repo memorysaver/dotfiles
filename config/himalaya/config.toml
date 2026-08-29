@@ -1,0 +1,4 @@
+[accounts.personal]
+default = true
+gmail.auth.token.command = ["ortie", "token", "show", "-a", "personal"]
+mailbox.alias.inbox = "INBOX"

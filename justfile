@@ -65,6 +65,10 @@ audit-remote-access:
 tools:
     @bash {{ dotfiles }}/install/tools.sh
 
+# Start the personal Gmail OAuth flow without blocking Ortie's callback server.
+mail-auth:
+    @PATH="{{ dotfiles }}/tools/browser-open:$$PATH" ortie auth get -a personal
+
 # Install the desktop apps expected on the personal Omarchy workstation
 omarchy-apps:
     @bash {{ dotfiles }}/install/omarchy-apps.sh
@@ -98,6 +102,13 @@ link:
     # Shell: macOS owns Zsh; Omarchy keeps its stock Bash rc and sources one
     # additive personal fragment from the repository.
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
+      # Agent mail configuration contains commands and least-privilege policy
+      # only; credentials and tokens remain in the host Secret Service keyring.
+      ensure_dir "$HOME/.config/ortie"
+      ensure_symlink "{{ dotfiles }}/config/ortie/config.toml" "$HOME/.config/ortie/config.toml"
+      ensure_dir "$HOME/.config/himalaya"
+      ensure_symlink "{{ dotfiles }}/config/himalaya/config.toml" "$HOME/.config/himalaya/config.toml"
+
       # Preflight the host-owned Hyprland files before changing the shell
       # overlay, so a partial installation cannot be left behind.
       hypr_bindings="$HOME/.config/hypr/bindings.lua"
@@ -177,6 +188,8 @@ link-dry-run:
     source {{ dotfiles }}/lib/helpers.sh
     targets=("$HOME/Work/AGENTS.md")
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
+      targets+=("$HOME/.config/ortie/config.toml")
+      targets+=("$HOME/.config/himalaya/config.toml")
       targets+=("$HOME/.config/dotfiles/shell/omarchy.bash")
       targets+=("$HOME/.config/hypr/remote_desktop.lua")
       source_line='[[ -r "$HOME/.config/dotfiles/shell/omarchy.bash" ]] && source "$HOME/.config/dotfiles/shell/omarchy.bash"'

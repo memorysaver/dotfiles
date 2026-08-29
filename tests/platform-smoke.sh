@@ -39,6 +39,11 @@ rg -F 'omarchy-mise-install opencode' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'omarchy-mise-install npm:@xai-official/grok grok' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'omarchy-mise-install pi' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'omarchy-mise-install gh' "$repo_root/install/tools.sh" >/dev/null
+rg -F 'omarchy pkg add himalaya' "$repo_root/install/tools.sh" >/dev/null
+rg -F 'omarchy-mise-install cargo:ortie ortie' "$repo_root/install/tools.sh" >/dev/null
+rg -F 'config/ortie/config.toml' "$repo_root/justfile" >/dev/null
+rg -F 'config/himalaya/config.toml' "$repo_root/justfile" >/dev/null
+rg -F 'tools/browser-open:$$PATH' "$repo_root/justfile" >/dev/null
 rg -F 'omarchy) omarchy pkg add herdr' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'omarchy) omarchy pkg add terraform' "$repo_root/install/infra.sh" >/dev/null
 rg -F 'omarchy) omarchy pkg add pulumi' "$repo_root/install/infra.sh" >/dev/null
