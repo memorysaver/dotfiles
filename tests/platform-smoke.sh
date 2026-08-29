@@ -28,7 +28,7 @@ rg -F 'no_shortcuts_inhibit = true' "$repo_root/config/hypr/remote_desktop.lua" 
 rg -F 'capturesyskeys=2' "$repo_root/install/omarchy-moonlight.sh" >/dev/null
 rg -F 'hyprctl output create headless' "$repo_root/config/hypr/sunshine_headless.lua" >/dev/null
 rg -F 'mode = "1920x1200@60"' "$repo_root/config/hypr/sunshine_headless.lua" >/dev/null
-rg -F 'scale = 1,' "$repo_root/config/hypr/sunshine_headless.lua" >/dev/null
+rg -F 'scale = 1.25' "$repo_root/config/hypr/sunshine_headless.lua" >/dev/null
 rg -F 'tailscale btop chromium moonlight obsidian voxtype' "$repo_root/tools/doctor.sh" >/dev/null
 rg -F 'Moonlight remote-desktop mode' "$repo_root/tools/doctor.sh" >/dev/null
 rg -F 'npx --yes skills@1.5.20 add' "$repo_root/install/agents.sh" >/dev/null
