@@ -113,7 +113,7 @@ else
   hard "this device is not online in its tailnet"
 fi
 peer_count=$(jq -r '(.Peer // {}) | length' <<<"$tailscale_status" 2>/dev/null || printf '?')
-soft "tailnet ACL/grants are cloud-managed and cannot be fully audited here; review access when device membership changes (currently $peer_count peer(s))"
+soft "tailnet ACL/grants are cloud-managed and cannot be fully audited here; compare against the README section 'Tailnet SSH access policy' when device membership changes (currently $peer_count peer(s))"
 
 head_ "OpenSSH for Moshi and Herdr"
 if systemctl is-enabled --quiet sshd && systemctl is-active --quiet sshd; then
