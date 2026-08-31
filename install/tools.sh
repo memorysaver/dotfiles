@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install CLI tools: gh, glab, jq, yq, just, mail tools, agent-browser, portless, mole (macOS)
+# Install CLI tools: gh, glab, jq, yq, just, mail tools, agent-browser, portless;
+# macOS-only additions: cliamp, lazydocker, mole
 source "$(dirname "$0")/../lib/helpers.sh"
 
 info "Installing CLI tools..."
@@ -122,6 +123,25 @@ elif ! has portless; then
   fi
 else
   ok "portless already installed"
+fi
+
+# --- Cliamp + Lazydocker (macOS-only terminal tools) ---
+if [ "$DOTFILES_PLATFORM" = macos ]; then
+  if ! has cliamp; then
+    info "Installing cliamp..."
+    brew install bjarneo/cliamp/cliamp
+  else
+    ok "cliamp already installed"
+  fi
+
+  if ! has lazydocker; then
+    info "Installing lazydocker..."
+    brew install lazydocker
+  else
+    ok "lazydocker already installed"
+  fi
+else
+  ok "cliamp and lazydocker are macOS-only -- skipping"
 fi
 
 # --- Mole --- macOS system maintenance: clean, uninstall, analyze, monitor

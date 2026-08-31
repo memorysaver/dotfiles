@@ -94,8 +94,10 @@ for c in gh jq yq just agent-browser portless; do check_cmd "$c" tools; done
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   for c in himalaya ortie; do check_cmd "$c" tools; done
 fi
-# Mole is macOS-only, matching where tools.sh installs it.
-if [ "$DOTFILES_PLATFORM" = macos ]; then check_cmd mole tools; fi
+# These terminal utilities are macOS-only, matching where tools.sh installs them.
+if [ "$DOTFILES_PLATFORM" = macos ]; then
+  for c in cliamp lazydocker mole; do check_cmd "$c" tools; done
+fi
 for c in herdr claude codex agy grok;                 do check_cmd "$c" agents;   done
 if has pi || has pi-agent; then pass "pi"; else hard "pi not found — run: just agents"; fi
 

@@ -61,7 +61,8 @@ validate-skills:
 audit-remote-access:
     @bash {{ dotfiles }}/tools/audit-remote-access.sh
 
-# Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless, mole (macOS)
+# Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless;
+# macOS-only additions: cliamp, lazydocker, mole
 tools:
     @bash {{ dotfiles }}/install/tools.sh
 

@@ -41,6 +41,9 @@ rg -F 'omarchy-mise-install pi' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'omarchy-mise-install gh' "$repo_root/install/tools.sh" >/dev/null
 rg -F 'omarchy pkg add himalaya' "$repo_root/install/tools.sh" >/dev/null
 rg -F 'omarchy-mise-install cargo:ortie ortie' "$repo_root/install/tools.sh" >/dev/null
+rg -F 'brew install bjarneo/cliamp/cliamp' "$repo_root/install/tools.sh" >/dev/null
+rg -F 'brew install lazydocker' "$repo_root/install/tools.sh" >/dev/null
+rg -F 'for c in cliamp lazydocker mole' "$repo_root/tools/doctor.sh" >/dev/null
 rg -F 'config/ortie/config.toml' "$repo_root/justfile" >/dev/null
 rg -F 'config/himalaya/config.toml' "$repo_root/justfile" >/dev/null
 rg -F 'tools/browser-open:$$PATH' "$repo_root/justfile" >/dev/null

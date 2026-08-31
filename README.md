@@ -24,7 +24,7 @@ just setup
 | `just core` | platform shell, tmux, starship, nvim, lazygit, git-lfs, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
 | `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Antigravity CLI (agy), Grok Build, Pi |
-| `just tools` | gh, glab, jq, yq, just, agent-browser, portless, mole (macOS only) |
+| `just tools` | gh, glab, jq, yq, just, agent-browser, portless, cliamp, lazydocker, mole (macOS only) |
 | `just infra` | Terraform, Pulumi, SST *(opt-in, not in default setup)* |
 
 ## Folder Structure
