@@ -87,7 +87,9 @@ Entering Sleep state due to 'Maintenance Sleep'
 ## BetterDisplay setup
 
 BetterDisplay is an optional GUI dependency. It is intentionally not part of
-the default `just setup` path and no power-management helper was installed.
+the default `just setup` path. The separate `just macos-headless-caffeinate`
+recipe installs an opt-in user LaunchAgent for the additional sleep assertion;
+it is also not part of the default setup.
 
 Install the stable cask:
 
@@ -169,6 +171,50 @@ BetterDisplay nor a new `caffeinate` process was holding the assertion, so the
 result is encouraging but should still be treated as a local integration test,
 not a standalone power-management proof.
 
+## Caffeinate follow-up and battery transition
+
+The initial positive observation did not survive a longer power-transition
+test on the current MacBook. A temporary `/usr/bin/caffeinate -i -m -s`
+process held both `PreventUserIdleSystemSleep` and `PreventSystemSleep` while
+the machine was on AC, but the battery transition still followed macOS's
+closed-lid policy:
+
+```text
+23:00:26  Using Batt
+23:00:30  Entering Sleep state due to 'Clamshell Sleep'
+23:00:57  Wake from Deep Idle ... USB-C_plug ... Using AC
+23:03:34  Entering Sleep state due to 'Notification Wake Back to Sleep' ... Using Batt
+23:04:31  Wake from Deep Idle ... USB-C_plug ... Using AC
+```
+
+The boot time did not change, so these events were sleep and wake rather than
+a reboot or kernel panic. `caffeinate` is still useful for suppressing idle
+and maintenance sleep while the Mac is on AC, but it is not a guarantee for
+closed-lid battery operation on Apple Silicon. Keep the Mac powered for a
+reliable headless session. If battery operation is required, leave the lid
+open and turn the display off instead.
+
+The helper is opt-in and can be applied with:
+
+```bash
+just macos-headless-caffeinate
+```
+
+It installs this user LaunchAgent:
+
+```text
+~/Library/LaunchAgents/com.memorysaver.macos-headless-caffeinate.plist
+```
+
+The plist runs `/usr/bin/caffeinate -i -m -s` and is kept alive by launchd.
+The `-i` assertion also applies on battery, so it can increase battery drain;
+the `-s` assertion is AC-specific. Check its status with:
+
+```bash
+launchctl print "gui/$(id -u)/com.memorysaver.macos-headless-caffeinate"
+pmset -g assertions
+```
+
 ## Reboot and security limits
 
 - BetterDisplay is a login-session app, not a pre-login system daemon. It is
@@ -195,6 +241,15 @@ Then uninstall the app if it is no longer wanted:
 ```bash
 brew uninstall --cask betterdisplay
 ```
+
+Disable the managed caffeinate helper with:
+
+```bash
+just macos-headless-caffeinate-off
+```
+
+The disable task removes only the LaunchAgent created by the dotfiles recipe;
+it refuses to remove an unmanaged file at the same path.
 
 The intended power configuration can be restored explicitly with:
 

@@ -82,6 +82,14 @@ omarchy-moonlight:
 omarchy-sunshine-headless:
     @bash {{ dotfiles }}/install/omarchy-sunshine-headless.sh
 
+# Opt in to a persistent macOS caffeinate assertion for a closed-lid headless host.
+macos-headless-caffeinate:
+    @bash {{ dotfiles }}/install/macos-headless-caffeinate.sh enable
+
+# Disable the managed macOS headless caffeinate LaunchAgent and remove its copy.
+macos-headless-caffeinate-off:
+    @bash {{ dotfiles }}/install/macos-headless-caffeinate.sh disable
+
 # Install infrastructure tools: Terraform, Pulumi, SST (opt-in)
 infra:
     @bash {{ dotfiles }}/install/infra.sh

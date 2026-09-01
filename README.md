@@ -49,6 +49,7 @@ just setup
 │   ├── starship/
 │   ├── nvim/
 │   ├── lazygit/
+│   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
 │   ├── hypr/                 # Additive Omarchy/Moonlight module
 │   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
@@ -74,6 +75,8 @@ just setup-omarchy     # Require Omarchy; use Omarchy packages + Mise
 just omarchy-apps      # Install the personal Omarchy desktop app set
 just omarchy-moonlight # Set Moonlight system-shortcut capture to Always
 just omarchy-sunshine-headless # Opt in to a 16:10 virtual Sunshine display
+just macos-headless-caffeinate # Opt in to persistent macOS headless sleep prevention
+just macos-headless-caffeinate-off # Disable the managed headless helper
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just link              # Create all config symlinks (idempotent)
@@ -179,8 +182,10 @@ sandboxed Lua loader cannot require a target outside `~/.config/hypr`.
 The tested AC-only closed-lid path for a MacBook is recorded in
 [`docs/macos-headless.md`](docs/macos-headless.md). It uses BetterDisplay's
 optional virtual screen with the existing Tailscale + OpenSSH setup. BetterDisplay
-is intentionally not installed by the default setup, and the documented path
-does not add a global sleep-disabling helper.
+is intentionally not installed by the default setup. For machines that need a
+long-lived headless session, `just macos-headless-caffeinate` installs an
+opt-in user LaunchAgent running `/usr/bin/caffeinate -i -m -s`; it is not part
+of normal setup because it prevents idle sleep and can drain the battery.
 
 ## Tailnet SSH access policy
 
