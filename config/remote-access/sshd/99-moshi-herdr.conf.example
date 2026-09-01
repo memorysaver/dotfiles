@@ -1,0 +1,11 @@
+# OpenSSH policy for the Moshi fallback connection.
+#
+# Tailscale SSH owns port 22 on the Tailscale interface and is used by Herdr.
+# Moshi uses ordinary OpenSSH key authentication on port 2222 instead.
+# Install this file as /etc/ssh/sshd_config.d/99-moshi-herdr.conf on the host.
+
+Port 2222
+PubkeyAuthentication yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no

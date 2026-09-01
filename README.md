@@ -42,7 +42,7 @@ just setup
 │   ├── omarchy-apps.sh
 │   ├── omarchy-moonlight.sh
 │   └── infra.sh
-├── config/               # App configs (symlinked to ~)
+├── config/               # App configs and host policy templates
 │   ├── zsh/
 │   ├── tmux/
 │   ├── git/
@@ -50,14 +50,17 @@ just setup
 │   ├── nvim/
 │   ├── lazygit/
 │   ├── workspace/             # ~/Work navigation policy
-│   └── hypr/                 # Additive Omarchy/Moonlight module
+│   ├── hypr/                 # Additive Omarchy/Moonlight module
+│   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
 │   ├── claude/
 │   ├── codex/
 │   ├── opencode/
 │   ├── pi/
 │   └── skills/           # Skill source, installed per project by the skills CLI
-└── env/                  # Environment config
+├── docs/                     # Recovery and ownership notes
+│   └── remote-access.md      # Moshi + Herdr over Tailscale
+└── env/                     # Environment config
     ├── .env.example
     └── .envrc.template
 ```
@@ -78,6 +81,7 @@ just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
 just seed-agents       # Copy agent config templates to ~ (never overwrites)
 just doctor            # Health-check this machine (read-only, exits 1 on failure)
+just audit-remote-access # Audit the Moshi + Herdr SSH baseline (read-only)
 just check-agent-links # Warn if any agent config still links back into this repo
 just infra             # Install infrastructure tools (opt-in)
 just --list            # Show all available recipes
@@ -182,6 +186,9 @@ does not add a global sleep-disabling helper.
 
 Remote access to the Omarchy workstation runs over Tailscale, and two SSH
 services own different ports:
+
+The Beelink recovery and Moshi/OpenSSH setup steps are in
+[`docs/remote-access.md`](docs/remote-access.md).
 
 | Port | Service | Host key |
 | --- | --- | --- |

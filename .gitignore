@@ -8,6 +8,12 @@
 .env
 *.local
 
+# Remote-access credentials and machine-local state. Keep only the policy
+# template in config/remote-access/ under version control.
+config/remote-access/**/authorized_keys
+config/remote-access/**/known_hosts
+config/remote-access/**/config.toml
+
 # Claude Code
 .claude/debug/
 
