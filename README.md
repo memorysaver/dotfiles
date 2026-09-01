@@ -170,6 +170,14 @@ it caused remote pointer coordinate drift in this headless configuration.
 The module is a managed real file rather than a symlink because Hyprland's
 sandboxed Lua loader cannot require a target outside `~/.config/hypr`.
 
+## macOS headless remote workstation
+
+The tested AC-only closed-lid path for a MacBook is recorded in
+[`docs/macos-headless.md`](docs/macos-headless.md). It uses BetterDisplay's
+optional virtual screen with the existing Tailscale + OpenSSH setup. BetterDisplay
+is intentionally not installed by the default setup, and the documented path
+does not add a global sleep-disabling helper.
+
 ## Tailnet SSH access policy
 
 Remote access to the Omarchy workstation runs over Tailscale, and two SSH
