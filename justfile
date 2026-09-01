@@ -94,6 +94,54 @@ repos:
 link:
     #!/usr/bin/env bash
     source {{ dotfiles }}/lib/helpers.sh
+
+    # Validate every managed source and destination before creating anything.
+    # Without this pass, a conflict late in the list leaves a partial relink.
+    preflight_failed=0
+    preflight_symlink() {
+      local src="$1" dest="$2"
+      if [ ! -e "$src" ] && [ ! -L "$src" ]; then
+        fail "Managed source is missing: $src"
+        preflight_failed=1
+      elif [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+        return 0
+      elif [ -e "$dest" ] || [ -L "$dest" ]; then
+        case "${DOTFILES_LINK_MODE:-refuse}" in
+          backup|replace) ;;
+          *)
+            fail "Refusing to replace existing path: $dest"
+            preflight_failed=1
+            ;;
+        esac
+      fi
+    }
+
+    preflight_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
+    if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
+      preflight_symlink "{{ dotfiles }}/config/ortie/config.toml" "$HOME/.config/ortie/config.toml"
+      preflight_symlink "{{ dotfiles }}/config/himalaya/config.toml" "$HOME/.config/himalaya/config.toml"
+      preflight_symlink "{{ dotfiles }}/config/shell/omarchy/dotfiles.bash" "$HOME/.config/dotfiles/shell/omarchy.bash"
+      preflight_symlink "{{ dotfiles }}/config/hypr/remote_desktop.lua" "$HOME/.config/hypr/remote_desktop.lua"
+      [ -f "$HOME/.bashrc" ] || { fail "Required host config is missing: $HOME/.bashrc"; preflight_failed=1; }
+      [ -f "$HOME/.config/hypr/bindings.lua" ] || { fail "Required host config is missing: $HOME/.config/hypr/bindings.lua"; preflight_failed=1; }
+    else
+      preflight_symlink "{{ dotfiles }}/config/zsh/.zshenv" "$HOME/.zshenv"
+      preflight_symlink "{{ dotfiles }}/config/zsh/.zshrc" "$HOME/.zshrc"
+      preflight_symlink "{{ dotfiles }}/config/tmux/.tmux.conf" "$HOME/.tmux.conf"
+      preflight_symlink "{{ dotfiles }}/config/git/.gitconfig" "$HOME/.gitconfig"
+      preflight_symlink "{{ dotfiles }}/config/git/.gitmessage" "$HOME/.gitmessage"
+      preflight_symlink "{{ dotfiles }}/config/nvim" "$HOME/.config/nvim"
+      preflight_symlink "{{ dotfiles }}/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+      preflight_symlink "{{ dotfiles }}/config/starship/macos.toml" "$HOME/.config/starship.toml"
+      if [ "$DOTFILES_PLATFORM" = "macos" ]; then
+        preflight_symlink "{{ dotfiles }}/config/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
+        preflight_symlink "{{ dotfiles }}/config/terminal/macos/ghostty.conf" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+      else
+        preflight_symlink "{{ dotfiles }}/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+      fi
+    fi
+    [ "$preflight_failed" -eq 0 ] || exit 1
+
     info "Linking configuration files..."
 
     # Workspace navigation policy: portable, human-authored, and never rewritten
@@ -187,8 +235,15 @@ link:
 link-dry-run:
     #!/usr/bin/env bash
     source {{ dotfiles }}/lib/helpers.sh
+    sources=("{{ dotfiles }}/config/workspace/AGENTS.md")
     targets=("$HOME/Work/AGENTS.md")
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
+      sources+=(
+        "{{ dotfiles }}/config/ortie/config.toml"
+        "{{ dotfiles }}/config/himalaya/config.toml"
+        "{{ dotfiles }}/config/shell/omarchy/dotfiles.bash"
+        "{{ dotfiles }}/config/hypr/remote_desktop.lua"
+      )
       targets+=("$HOME/.config/ortie/config.toml")
       targets+=("$HOME/.config/himalaya/config.toml")
       targets+=("$HOME/.config/dotfiles/shell/omarchy.bash")
@@ -210,6 +265,16 @@ link-dry-run:
         printf 'BLOCKED  missing %s\n' "$HOME/.config/hypr/bindings.lua"
       fi
     else
+      sources+=(
+        "{{ dotfiles }}/config/zsh/.zshenv"
+        "{{ dotfiles }}/config/zsh/.zshrc"
+        "{{ dotfiles }}/config/tmux/.tmux.conf"
+        "{{ dotfiles }}/config/git/.gitconfig"
+        "{{ dotfiles }}/config/git/.gitmessage"
+        "{{ dotfiles }}/config/starship/macos.toml"
+        "{{ dotfiles }}/config/herdr/config.toml"
+        "{{ dotfiles }}/config/nvim"
+      )
       targets+=(
         "$HOME/.zshenv"
         "$HOME/.zshrc"
@@ -217,19 +282,37 @@ link-dry-run:
         "$HOME/.gitconfig"
         "$HOME/.gitmessage"
         "$HOME/.config/starship.toml"
-        "$HOME/.config/lazygit/config.yml"
         "$HOME/.config/herdr/config.toml"
         "$HOME/.config/nvim"
       )
+      if [ "$DOTFILES_PLATFORM" = "macos" ]; then
+        sources+=(
+          "{{ dotfiles }}/config/lazygit/config.yml"
+          "{{ dotfiles }}/config/terminal/macos/ghostty.conf"
+        )
+        targets+=(
+          "$HOME/Library/Application Support/lazygit/config.yml"
+          "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+        )
+      else
+        sources+=("{{ dotfiles }}/config/lazygit/config.yml")
+        targets+=("$HOME/.config/lazygit/config.yml")
+      fi
     fi
     printf 'Platform: %s\n' "$DOTFILES_PLATFORM"
-    for target in "${targets[@]}"; do
-      if [ -L "$target" ]; then
-        printf 'LINK     %s -> %s\n' "$target" "$(readlink "$target")"
+    for i in "${!targets[@]}"; do
+      source="${sources[$i]}"
+      target="${targets[$i]}"
+      if [ ! -e "$source" ] && [ ! -L "$source" ]; then
+        printf 'BLOCKED  missing managed source %s\n' "$source"
+      elif [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
+        printf 'READY    %s -> %s\n' "$target" "$source"
+      elif [ -L "$target" ]; then
+        printf 'CONFLICT %s -> %s (expected %s)\n' "$target" "$(readlink "$target")" "$source"
       elif [ -e "$target" ]; then
         printf 'PRESERVE %s (link will refuse without DOTFILES_LINK_MODE=backup)\n' "$target"
       else
-        printf 'CREATE   %s\n' "$target"
+        printf 'CREATE   %s -> %s\n' "$target" "$source"
       fi
     done
 
@@ -276,7 +359,7 @@ seed-agents:
 unlink:
     #!/usr/bin/env bash
     source {{ dotfiles }}/lib/helpers.sh
-    links=()
+    links=("$HOME/Work/AGENTS.md")
     if [ "$DOTFILES_PLATFORM" != omarchy ]; then
       links+=(
         "$HOME/.zshenv"
