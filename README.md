@@ -103,11 +103,9 @@ Other application configuration remains separate from tool setup. Run
 default; `DOTFILES_LINK_MODE=backup just link` moves each conflict to a
 timestamped backup before creating its symlink.
 
-Older machines may still contain `~/Documents/github`. Workspace setup never
-inspects, inventories, clones, or moves its contents. Migration is intentionally
-guided only by `~/Work/AGENTS.md`: an agent must inspect the machine locally,
-avoid exposing project names in this public repository, and ask the user to
-approve any per-project move.
+Workspace setup never inventories, clones, or moves projects. For an explicitly
+requested migration from an older layout, use
+[`docs/workspace-migration.md`](./docs/workspace-migration.md).
 
 `just setup-omarchy` asks for sudo authentication once at the beginning,
 installs tools and applications, and activates the safe Bash overlay. Subsequent
