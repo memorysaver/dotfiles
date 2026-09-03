@@ -14,6 +14,20 @@ repos and existing dirty worktrees.
 
 Treat every child as an independent repository. Do not mix their changes, commits, or releases.
 
+## Legacy workspace migration
+
+Some older machines may still keep GitHub projects under `~/Documents/github`. Treat that directory
+as live user data until each project has been reconciled with `~/Work/github`.
+
+- Do not bulk-move, copy, delete, or automatically rewrite projects from the legacy directory.
+- Do not assume a project is missing just because it is absent from `~/Work`; check the legacy path.
+- Before proposing a move, inventory the immediate children of both directories and identify name
+  collisions, symlinks, linked worktrees, non-repository files, and nested repositories.
+- For every repository in scope, read its nearest `AGENTS.md` and `README.md`, then record
+  `git status --short --branch`, remotes, and `git worktree list` before changing its path.
+- Propose a per-project migration plan and obtain explicit user confirmation before moving anything.
+  Preserve the old path until the new location and dependent tooling have been validated.
+
 ## Idea hub
 
 `github/idea/` is the default incubation and dispatch hub for new concepts, research, cross-project

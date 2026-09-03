@@ -31,11 +31,11 @@ setup-debian:
     @bash {{ dotfiles }}/install/platform-check.sh debian
     @just _setup
 
-# Shared orchestration. Linking is deliberately separate so setup never replaces
-# a working machine's configuration as a side effect of installing tools.
-_setup: core runtimes agents tools seed-agents
+# Shared orchestration. The portable workspace policy is installed everywhere;
+# application-config linking remains a separate, conflict-aware step.
+_setup: workspace core runtimes agents tools seed-agents
     @echo ""
-    @echo "Tools installed."
+    @echo "Workspace and tools ready."
 
 # Install the platform shell plus tmux, starship, nvim, lazygit, git, and direnv
 core:
@@ -97,6 +97,11 @@ infra:
 # Clone/pull personal workspace repos defined in install/repos.txt
 repos:
     @bash {{ dotfiles }}/install/repos.sh
+
+# Create ~/Work/{github,cowork,tries}, link the shared AGENTS.md, and report
+# legacy ~/Documents/github layouts without moving them.
+workspace:
+    @bash {{ dotfiles }}/install/workspace.sh
 
 # Create all config symlinks (idempotent)
 link:

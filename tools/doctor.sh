@@ -19,6 +19,27 @@ head_() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 
 D="$DOTFILES_DIR"
 
+# --- Shared workspace -----------------------------------------------------
+head_ "Shared workspace"
+
+for dir in "$HOME/Work" "$HOME/Work/github" "$HOME/Work/cowork" "$HOME/Work/tries"; do
+  if [ -d "$dir" ]; then
+    pass "${dir/#$HOME/\~}"
+  else
+    hard "${dir/#$HOME/\~} missing — run: just workspace"
+  fi
+done
+
+if [ -d "$HOME/Documents" ] && ! ls "$HOME/Documents" >/dev/null 2>&1; then
+  soft "~/Documents is unreadable from this process — legacy workspace status is unknown"
+elif [ -d "$HOME/Documents/github" ] && [ -d "$HOME/Work/github" ]; then
+  legacy_real="$(cd "$HOME/Documents/github" && pwd -P)"
+  workspace_real="$(cd "$HOME/Work/github" && pwd -P)"
+  if [ "$legacy_real" != "$workspace_real" ]; then
+    soft "~/Documents/github is a separate legacy workspace — inspect and migrate repositories individually"
+  fi
+fi
+
 # --- Config symlinks -------------------------------------------------------
 # Every app here rewrites its own config in place at least sometimes, so a link
 # can quietly become a real file and stop tracking the repo.

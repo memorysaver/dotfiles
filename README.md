@@ -39,6 +39,7 @@ just setup
 │   ├── runtimes.sh
 │   ├── agents.sh
 │   ├── tools.sh
+│   ├── workspace.sh         # Cross-platform ~/Work bootstrap and legacy notice
 │   ├── omarchy-apps.sh
 │   ├── omarchy-moonlight.sh
 │   └── infra.sh
@@ -79,6 +80,8 @@ just macos-headless-caffeinate # Opt in to persistent macOS headless sleep preve
 just macos-headless-caffeinate-off # Disable the managed headless helper
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
+just workspace         # Create ~/Work/{github,cowork,tries} and link its AGENTS.md
+just repos             # Clone listed personal repos into ~/Work/github
 just link              # Create all config symlinks (idempotent)
 just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
@@ -91,10 +94,22 @@ just --list            # Show all available recipes
 ```
 
 `just setup` detects the platform and dispatches to one of the explicit setup
-recipes. Tool installation and config linking are separate: setup never replaces
-working configuration as a side effect. Run `just link-dry-run` first. Linking
-refuses existing paths by default; `DOTFILES_LINK_MODE=backup just link` moves
-each conflict to a timestamped backup before creating its symlink.
+recipes. Every platform setup first runs `just workspace`: it creates the shared
+`~/Work/{github,cowork,tries}` skeleton and links `~/Work/AGENTS.md` to the
+repository-owned workspace policy. A conflicting file is preserved and stops the
+recipe; review it before using `DOTFILES_LINK_MODE=backup just workspace`.
+
+Other application configuration remains separate from tool setup. Run
+`just link-dry-run` before `just link`. Linking refuses existing paths by
+default; `DOTFILES_LINK_MODE=backup just link` moves each conflict to a
+timestamped backup before creating its symlink.
+
+Older machines may still contain `~/Documents/github`. Workspace setup reports
+that directory but never moves its contents. `just repos` also refuses to clone
+a duplicate when the same repository name exists in the legacy location.
+Migration is intentionally per repository: inspect its instructions, dirty
+state, remotes, worktrees, symlinks, and destination collisions before asking
+the user to approve a move.
 
 `just setup-omarchy` asks for sudo authentication once at the beginning,
 installs tools and applications, and activates the safe Bash overlay. Subsequent
