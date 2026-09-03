@@ -94,12 +94,7 @@ macos-headless-caffeinate-off:
 infra:
     @bash {{ dotfiles }}/install/infra.sh
 
-# Clone/pull personal workspace repos defined in install/repos.txt
-repos:
-    @bash {{ dotfiles }}/install/repos.sh
-
-# Create ~/Work/{github,cowork,tries}, link the shared AGENTS.md, and report
-# legacy ~/Documents/github layouts without moving them.
+# Create ~/Work/{github,cowork,tries} and link the shared AGENTS.md.
 workspace:
     @bash {{ dotfiles }}/install/workspace.sh
 

@@ -25,7 +25,7 @@ inside Herdr:   choose a workspace and any tab, cd to the project, type hc
 workspace, current tab, and current `$PWD` for the active project, then expands
 a single-pane tab into this layout. The left column has two large controller
 panes; the right column has four stacked worker/utility panes. Claude is always
-launched from `~/Documents/github/idea`. Every named worker/Claude agent
+launched from `~/Work/github/idea`. Every named worker/Claude agent
 receives a workspace-qualified live name, for example `w1-idea-center`:
 
 ```text
@@ -66,7 +66,7 @@ The top-left Codex pane is the orchestrator and owns the user-facing task,
 decomposition, decisions, integration, and final report. The other panes are
 workers or utilities, not independent owners of the overall task:
 
-- `idea-center / Claude`: maintain `~/Documents/github/idea`, incubate ideas,
+- `idea-center / Claude`: maintain `~/Work/github/idea`, incubate ideas,
   and help brainstorm how an idea can land in the current project. It may read
   the target project when Codex supplies its path, but it is never the owner of
   target-project implementation. Any write assignment is limited to the idea
@@ -82,7 +82,7 @@ workers or utilities, not independent owners of the overall task:
   without an explicit main-agent decision.
 
 Codex, Agy, both Pi workers, and lazygit initially use the current project
-checkout. The idea-center Claude pane uses `~/Documents/github/idea` instead.
+checkout. The idea-center Claude pane uses `~/Work/github/idea` instead.
 Claude may inspect the target project read-only when Codex supplies its path,
 but implementation and integration remain owned by Codex. The right-side
 workers are context consumers and bounded executors; none of them becomes the

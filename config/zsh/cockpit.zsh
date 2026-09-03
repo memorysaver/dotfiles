@@ -2,7 +2,7 @@
 #
 # Open Herdr, select any workspace tab, cd to the project folder, and type
 # `hc`. Codex, workers, and lazygit use that project folder; the workspace-
-# namespaced idea-center Claude pane always uses ~/Documents/github/idea.
+# namespaced idea-center Claude pane always uses ~/Work/github/idea.
 # This function controls the existing Herdr server through its pane API. It
 # never invokes bare `herdr`, which would try to launch a nested Herdr session
 # from inside the current pane.
@@ -393,7 +393,7 @@ hc() {
     return 1
   fi
 
-  local idea_cwd="${HOME}/Documents/github/idea"
+  local idea_cwd="${HOME}/Work/github/idea"
   idea_cwd="${idea_cwd:A}"
   if [[ ! -d "$idea_cwd" || ! -e "$idea_cwd/.git" ]]; then
     print -u2 -- "Idea center repo is not available: $idea_cwd"

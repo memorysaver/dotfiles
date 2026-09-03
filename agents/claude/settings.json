@@ -75,12 +75,6 @@
         "source": "github",
         "repo": "kepano/obsidian-skills"
       }
-    },
-    "ichef-company-context": {
-      "source": {
-        "source": "directory",
-        "path": "/Users/memorysaver/Documents/github/company-context-layer"
-      }
     }
   },
   "alwaysThinkingEnabled": true,

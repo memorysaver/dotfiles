@@ -71,9 +71,6 @@ enabled = true
 [projects."/Users/memorysaver/.dotfiles"]
 trust_level = "trusted"
 
-[projects."/Users/memorysaver/Documents/newsroom"]
-trust_level = "trusted"
-
 [notice.model_migrations]
 gpt-5-codex = "gpt-5.5"
 

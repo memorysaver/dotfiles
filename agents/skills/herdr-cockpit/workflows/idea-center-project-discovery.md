@@ -13,7 +13,7 @@ formal product approval, a roadmap commitment, or a handoff receipt.
 
 `idea-center` is an upstream concept-incubation advisor. It may inspect:
 
-- `/Users/memorysaver/Documents/github/idea` for ideas, research, handoffs, and
+- `~/Work/github/idea` for ideas, research, handoffs, and
   lessons;
 - the target project path supplied by Codex, read-only, to understand the
   current implementation and constraints.

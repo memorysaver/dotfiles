@@ -81,7 +81,6 @@ just macos-headless-caffeinate-off # Disable the managed headless helper
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just workspace         # Create ~/Work/{github,cowork,tries} and link its AGENTS.md
-just repos             # Clone listed personal repos into ~/Work/github
 just link              # Create all config symlinks (idempotent)
 just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
@@ -104,12 +103,11 @@ Other application configuration remains separate from tool setup. Run
 default; `DOTFILES_LINK_MODE=backup just link` moves each conflict to a
 timestamped backup before creating its symlink.
 
-Older machines may still contain `~/Documents/github`. Workspace setup reports
-that directory but never moves its contents. `just repos` also refuses to clone
-a duplicate when the same repository name exists in the legacy location.
-Migration is intentionally per repository: inspect its instructions, dirty
-state, remotes, worktrees, symlinks, and destination collisions before asking
-the user to approve a move.
+Older machines may still contain `~/Documents/github`. Workspace setup never
+inspects, inventories, clones, or moves its contents. Migration is intentionally
+guided only by `~/Work/AGENTS.md`: an agent must inspect the machine locally,
+avoid exposing project names in this public repository, and ask the user to
+approve any per-project move.
 
 `just setup-omarchy` asks for sudo authentication once at the beginning,
 installs tools and applications, and activates the safe Bash overlay. Subsequent

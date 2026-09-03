@@ -161,7 +161,6 @@ skill. Recover from git history if they are ever wanted back.
 | codex (`rescue`, `setup`, runtime helpers) | `openai/codex-plugin-cc` | ~3 skills. |
 | `ui-ux-pro-max` | `nextlevelbuilder/ui-ux-pro-max-skill` | **Needs `--full-depth`.** |
 | `aep-onboard`, `aep-scaffold` | `memorysaver/agentic-engineering-patterns` | **Needs `--full-depth`.** |
-| `ichef-context` | `/Users/memorysaver/Documents/github/company-context-layer` | Local path, not a public repo. |
 
 `--full-depth` matters whenever a repo has a `SKILL.md` at its root: without it the CLI
 stops there and never descends into subdirectories, so nested skills look missing.
