@@ -34,6 +34,13 @@ if [ "$DOTFILES_PLATFORM" = omarchy ]; then
     fail "omarchy-mise-install is missing; update or repair Omarchy first"
   fi
 
+  # Codex resolves codex-code-mode-host beside the binary that started the
+  # session. Removing an upgraded-away Mise install can therefore break an
+  # otherwise healthy long-running session. Keep old agent versions until an
+  # explicit `mise prune` is run between sessions.
+  mise config set -f "$HOME/.config/mise/config.toml" \
+    settings.upgrade.auto_prune false
+
   info "Installing Omarchy-supported agents with Mise..."
   omarchy-mise-install claude
   omarchy-mise-install codex
