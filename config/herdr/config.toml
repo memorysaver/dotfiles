@@ -9,6 +9,9 @@ prefix = "ctrl+a"
 
 [ui]
 show_agent_labels_on_pane_borders = true
+# Match the Omarchy Herdr display: show the host in the tab bar and terminal title.
+tab_bar_right = [{ type = "zoom" }, { type = "hostname" }]
+window_title = "{hostname}: {workspace}"
 
 [ui.toast]
 delivery = "terminal"
