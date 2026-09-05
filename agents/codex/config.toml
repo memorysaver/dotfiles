@@ -5,9 +5,9 @@
 # The default model (override as needed):
 # model = "gpt-4.1"
 model_provider = "openai"
-model = "gpt-5.6-sol"
+model = "gpt-6-astra"
 sandbox_mode = "workspace-write"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "medium"
 
 # Keep local Codex sessions useful for development automation while preserving
 # workspace-write filesystem boundaries. Do not copy Codex.app internal state
