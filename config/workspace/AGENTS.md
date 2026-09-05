@@ -21,10 +21,21 @@ reasoning, and reusable lessons. Read `github/idea/AGENTS.md` when entering it. 
 `idea`; formal decisions, roadmaps, code, and tests belong to the receiving repo. A handoff is not
 downstream acceptance or implementation.
 
+## Computer-specific rules
+
+Before machine-specific or host-agent work, identify the current computer profile and read only the
+matching file under `~/Work/computer-rule/`: `mac.md`, `omarchy-server.md`, or
+`omarchy-desktop.md`. If the profile is ambiguous, ask before making machine-specific changes.
+
+When acting as the host-native `openab-omarchy` orchestrator, also read
+`~/Work/computer-rule/openab-orchestrator.md`. These files supplement this common workspace policy;
+nearest repository instructions still take precedence. Never put credentials in prompts, messages,
+pane labels, or research notes.
+
 ## Machine configuration
 
 `~/.dotfiles` stores reproducible computer configuration. For changes to shell, agent tooling,
 Omarchy, terminals, or global development tools, check whether dotfiles manage the behavior. If so,
-update and validate the dotfiles source, not only the deployed machine file. After exploratory live
-changes, explicitly decide whether to persist them back. Read `~/.dotfiles/AGENTS.md` if present and
+update the source in dotfiles, not only the deployed machine file. After exploratory live changes,
+explicitly decide whether to persist them back. Read `~/.dotfiles/AGENTS.md` if present and
 preserve its dirty worktree.

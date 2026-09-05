@@ -49,6 +49,10 @@ runtimes:
 agents:
     @bash {{ dotfiles }}/install/agents.sh
 
+# Build and start the Rust same-user Herdr dispatch broker used by openab-omarchy.
+herdr-dispatch:
+    @bash {{ dotfiles }}/install/herdr-dispatch.sh
+
 # Upgrade all AI coding agents to their latest release
 update-agents:
     @bash {{ dotfiles }}/install/agents.sh --upgrade
@@ -94,7 +98,7 @@ macos-headless-caffeinate-off:
 infra:
     @bash {{ dotfiles }}/install/infra.sh
 
-# Create ~/Work/{github,cowork,tries} and link the shared AGENTS.md.
+# Create ~/Work/{github,cowork,tries}, AGENTS.md, and computer-specific rules.
 workspace:
     @bash {{ dotfiles }}/install/workspace.sh
 
@@ -125,6 +129,7 @@ link:
     }
 
     preflight_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
+    preflight_symlink "{{ dotfiles }}/config/workspace/computer-rule" "$HOME/Work/computer-rule"
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       preflight_symlink "{{ dotfiles }}/config/ortie/config.toml" "$HOME/.config/ortie/config.toml"
       preflight_symlink "{{ dotfiles }}/config/himalaya/config.toml" "$HOME/.config/himalaya/config.toml"
@@ -155,6 +160,7 @@ link:
     # Workspace navigation policy: portable, human-authored, and never rewritten
     # by an application, so it remains safe to manage as a symlink.
     ensure_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
+    ensure_symlink "{{ dotfiles }}/config/workspace/computer-rule" "$HOME/Work/computer-rule"
 
     # Shell: macOS owns Zsh; Omarchy keeps its stock Bash rc and sources one
     # additive personal fragment from the repository.
@@ -245,6 +251,8 @@ link-dry-run:
     source {{ dotfiles }}/lib/helpers.sh
     sources=("{{ dotfiles }}/config/workspace/AGENTS.md")
     targets=("$HOME/Work/AGENTS.md")
+    sources+=("{{ dotfiles }}/config/workspace/computer-rule")
+    targets+=("$HOME/Work/computer-rule")
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       sources+=(
         "{{ dotfiles }}/config/ortie/config.toml"

@@ -52,8 +52,11 @@ just setup
 │   ├── lazygit/
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
+│   │   └── computer-rule/     # macOS and Omarchy host profiles
 │   ├── hypr/                 # Additive Omarchy/Moonlight module
 │   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
+├── tools/                     # Small machine-local helper programs
+│   └── herdr-dispatch-rs/     # Rust OpenAB-to-Herdr broker and CLI
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
 │   ├── claude/
 │   ├── codex/
@@ -61,7 +64,8 @@ just setup
 │   ├── pi/
 │   └── skills/           # Skill source, installed per project by the skills CLI
 ├── docs/                     # Recovery and ownership notes
-│   └── remote-access.md      # Moshi + Herdr over Tailscale
+│   ├── herdr-openab-dispatch.md # OpenAB-to-Herdr design and operations
+│   └── remote-access.md         # Moshi + Herdr over Tailscale
 └── env/                     # Environment config
     ├── .env.example
     └── .envrc.template
@@ -81,6 +85,7 @@ just macos-headless-caffeinate-off # Disable the managed headless helper
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just workspace         # Create ~/Work/{github,cowork,tries} and link its AGENTS.md
+just herdr-dispatch    # Install the local OpenAB-to-Herdr dispatch broker
 just link              # Create all config symlinks (idempotent)
 just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
