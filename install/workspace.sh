@@ -12,5 +12,6 @@ ensure_dir "$workspace_root/github"
 ensure_dir "$workspace_root/cowork"
 ensure_dir "$workspace_root/tries"
 ensure_symlink "$DOTFILES_DIR/config/workspace/AGENTS.md" "$workspace_root/AGENTS.md"
+ensure_symlink "$DOTFILES_DIR/config/workspace/computer-rule" "$workspace_root/computer-rule"
 
 ok "Shared workspace ready at $workspace_root"

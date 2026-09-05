@@ -52,6 +52,7 @@ just setup
 │   ├── lazygit/
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
+│   │   └── computer-rule/     # macOS and Omarchy host profiles
 │   ├── hypr/                 # Additive Omarchy/Moonlight module
 │   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
