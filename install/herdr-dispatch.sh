@@ -46,4 +46,14 @@ link_managed "$dotfiles_dir/config/systemd/user/herdr-dispatchd.service" "$unit_
 systemctl --user daemon-reload
 systemctl --user enable herdr-dispatchd.service
 systemctl --user restart herdr-dispatchd.service
-printf 'Rust herdr-dispatchd installed and running\n'
+# systemd Type=simple may report active before the socket is bound. Check the
+# broker locally without requiring Herdr itself to be online.
+for attempt in {1..50}; do
+  if "$bin_dir/herdr-dispatch" --socket "$state_dir/dispatch.sock" tasks >/dev/null 2>&1; then
+    printf 'Rust herdr-dispatchd installed and ready\n'
+    exit 0
+  fi
+  sleep 0.1
+done
+printf 'Broker did not become ready; inspect journalctl --user -u herdr-dispatchd.service\n' >&2
+exit 1

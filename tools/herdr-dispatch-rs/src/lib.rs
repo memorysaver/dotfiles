@@ -21,6 +21,8 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader as AsyncBufReader};
 use tokio::net::{UnixListener, UnixStream};
 use uuid::Uuid;
 
+mod history;
+
 pub const MAX_TIMEOUT_MS: u64 = 3_600_000;
 pub const MAX_READ_LINES: i64 = 200;
 pub const MAX_PROMPT_BYTES: usize = 200_000;
@@ -229,6 +231,12 @@ pub struct Task {
     pub created_at: String,
     pub updated_at: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_task_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub discord_thread_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub discord_message_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error_code: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error_message: Option<String>,
@@ -238,6 +246,7 @@ struct TaskStore {
     state_dir: PathBuf,
     state_file: PathBuf,
     tasks: BTreeMap<String, Task>,
+    last_pruned: Option<chrono::NaiveDate>,
 }
 
 impl TaskStore {
@@ -257,6 +266,7 @@ impl TaskStore {
             state_dir,
             state_file,
             tasks,
+            last_pruned: None,
         })
     }
 
@@ -303,6 +313,7 @@ impl TaskStore {
     }
 
     fn put(&mut self, task: Task) -> Result<(), BrokerError> {
+        self.append_event(&task)?;
         self.tasks.insert(task.task_id.clone(), task);
         self.save()
     }
@@ -311,11 +322,15 @@ impl TaskStore {
     where
         F: FnOnce(&mut Task),
     {
-        let task = self.tasks.get_mut(task_id).ok_or_else(|| {
-            BrokerError::new("task_not_found", format!("unknown task_id: {task_id}"))
-        })?;
-        update(task);
-        let snapshot = task.clone();
+        let previous = self.get(task_id)?;
+        let mut snapshot = previous.clone();
+        update(&mut snapshot);
+        if previous.state == snapshot.state && previous.error_code == snapshot.error_code {
+            // Polls must not grow the journal or extend retention indefinitely.
+            return Ok(previous);
+        }
+        self.append_event(&snapshot)?;
+        self.tasks.insert(task_id.to_owned(), snapshot.clone());
         self.save()?;
         Ok(snapshot)
     }
@@ -883,6 +898,17 @@ impl Broker {
         let agent_args = self.agent_args(object.get("agent_args"))?;
         let start_timeout_ms =
             bounded_timeout(object.get("start_timeout_ms"), "start_timeout_ms", 30_000)?;
+        for field in ["parent_task_id", "discord_thread_id", "discord_message_id"] {
+            if let Some(value) = object.get(field).filter(|v| !v.is_null()) {
+                safe_text(Some(value), field, 128)?;
+            }
+        }
+        if let Some(parent) = object.get("parent_task_id").and_then(Value::as_str) {
+            self.store
+                .lock()
+                .map_err(|_| BrokerError::internal("task store lock was poisoned"))?
+                .get(parent)?;
+        }
         self.reserve_ids(&task_id, &agent_name)?;
 
         let result = self
@@ -923,7 +949,9 @@ impl Broker {
             .and_then(Value::as_str)
             .unwrap_or("workspace")
             .to_owned();
-        let layout = self.layout(&Value::Object(params), &cwd, &task_id).await?;
+        let layout = self
+            .layout(&Value::Object(params.clone()), &cwd, &task_id)
+            .await?;
         let timestamp = now_iso();
         let task = Task {
             task_id: task_id.clone(),
@@ -938,6 +966,18 @@ impl Broker {
             state: "layout_created".to_owned(),
             created_at: timestamp.clone(),
             updated_at: timestamp,
+            parent_task_id: params
+                .get("parent_task_id")
+                .and_then(Value::as_str)
+                .map(str::to_owned),
+            discord_thread_id: params
+                .get("discord_thread_id")
+                .and_then(Value::as_str)
+                .map(str::to_owned),
+            discord_message_id: params
+                .get("discord_message_id")
+                .and_then(Value::as_str)
+                .map(str::to_owned),
             error_code: None,
             error_message: None,
         };
@@ -1176,7 +1216,10 @@ impl Broker {
                 "params must be an object",
             ));
         }
+        self.prune_history()?;
         match operation {
+            "history" => self.history(&params),
+            "result" => self.task_result(&params).await,
             "health" => Ok(json!({
                 "type": "health",
                 "herdr": self.herdr.call("ping", json!({}), Duration::from_secs(30)).await?,
@@ -1318,6 +1361,7 @@ pub async fn run_daemon(
     let socket_path = expand_user(socket_path);
     prepare_socket(&socket_path)?;
     let broker = Broker::new(herdr_socket, state_dir, allowed_root)?;
+    broker.prune_history()?;
     let listener = UnixListener::bind(&socket_path).map_err(|error| {
         BrokerError::new(
             "internal_error",
@@ -1335,8 +1379,12 @@ pub async fn run_daemon(
         .map_err(|error| BrokerError::new("internal_error", error.to_string()))?;
     let mut interrupt = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
         .map_err(|error| BrokerError::new("internal_error", error.to_string()))?;
+    let mut maintenance = tokio::time::interval(Duration::from_secs(3600));
     loop {
         tokio::select! {
+            _ = maintenance.tick() => {
+                if let Err(error) = broker.prune_history() { error!("history maintenance failed: {error}"); }
+            }
             signal = terminate.recv() => {
                 info!("received SIGTERM ({signal:?}); stopping");
                 break;

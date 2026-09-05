@@ -71,8 +71,42 @@ For work initiated through Discord by `openab-omarchy`:
    kind, cwd, layout, and prompt. Use `--layout workspace` for isolation,
    `--layout tab --workspace-id <id>` for a tab, or `--layout pane --target-pane-id <id>` only when
    that exact pane was approved.
-4. Report actual IDs and the live agent name returned by the broker. Use `status`, `read`, and `wait`
-   for follow-up; do not use guessed IDs or arbitrary shell commands.
+4. Include `--discord-thread-id` and `--discord-message-id` when those real IDs are available; never
+   invent them. Report actual IDs and the live agent name returned by the broker. Use `result` for
+   follow-up, `history` for durable dispatch evidence, and `wait` for a bounded lifecycle wait.
+
+## Answering "what is the result?"
+
+- Find the task with `herdr-dispatch history --discord-thread-id <id>` (recent 20 events), or
+  `history --task-id <id>`. Use `--limit 200` and the returned `next_before` as `--before` to page
+  older events. Use `tasks` for legacy records and unresolved tasks whose events have aged out.
+  If several tasks match, show the candidates instead of guessing.
+- Run `herdr-dispatch result --task-id <id> --lines 120`. It combines the stored receipt, recent
+  durable events, live named-agent status, and current output. The stored record is last-known
+  evidence, not necessarily current state. Report the task, cwd, original layout, availability,
+  actual deliverable/tests, and what remains unverified.
+- `agent_present` allows reading the original named worker. `original_agent_missing` means the
+  original name is gone but the old pane exists; it may host someone else's work. Never read or
+  prompt that replacement as if it were the original worker. `pane_missing` means the old pane
+  was not found. `unavailable`/`output_unavailable` may be transport/read failures, not closure.
+- The user manages Herdr directly and may close or move panes. Missing panes do not erase dispatch
+  history and do not prove success or failure. Neither `idle` nor `done` proves task success;
+  the broker's `success_verified: false` means it has not verified deliverables, not that work failed.
+- When output is unavailable, inspect the recorded repository and expected files, Git diff/log,
+  and safe read-only evidence yourself. Do not execute arbitrary repository scripts as a status
+  check. Clearly separate observed artifacts from assumptions about which worker produced them.
+- If a worker is needed to verify results, propose a NEW read-only verification task and topology
+  under the normal confirmation/routing rules. Dispatch it with a unique task ID and
+  `--parent-task-id <original-id>`, including the original objective and expected artifacts in its
+  prompt. Never replay the original mutation, create duplicate workers, close existing panes, or
+  expand scope just because output was lost. The broker does not auto-redispatch.
+- History is metadata-only, rotated by UTC day and retained for at least 62 days. It is not a
+  transcript or completion archive. Unchanged polling produces no events. Old idle/done summaries
+  expire after 62 days since their last observed transition; unresolved summaries remain. No events
+  for a legacy/expired task is not proof that dispatch never happened. Durable events start when
+  the layout receipt is stored; an earlier failed request may have no task record.
+- Read this rule file again in an existing Discord session after a tooling/rule update; do not rely
+  on instructions cached earlier in the chat.
 
 The broker is transport and guardrail, not an approval system. The orchestrator remains responsible
 for presenting the strategy and obtaining confirmation. Never put tokens, keys, auth files, or other

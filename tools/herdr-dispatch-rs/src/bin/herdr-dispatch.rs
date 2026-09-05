@@ -22,6 +22,8 @@ enum Command {
     Health,
     Snapshot,
     Tasks,
+    History(HistoryArgs),
+    Result(ReadArgs),
     Dispatch(Box<DispatchArgs>),
     Status(TaskArgs),
     Read(ReadArgs),
@@ -30,6 +32,12 @@ enum Command {
 
 #[derive(Debug, Args)]
 struct DispatchArgs {
+    #[arg(long)]
+    parent_task_id: Option<String>,
+    #[arg(long)]
+    discord_thread_id: Option<String>,
+    #[arg(long)]
+    discord_message_id: Option<String>,
     #[arg(long, help = "assert that the user confirmed the proposal")]
     confirmed: bool,
     #[arg(long)]
@@ -73,6 +81,18 @@ struct TaskArgs {
 }
 
 #[derive(Debug, Args)]
+struct HistoryArgs {
+    #[arg(long)]
+    task_id: Option<String>,
+    #[arg(long)]
+    discord_thread_id: Option<String>,
+    #[arg(long, default_value_t = 20)]
+    limit: u64,
+    #[arg(long, help = "RFC3339 exclusive cursor from next_before")]
+    before: Option<String>,
+}
+
+#[derive(Debug, Args)]
 struct ReadArgs {
     #[arg(long)]
     task_id: String,
@@ -101,6 +121,19 @@ fn command_request(command: Command) -> Result<(&'static str, Value, Duration), 
         Command::Health => Ok(("health", json!({}), Duration::from_secs(30))),
         Command::Snapshot => Ok(("snapshot", json!({}), Duration::from_secs(30))),
         Command::Tasks => Ok(("tasks", json!({}), Duration::from_secs(30))),
+        Command::History(args) => Ok((
+            "history",
+            json!({
+                "task_id": args.task_id, "discord_thread_id": args.discord_thread_id,
+                "limit": args.limit, "before": args.before,
+            }),
+            Duration::from_secs(30),
+        )),
+        Command::Result(args) => Ok((
+            "result",
+            json!({"task_id": args.task_id, "lines": args.lines}),
+            Duration::from_secs(75),
+        )),
         Command::Dispatch(args) => {
             let prompt = read_prompt(args.prompt, args.prompt_file.as_deref())?;
             let timeout = Duration::from_millis(args.start_timeout_ms)
@@ -109,6 +142,9 @@ fn command_request(command: Command) -> Result<(&'static str, Value, Duration), 
                 "dispatch",
                 json!({
                     "confirmed": args.confirmed,
+                    "parent_task_id": args.parent_task_id,
+                    "discord_thread_id": args.discord_thread_id,
+                    "discord_message_id": args.discord_message_id,
                     "task_id": args.task_id,
                     "kind": args.kind,
                     "cwd": args.cwd,
