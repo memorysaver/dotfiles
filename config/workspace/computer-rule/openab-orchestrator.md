@@ -21,8 +21,8 @@ coordinate worker agents. It is not the default implementation agent.
    explicit instruction to dispatch a named task in a named location counts as confirmation for that
    scope; ask if the target, permissions, or topology is ambiguous.
 3. **Dispatch through Herdr.** After confirmation, use the allowlisted `herdr-dispatch` client. Do
-   not fall back to a direct agent process or an untracked terminal. Preserve user focus with
-   `--no-focus`; use `--current` only for the caller pane and explicit IDs for other panes.
+   not fall back to a direct agent process or an untracked terminal. The broker preserves user focus
+   automatically. Pass explicit workspace or target-pane IDs; its CLI has no `--current` or `--no-focus`.
    Parse IDs from JSON responses instead of predicting them. Start one worker per suitable pane with a
    unique name and pass the approved repository, cwd, constraints, and deliverable.
 4. **Monitor and hand off.** Report the actual workspace, tab, pane, agent name and kind, cwd, and
@@ -33,11 +33,26 @@ coordinate worker agents. It is not the default implementation agent.
 
 ## Layout policy
 
-Use the smallest layout that keeps work understandable and preserves the current pane:
+Choose the workspace by task ownership first, then choose a tab or pane within it:
 
-- One task in the current project: prefer a sibling pane in the current tab with the target repo cwd.
-- Independent or parallel tasks: prefer separate tabs in the current workspace, one pane per worker.
-- Separate project, long-lived initiative, or explicit isolation: create a new workspace.
+- General work and cross-project coordination belong in the topmost workspace attached to `~/Work`.
+  Verify both its sidebar position and actual directory using the live snapshot. Reuse this workspace
+  regardless of which workspace is focused or where the Discord request arrived.
+- Work for a project under `~/Work/github/` or `~/Work/cowork/` belongs in that project's existing
+  dedicated workspace, attached to its project folder and Git repository. Match canonical paths and
+  verify `git rev-parse --show-toplevel` (and worktree identity when relevant); labels alone are hints.
+  A pane temporarily visiting the repo inside a general or test workspace does not make that workspace
+  the project's home. Apply the same ownership rule to other dedicated repositories such as dotfiles.
+- Survey all existing workspaces before proposing creation. If no matching project workspace exists,
+  propose a dedicated workspace rooted at that project folder. If several candidates or mixed cwd
+  evidence make ownership unclear, explain the candidates and resolve the target in the strategy.
+- Within the selected workspace, propose a task tab for independent work or a split of a specific
+  relevant pane for closely related work. Inspect active workers first and avoid duplicate dispatch.
+  The caller's or UI-focused tab is not automatically the right destination.
+- Do not use a dedicated OpenAB/broker/testing workspace as the default destination for general or
+  project work. Historical smoke-test panes may remain there; new tasks follow the directory mapping.
+- Resolve IDs from each fresh snapshot; do not hardcode workspace IDs or derive them from position.
+  Preserve the top-level Work workspace's position and the user's focus.
 - A workspace is a terminal layout, not permission to create a repository or worktree. Create those
   only when the approved task requires them and the target is clear.
 - Never close, move, reuse, or relabel an existing user or worker pane without explicit approval.
@@ -47,9 +62,11 @@ Use the smallest layout that keeps work understandable and preserves the current
 
 For work initiated through Discord by `openab-omarchy`:
 
-1. Run `herdr-dispatch snapshot` and inspect the current layout before proposing a route.
+1. Run `herdr-dispatch snapshot` and inspect the current layout before proposing a route. Select the
+   topmost `~/Work` workspace for general work or the project's existing workspace for project work.
 2. Name the target repository and cwd, worker kind, task id, and exact suggested Herdr layout in the
-   proposal. Explain why the task reuses a workspace, uses a tab, splits a pane, or uses a workspace.
+   proposal. Give the directory/Git evidence for the workspace match, then explain the tab or pane
+   choice. Propose a new project workspace only when no suitable one exists or isolation was requested.
 3. Only after confirmation, run `herdr-dispatch dispatch --confirmed ...` with the approved task id,
    kind, cwd, layout, and prompt. Use `--layout workspace` for isolation,
    `--layout tab --workspace-id <id>` for a tab, or `--layout pane --target-pane-id <id>` only when
