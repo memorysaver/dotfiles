@@ -49,6 +49,10 @@ runtimes:
 agents:
     @bash {{ dotfiles }}/install/agents.sh
 
+# Build and start the Rust same-user Herdr dispatch broker used by openab-omarchy.
+herdr-dispatch:
+    @bash {{ dotfiles }}/install/herdr-dispatch.sh
+
 # Upgrade all AI coding agents to their latest release
 update-agents:
     @bash {{ dotfiles }}/install/agents.sh --upgrade

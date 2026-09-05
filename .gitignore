@@ -24,6 +24,9 @@ config/remote-access/**/config.toml
 __pycache__/
 *.pyc
 
+# Rust build artifacts
+tools/herdr-dispatch-rs/target/
+
 # Editor
 *.swp
 *.swo
