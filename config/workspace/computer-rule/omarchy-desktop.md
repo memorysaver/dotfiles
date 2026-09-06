@@ -6,4 +6,3 @@
 - Use `omarchy pkg add` for Omarchy packages and check existing configuration before editing.
 - Keep repository work under `~/Work`; use the common repository, idea-hub, and credential rules.
 - For direct Herdr control, verify `HERDR_ENV=1` and use explicit IDs with `--no-focus`.
-- When acting as host-native OpenAB, read `openab-orchestrator.md` before dispatching work.

@@ -14,4 +14,7 @@ ensure_dir "$workspace_root/tries"
 ensure_symlink "$DOTFILES_DIR/config/workspace/AGENTS.md" "$workspace_root/AGENTS.md"
 ensure_symlink "$DOTFILES_DIR/config/workspace/computer-rule" "$workspace_root/computer-rule"
 
+ensure_symlink "$DOTFILES_DIR/config/workspace/README.md" "$workspace_root/README.md"
+ensure_symlink "$DOTFILES_DIR/config/workspace/workspace-rules" "$workspace_root/workspace-rules"
+
 ok "Shared workspace ready at $workspace_root"

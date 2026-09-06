@@ -52,7 +52,8 @@ just setup
 │   ├── lazygit/
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
-│   │   └── computer-rule/     # macOS and Omarchy host profiles
+│   │   ├── computer-rule/     # Portable macOS and Omarchy profiles
+│   │   └── workspace-rules/   # Shared local orchestration and external adapter
 │   ├── hypr/                 # Additive Omarchy/Moonlight module
 │   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
 ├── tools/                     # Small machine-local helper programs
@@ -84,7 +85,7 @@ just macos-headless-caffeinate # Opt in to persistent macOS headless sleep preve
 just macos-headless-caffeinate-off # Disable the managed headless helper
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
-just workspace         # Create ~/Work/{github,cowork,tries} and link its AGENTS.md
+just workspace         # Create ~/Work categories and link its entry docs and rule directories
 just herdr-dispatch    # Install the local OpenAB-to-Herdr dispatch broker
 just link              # Create all config symlinks (idempotent)
 just link-dry-run      # Show creates/conflicts without writing anything
@@ -99,14 +100,20 @@ just --list            # Show all available recipes
 
 `just setup` detects the platform and dispatches to one of the explicit setup
 recipes. Every platform setup first runs `just workspace`: it creates the shared
-`~/Work/{github,cowork,tries}` skeleton and links `~/Work/AGENTS.md` to the
-repository-owned workspace policy. A conflicting file is preserved and stops the
+`~/Work/{github,cowork,tries}` skeleton and links `AGENTS.md`, `README.md`,
+`computer-rule/`, and `workspace-rules/` to the repository-owned workspace policy. A conflicting file is preserved and stops the
 recipe; review it before using `DOTFILES_LINK_MODE=backup just workspace`.
 
 Other application configuration remains separate from tool setup. Run
 `just link-dry-run` before `just link`. Linking refuses existing paths by
 default; `DOTFILES_LINK_MODE=backup just link` moves each conflict to a
 timestamped backup before creating its symlink.
+
+Each computer operates independently. Local access and `herdr --remote` use the destination
+computer's Work management workspace and dedicated project workspaces. The portable design is in
+[`config/workspace/README.md`](./config/workspace/README.md). Actual computer rosters, configured
+agents, and downstream management belong in the private idea repository; public templates and
+integration examples are not a deployment inventory. Authentication and runtime state remain local.
 
 Workspace setup never inventories, clones, or moves projects. For an explicitly
 requested migration from an older layout, use
