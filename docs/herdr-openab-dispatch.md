@@ -1,11 +1,11 @@
 # OpenAB to Herdr dispatch
 
-`openab-omarchy` is a Discord-facing orchestrator. It does not directly call
+An optional Discord-facing orchestrator can use this integration. It does not directly call
 Herdr's full socket API. Instead, it sends an approved high-level request to
 the same-user Rust `herdr-dispatchd` broker:
 
 ```text
-Discord → openab-omarchy → herdr-dispatch → herdr-dispatchd → Herdr socket API
+Discord → external orchestrator → herdr-dispatch → herdr-dispatchd → Herdr socket API
 ```
 
 The Rust broker source and the two compatible binaries live in
@@ -135,24 +135,13 @@ parent-linked verification task; do not rerun mutations. Legacy records have no 
 
 Run regression checks with `cargo test --locked` and `cargo clippy --all-targets --locked -- -D warnings`
 in `tools/herdr-dispatch-rs`, then deploy with `just herdr-dispatch`. Deployment restarts only the
-broker, not the Herdr workers. The computer-rule source is symlinked into `~/Work/computer-rule`;
+broker, not the Herdr workers. The shared adapter is in `~/Work/workspace-rules/external-dispatch.md`;
 existing orchestrator sessions must reread it to pick up the new follow-up workflow.
 
-### Installed E2E verification (2026-09-06 Asia/Taipei)
+## Policy and deployment ownership
 
-Ten Rust tests cover persistence, duplicate polling, 62-day retention boundary, unresolved summary
-retention, pagination, damaged-tail recovery, live output, missing/replaced occupants, and offline
-Herdr. Clippy, formatting, installer shell syntax and diff checks passed.
-
-The installed CLI/broker dispatched Grok task `dispatch-history-e2e-20260906-001` into a fresh tab
-in the topmost Work workspace. Its live receipt contained the independently verified SHA-256 of
-the symlinked orchestrator rule and the correct 62-day/result instructions. After closing only
-that test tab, result reported `pane_missing`; all four lifecycle events survived broker restart.
-Task `dispatch-history-e2e-20260906-002`, linked to the first through `parent_task_id`, independently
-queried the missing parent's history and verified the same artifact without replaying work.
-Both test tabs were closed after completion; task records remain. User focus stayed at w2/t3/p3.
-Existing replaced-agent lookup also correctly returned `original_agent_missing`.
-
-This exercises CLI → installed broker → real Herdr → real Grok → result/history, including closure
-and restart, not a newly sent Discord message. Discord ingress itself still needs a user-side smoke
-message; no Discord IDs were invented for these terminal-initiated tests.
+Read the [shared orchestration policy](../config/workspace/workspace-rules/orchestrator.md) and
+[external adapter](../config/workspace/workspace-rules/external-dispatch.md). These describe the
+reusable integration, not a particular host's installed agents. Host deployment records and local
+E2E receipts are maintained in the private idea host-management collection. The public repository
+owns broker source and generic tests; live authentication and broker state remain on the host.

@@ -130,6 +130,8 @@ link:
 
     preflight_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
     preflight_symlink "{{ dotfiles }}/config/workspace/computer-rule" "$HOME/Work/computer-rule"
+    preflight_symlink "{{ dotfiles }}/config/workspace/README.md" "$HOME/Work/README.md"
+    preflight_symlink "{{ dotfiles }}/config/workspace/workspace-rules" "$HOME/Work/workspace-rules"
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       preflight_symlink "{{ dotfiles }}/config/ortie/config.toml" "$HOME/.config/ortie/config.toml"
       preflight_symlink "{{ dotfiles }}/config/himalaya/config.toml" "$HOME/.config/himalaya/config.toml"
@@ -161,6 +163,8 @@ link:
     # by an application, so it remains safe to manage as a symlink.
     ensure_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
     ensure_symlink "{{ dotfiles }}/config/workspace/computer-rule" "$HOME/Work/computer-rule"
+    ensure_symlink "{{ dotfiles }}/config/workspace/README.md" "$HOME/Work/README.md"
+    ensure_symlink "{{ dotfiles }}/config/workspace/workspace-rules" "$HOME/Work/workspace-rules"
 
     # Shell: macOS owns Zsh; Omarchy keeps its stock Bash rc and sources one
     # additive personal fragment from the repository.
@@ -253,6 +257,8 @@ link-dry-run:
     targets=("$HOME/Work/AGENTS.md")
     sources+=("{{ dotfiles }}/config/workspace/computer-rule")
     targets+=("$HOME/Work/computer-rule")
+    sources+=("{{ dotfiles }}/config/workspace/README.md" "{{ dotfiles }}/config/workspace/workspace-rules")
+    targets+=("$HOME/Work/README.md" "$HOME/Work/workspace-rules")
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       sources+=(
         "{{ dotfiles }}/config/ortie/config.toml"
@@ -375,7 +381,15 @@ seed-agents:
 unlink:
     #!/usr/bin/env bash
     source {{ dotfiles }}/lib/helpers.sh
-    links=("$HOME/Work/AGENTS.md")
+    # Remove only workspace links pointing to this checkout; preserve foreign links and real files.
+    for name in AGENTS.md README.md computer-rule workspace-rules; do
+      target="$HOME/Work/$name"
+      if [ -L "$target" ] && [ "$(readlink "$target")" = "{{ dotfiles }}/config/workspace/$name" ]; then
+        rm "$target"
+        ok "Removed $target"
+      fi
+    done
+    links=()
     if [ "$DOTFILES_PLATFORM" != omarchy ]; then
       links+=(
         "$HOME/.zshenv"
