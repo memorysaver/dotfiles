@@ -101,7 +101,9 @@ just --list            # Show all available recipes
 `just setup` detects the platform and dispatches to one of the explicit setup
 recipes. Every platform setup first runs `just workspace`: it creates the shared
 `~/Work/{github,cowork,tries}` skeleton and links `AGENTS.md`, `README.md`,
-`computer-rule/`, and `workspace-rules/` to the repository-owned workspace policy. A conflicting file is preserved and stops the
+`computer-rule/`, and `workspace-rules/`. Common rules come from dotfiles; a selected computer
+uses its private rule directory. Run `just workspace-computer <computer-id>` once after syncing the
+private machine records; later `just workspace` runs reuse the local ID. A conflicting file is preserved and stops the
 recipe; review it before using `DOTFILES_LINK_MODE=backup just workspace`.
 
 Other application configuration remains separate from tool setup. Run

@@ -14,4 +14,6 @@ If the role remains ambiguous, ask before making machine-specific changes.
 
 General dispatch belongs in [workspace-rules](../workspace-rules/orchestrator.md). The old
 [openab-orchestrator.md](./openab-orchestrator.md) path is only a compatibility reference.
-Source: `~/.dotfiles/config/workspace/computer-rule/`, linked at `~/Work/computer-rule`.
+Source: `~/.dotfiles/config/workspace/computer-rule/`. This index is the unbound fallback.
+With a local computer ID, `~/Work/computer-rule` links to that computer's private rule directory;
+its README references one public profile here. See `~/Work/README.md` for selection and sync.

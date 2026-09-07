@@ -7,11 +7,13 @@ computer; it does not turn these computers into a shared scheduler or synchroniz
 ## Directory and source map
 
 ```text
-~/.dotfiles/config/workspace/       Public policy source, versioned per computer
+~/.dotfiles/                       Public workflow and installer source
+~/idea/                            Private concepts, research and configuration
+└── private-config/computers/<id>/computer-rule/
 ~/Work/
 ├── AGENTS.md       -> ~/.dotfiles/config/workspace/AGENTS.md
 ├── README.md       -> ~/.dotfiles/config/workspace/README.md
-├── computer-rule/  -> ~/.dotfiles/config/workspace/computer-rule/
+├── computer-rule/  -> selected private machine rules (public profiles when unbound)
 ├── workspace-rules/ -> ~/.dotfiles/config/workspace/workspace-rules/
 ├── github/                       Regular or owner-led repositories
 ├── cowork/                       Externally co-developed repositories
@@ -38,7 +40,7 @@ before issuing commands. Nothing in this layout authorizes dispatch to another c
 | Material | Owner |
 | --- | --- |
 | Portable layout, profiles, orchestration rules, installers, generic integrations | Public dotfiles |
-| Computer roster, actual deployed agents, host roles and downstream management | Private idea repo: `deep-research/personal-productivity/host-management/` |
+| Computer roster, actual deployed agents, host roles and downstream management | Private idea repo: `private-config/computers/` |
 | Product implementation, tests and product decisions | Receiving project repository |
 | Live agent config, authentication, sessions and task runtime data | Destination computer |
 
@@ -48,12 +50,37 @@ private repositories automatically. Generic public templates do not declare whic
 
 ## Setup and updates
 
-From the dotfiles checkout, run `just workspace` to create the directories and all four links.
+For a public installation, `just workspace` creates the directories and four links, using the
+public computer-profile index until an identity is selected. Private installations select once:
+
+```bash
+just workspace-computer <computer-id>
+just workspace
+```
+
+The ID comes from the private host-management index. It is stored only in
+`~/.config/dotfiles/computer-id`, never in public dotfiles. Selection requires that computer's
+`private-config/computers/<computer-id>/computer-rule/{README.md,profile}` to exist, and checks
+that its profile matches this platform. It never guesses from hostname or the SSH client.
+Each private directory owns its machine rules and agent references; common profiles stay in dotfiles.
+
+On each computer, update dotfiles and the private idea checkout, then run `just workspace`.
+The persisted ID selects only that computer's rule directory. An unknown ID, missing private source,
+or platform mismatch stops setup instead of silently using another computer's rules. Rebinding a
+previously selected machine to a different ID is refused until the local identity is deliberately
+reviewed and removed. A generic public symlink is upgraded automatically; foreign links and real
+rule directories are preserved. `just unlink` retains the local ID for future reinstall.
+
+`WORKSPACE_ROOT`, `WORKSPACE_ID_FILE`, and `WORKSPACE_HOSTS_DIR` can redirect the workspace setup
+and identity resolver for isolated tests or custom private checkouts. They do not relocate the
+application configs managed by `just link`.
+
+
 Existing conflicting paths are preserved and cause setup to stop. Inspect them before explicitly
 choosing the existing `DOTFILES_LINK_MODE=backup` migration option.
 
 Update each computer's dotfiles checkout separately, preserving dirty changes, then rerun
-`just workspace`. A symlink follows that computer's checkout; it does not pull updates from Git.
+`just workspace`. A symlink follows that computer's source checkout; it does not pull updates from Git.
 Use `just link-dry-run` to inspect managed links and `just doctor` for the broader read-only health
 check. `just unlink` removes managed workspace links but leaves repositories and real files intact.
 Agent templates are seeded once; these operations do not synchronize live agent configuration.
@@ -62,3 +89,17 @@ Existing project migrations are deliberate per-repository work, governed by the 
 `docs/workspace-migration.md` guide. Setup does not clone, move, or bulk-sync repositories.
 
 Workspace link lifecycle regression check: `python tests/workspace-smoke.py` from dotfiles.
+
+## Private idea checkout
+
+The canonical private repository is `~/idea`, outside the project categories. It owns personal
+concepts, research, and private configuration; each computer's rule directory references the public
+baseline profiles under `~/.dotfiles`. Keep a dedicated Herdr workspace rooted at `~/idea` for its
+work, and one at `~/.dotfiles` for public tooling work. Work-level orchestration routes by canonical
+repository path, including these two repositories outside `~/Work`.
+
+For an existing `~/Work/github/idea` checkout, inspect its instructions, Git status, worktrees and
+any existing `~/idea` before an explicitly requested move. Preserve dirty work, repair linked Git
+worktrees after moving, and retain the old path as a compatibility symlink while existing sessions
+use it. Do not create a second clone or automatically delete the alias. New setups place the private
+checkout directly at `~/idea`; workspace setup itself never clones it.

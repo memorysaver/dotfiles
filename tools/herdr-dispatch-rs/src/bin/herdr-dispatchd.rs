@@ -17,7 +17,7 @@ struct Args {
     #[arg(long = "state-dir", value_name = "PATH")]
     state_dir: Option<PathBuf>,
     #[arg(long = "allowed-root", value_name = "PATH")]
-    allowed_root: Option<PathBuf>,
+    allowed_root: Vec<PathBuf>,
 }
 
 fn env_path(name: &str, fallback: &str) -> PathBuf {
@@ -44,15 +44,42 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state_dir = args
         .state_dir
         .unwrap_or_else(|| env_path("HERDR_DISPATCH_STATE_DIR", "~/.config/herdr-dispatchd"));
-    let allowed_root = args
-        .allowed_root
-        .unwrap_or_else(|| env_path("HERDR_DISPATCH_ALLOWED_ROOT", "~/Work"));
+    let allowed_roots = if args.allowed_root.is_empty() {
+        vec![env_path("HERDR_DISPATCH_ALLOWED_ROOT", "~/Work")]
+    } else {
+        args.allowed_root
+    };
     run_daemon(
         expand_user(socket),
         expand_user(herdr_socket),
         expand_user(state_dir),
-        expand_user(allowed_root),
+        allowed_roots,
     )
     .await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn allowed_root_is_repeatable_and_optional() {
+        assert!(Args::try_parse_from(["herdr-dispatchd"])
+            .unwrap()
+            .allowed_root
+            .is_empty());
+        let args = Args::try_parse_from([
+            "herdr-dispatchd",
+            "--allowed-root",
+            "/work",
+            "--allowed-root",
+            "/private",
+        ])
+        .unwrap();
+        assert_eq!(
+            args.allowed_root,
+            vec![PathBuf::from("/work"), PathBuf::from("/private")]
+        );
+    }
 }
