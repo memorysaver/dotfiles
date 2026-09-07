@@ -98,7 +98,7 @@ macos-headless-caffeinate-off:
 infra:
     @bash {{ dotfiles }}/install/infra.sh
 
-# Create ~/Work/{github,cowork,tries}, AGENTS.md, and computer-specific rules.
+# Create ~/Work/{github,cowork,tries}, AGENTS.md, and the unified orchestration rules.
 workspace:
     @bash {{ dotfiles }}/install/workspace.sh
 
@@ -135,9 +135,8 @@ link:
     }
 
     preflight_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
-    preflight_symlink "$rule_source" "$HOME/Work/computer-rule"
+    preflight_symlink "$rule_source" "$HOME/Work/orchestration-rules"
     preflight_symlink "{{ dotfiles }}/config/workspace/README.md" "$HOME/Work/README.md"
-    preflight_symlink "{{ dotfiles }}/config/workspace/workspace-rules" "$HOME/Work/workspace-rules"
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       preflight_symlink "{{ dotfiles }}/config/ortie/config.toml" "$HOME/.config/ortie/config.toml"
       preflight_symlink "{{ dotfiles }}/config/himalaya/config.toml" "$HOME/.config/himalaya/config.toml"
@@ -168,9 +167,9 @@ link:
     # Workspace navigation policy: portable, human-authored, and never rewritten
     # by an application, so it remains safe to manage as a symlink.
     ensure_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
-    ensure_symlink "$rule_source" "$HOME/Work/computer-rule"
+    ensure_symlink "$rule_source" "$HOME/Work/orchestration-rules"
     ensure_symlink "{{ dotfiles }}/config/workspace/README.md" "$HOME/Work/README.md"
-    ensure_symlink "{{ dotfiles }}/config/workspace/workspace-rules" "$HOME/Work/workspace-rules"
+    workspace_remove_legacy_rules "$HOME/Work" "$rule_source"
 
     # Shell: macOS owns Zsh; Omarchy keeps its stock Bash rc and sources one
     # additive personal fragment from the repository.
@@ -264,9 +263,9 @@ link-dry-run:
     sources=("{{ dotfiles }}/config/workspace/AGENTS.md")
     targets=("$HOME/Work/AGENTS.md")
     sources+=("$rule_source")
-    targets+=("$HOME/Work/computer-rule")
-    sources+=("{{ dotfiles }}/config/workspace/README.md" "{{ dotfiles }}/config/workspace/workspace-rules")
-    targets+=("$HOME/Work/README.md" "$HOME/Work/workspace-rules")
+    targets+=("$HOME/Work/orchestration-rules")
+    sources+=("{{ dotfiles }}/config/workspace/README.md")
+    targets+=("$HOME/Work/README.md")
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       sources+=(
         "{{ dotfiles }}/config/ortie/config.toml"
@@ -392,15 +391,16 @@ unlink:
     source "{{ dotfiles }}/lib/workspace.sh"
     rule_source="$(workspace_rule_source)"
     # Remove only workspace links pointing to this checkout; preserve foreign links and real files.
-    for name in AGENTS.md README.md computer-rule workspace-rules; do
+    for name in AGENTS.md README.md orchestration-rules; do
       target="$HOME/Work/$name"
       expected="{{ dotfiles }}/config/workspace/$name"
-      [ "$name" != computer-rule ] || expected="$rule_source"
+      [ "$name" != orchestration-rules ] || expected="$rule_source"
       if [ -L "$target" ] && [ "$(readlink "$target")" = "$expected" ]; then
         rm "$target"
         ok "Removed $target"
       fi
     done
+    workspace_remove_legacy_rules "$HOME/Work" "$rule_source"
     links=()
     if [ "$DOTFILES_PLATFORM" != omarchy ]; then
       links+=(

@@ -52,8 +52,7 @@ just setup
 │   ├── lazygit/
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
-│   │   ├── computer-rule/     # Portable macOS and Omarchy profiles
-│   │   └── workspace-rules/   # Shared local orchestration and external adapter
+│   │   └── orchestration-rules/ # Common profiles, orchestration and external adapter
 │   ├── hypr/                 # Additive Omarchy/Moonlight module
 │   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
 ├── tools/                     # Small machine-local helper programs
@@ -101,7 +100,7 @@ just --list            # Show all available recipes
 `just setup` detects the platform and dispatches to one of the explicit setup
 recipes. Every platform setup first runs `just workspace`: it creates the shared
 `~/Work/{github,cowork,tries}` skeleton and links `AGENTS.md`, `README.md`,
-`computer-rule/`, and `workspace-rules/`. Common rules come from dotfiles; a selected computer
+and `orchestration-rules/`. Common rules come from dotfiles; a selected computer
 uses its private rule directory. Run `just workspace-computer <computer-id>` once after syncing the
 private machine records; later `just workspace` runs reuse the local ID. A conflicting file is preserved and stops the
 recipe; review it before using `DOTFILES_LINK_MODE=backup just workspace`.

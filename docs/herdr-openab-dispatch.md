@@ -135,13 +135,13 @@ parent-linked verification task; do not rerun mutations. Legacy records have no 
 
 Run regression checks with `cargo test --locked` and `cargo clippy --all-targets --locked -- -D warnings`
 in `tools/herdr-dispatch-rs`, then deploy with `just herdr-dispatch`. Deployment restarts only the
-broker, not the Herdr workers. The shared adapter is in `~/Work/workspace-rules/external-dispatch.md`;
+broker, not the Herdr workers. The shared adapter is in `~/.dotfiles/config/workspace/orchestration-rules/external-dispatch.md`;
 existing orchestrator sessions must reread it to pick up the new follow-up workflow.
 
 ## Policy and deployment ownership
 
-Read the [shared orchestration policy](../config/workspace/workspace-rules/orchestrator.md) and
-[external adapter](../config/workspace/workspace-rules/external-dispatch.md). These describe the
+Read the [shared orchestration policy](../config/workspace/orchestration-rules/orchestrator.md) and
+[external adapter](../config/workspace/orchestration-rules/external-dispatch.md). These describe the
 reusable integration, not a particular host's installed agents. Host deployment records and local
 E2E receipts are maintained in the private idea host-management collection. The public repository
 owns broker source and generic tests; live authentication and broker state remain on the host.

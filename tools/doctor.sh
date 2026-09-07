@@ -52,11 +52,15 @@ check_link "$HOME/Work/AGENTS.md" "$D/config/workspace/AGENTS.md"
 check_link "$HOME/Work/README.md" "$D/config/workspace/README.md"
 source "$D/lib/workspace.sh"
 if rule_source="$(workspace_rule_source)"; then
-  check_link "$HOME/Work/computer-rule" "$rule_source"
+  check_link "$HOME/Work/orchestration-rules" "$rule_source"
 else
-  hard "Computer rule selection is invalid or its private source is unavailable"
+  hard "Orchestration rule selection is invalid or its private source is unavailable"
 fi
-check_link "$HOME/Work/workspace-rules" "$D/config/workspace/workspace-rules"
+for legacy in computer-rule workspace-rules; do
+  if [ -e "$HOME/Work/$legacy" ] || [ -L "$HOME/Work/$legacy" ]; then
+    soft "Legacy $legacy remains; run just workspace or inspect preserved custom content"
+  fi
+done
 
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   check_link "$HOME/.config/ortie/config.toml" "$D/config/ortie/config.toml"
