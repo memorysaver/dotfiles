@@ -19,7 +19,19 @@ case "$(uname -s)" in
       distro_like="$(. /etc/os-release 2>/dev/null; printf '%s' "${ID_LIKE:-}")"
       case " $distro $distro_like " in
         *" arch "*) PLATFORM="arch" ;;
-        *" debian "*|*" ubuntu "*) PLATFORM="debian" ;;
+        *" debian "*|*" ubuntu "*)
+          # Mirror lib/helpers.sh: Cursor/Grok agent sandbox is its own recipe.
+          if [ "$(id -un 2>/dev/null || true)" = "box" ] \
+            && [ "${HOME:-}" = "/home/box" ] \
+            && { [ "${CURSOR_AGENT:-}" = "1" ] \
+              || [ -n "${SAND_BOX_CLUSTER:-}" ] \
+              || [ -n "${SAND_BOX_TENANT_ID:-}" ] \
+              || [ -d /exec-daemon ]; }; then
+            PLATFORM="grok-bot"
+          else
+            PLATFORM="debian"
+          fi
+          ;;
         *) PLATFORM="unknown" ;;
       esac
     fi
@@ -57,7 +69,7 @@ elif [ "$PLATFORM" = "omarchy" ]; then
   omarchy pkg add git curl wget base-devel
 elif [ "$PLATFORM" = "arch" ]; then
   sudo pacman -S --needed git curl wget base-devel
-elif [ "$PLATFORM" = "debian" ]; then
+elif [ "$PLATFORM" = "debian" ] || [ "$PLATFORM" = "grok-bot" ]; then
   sudo apt-get update -y
   sudo apt-get install -y git curl wget build-essential
 else
@@ -99,7 +111,7 @@ if ! command -v just &>/dev/null; then
     macos) brew install just ;;
     omarchy) omarchy pkg add just ;;
     arch) sudo pacman -S --needed just ;;
-    debian) curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin ;;
+    debian|grok-bot) curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin ;;
   esac
 fi
 

@@ -6,13 +6,20 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 actual="$(bash -c 'source "$1/lib/helpers.sh"; printf "%s" "$DOTFILES_PLATFORM"' _ "$repo_root")"
 [ -n "$actual" ] || { echo "platform detection returned empty" >&2; exit 1; }
 
-for platform in macos omarchy arch debian; do
+for platform in macos omarchy arch debian grok-bot; do
   detected="$(DOTFILES_PLATFORM="$platform" bash -c 'source "$1/lib/helpers.sh"; printf "%s" "$DOTFILES_PLATFORM"' _ "$repo_root")"
   [ "$detected" = "$platform" ] || {
     echo "platform override failed: expected $platform, got $detected" >&2
     exit 1
   }
 done
+
+rg -F 'setup-grok-bot:' "$repo_root/justfile" >/dev/null
+rg -F '@just grok-bot' "$repo_root/justfile" >/dev/null
+rg -F 'debian|grok-bot)' "$repo_root/lib/helpers.sh" >/dev/null
+rg -F 'is_grok_bot_sandbox' "$repo_root/lib/helpers.sh" >/dev/null
+rg -F 'install/grok-bot.sh' "$repo_root/justfile" >/dev/null
+rg -F 'grok-bot.md' "$repo_root/config/workspace/computer-rule/README.md" >/dev/null
 
 rg -F '@just omarchy-apps' "$repo_root/justfile" >/dev/null
 rg -F '@just omarchy-moonlight' "$repo_root/justfile" >/dev/null

@@ -47,7 +47,7 @@ if ! has lazygit; then
     macos) brew install lazygit ;;
     omarchy) omarchy pkg add lazygit ;;
     arch) sudo pacman -S --needed --noconfirm lazygit ;;
-    debian)
+    debian|grok-bot)
       LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
       ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_${ARCH}.tar.gz"

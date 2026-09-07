@@ -1,7 +1,8 @@
 # dotfiles
 
-Modular, idempotent dotfiles with explicit macOS, Omarchy, Arch, and
-Debian-family installation paths, orchestrated with `just`.
+Modular, idempotent dotfiles with explicit macOS, Omarchy, Arch,
+Debian-family, and Grok Bot sandbox installation paths, orchestrated with
+`just`.
 
 ## Quick Start
 
@@ -42,6 +43,7 @@ just setup
 │   ├── workspace.sh         # Cross-platform ~/Work bootstrap and legacy notice
 │   ├── omarchy-apps.sh
 │   ├── omarchy-moonlight.sh
+│   ├── grok-bot.sh           # Grok Bot sandbox recipe stamp / scope
 │   └── infra.sh
 ├── config/               # App configs and host policy templates
 │   ├── zsh/
@@ -52,7 +54,7 @@ just setup
 │   ├── lazygit/
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
-│   │   ├── computer-rule/     # Portable macOS and Omarchy profiles
+│   │   ├── computer-rule/     # Portable macOS, Omarchy, and Grok Bot profiles
 │   │   └── workspace-rules/   # Shared local orchestration and external adapter
 │   ├── hypr/                 # Additive Omarchy/Moonlight module
 │   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
@@ -85,6 +87,8 @@ just macos-headless-caffeinate # Opt in to persistent macOS headless sleep preve
 just macos-headless-caffeinate-off # Disable the managed headless helper
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
+just setup-grok-bot    # Require Grok Bot sandbox; Debian tools + link + doctor
+just grok-bot          # Write the Grok Bot recipe stamp (no desktop/mail)
 just workspace         # Create ~/Work categories and link its entry docs and rule directories
 just herdr-dispatch    # Install the local OpenAB-to-Herdr dispatch broker
 just link              # Create all config symlinks (idempotent)
@@ -131,6 +135,30 @@ defaults. Hyprland also remains host-owned: the only exception is one additive
 Moonlight module, linked below `~/.config/hypr/remote_desktop.lua` and enabled by
 one exact `require("hypr.remote_desktop")` line in the existing
 `~/.config/hypr/bindings.lua`. No stock binding file is replaced.
+
+## Grok Bot Debian sandbox
+
+`just setup-grok-bot` is the Omarchy-shaped setup path for the Cursor / Grok Bot
+agent host: shared `_setup` (workspace, core, runtimes, agents, tools,
+seed-agents), a small overlay that stamps the recipe scope, then `just link`
+and `just doctor`. It deliberately skips Hyprland, Moonlight, Himalaya/Ortie,
+Ghostty, and other desktop/mail pieces.
+
+簡短說明：這條 recipe 用來追蹤 Grok Bot sandbox 實際套用了哪些設定；底層套件路徑跟
+Debian 一樣走 apt / upstream installer，但 platform id 是 `grok-bot`，不會跟一般
+`setup-debian` 搞混，也不會動到 `setup-omarchy` / `setup-macos`。
+
+Detection (see `lib/helpers.sh`): Debian-family OS, user `box` with
+`HOME=/home/box`, plus a sandbox marker (`CURSOR_AGENT=1`, `SAND_BOX_*`, or
+`/exec-daemon`). Packaging cases treat `grok-bot` like `debian`.
+
+| Step | What it does |
+| --- | --- |
+| `platform-check.sh grok-bot` | Refuse to run on other platforms |
+| `just _setup` | workspace → core → runtimes → agents → tools → seed-agents |
+| `just grok-bot` | Write `~/.config/dotfiles/grok-bot-recipe` (includes/excludes) |
+| `just link` | Non-Omarchy Linux links (zsh, tmux, git, nvim, starship, herdr, lazygit) |
+| `just doctor` | Read-only health gate |
 
 ## Terminal configuration by platform
 

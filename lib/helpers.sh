@@ -6,6 +6,20 @@ set -euo pipefail
 
 # --- Platform Detection ---
 # Keep distributions separate: package names and ownership conventions differ.
+# Cursor/Grok Bot Debian agent sandbox (headless-ish). Distinct from a
+# generic Debian workstation so setup can track what this host actually applies.
+is_grok_bot_sandbox() {
+  [ "$(uname -s)" = "Linux" ] || return 1
+  local user home
+  user="$(id -un 2>/dev/null || true)"
+  home="${HOME:-}"
+  [ "$user" = "box" ] && [ "$home" = "/home/box" ] || return 1
+  [ "${CURSOR_AGENT:-}" = "1" ] \
+    || [ -n "${SAND_BOX_CLUSTER:-}" ] \
+    || [ -n "${SAND_BOX_TENANT_ID:-}" ] \
+    || [ -d /exec-daemon ]
+}
+
 detect_platform() {
   case "$(uname -s)" in
     Darwin) echo "macos"; return ;;
@@ -26,7 +40,13 @@ detect_platform() {
 
   case " $distro $distro_like " in
     *" arch "*) echo "arch" ;;
-    *" debian "*|*" ubuntu "*) echo "debian" ;;
+    *" debian "*|*" ubuntu "*)
+      if is_grok_bot_sandbox; then
+        echo "grok-bot"
+      else
+        echo "debian"
+      fi
+      ;;
     *) echo "unknown" ;;
   esac
 }
@@ -89,7 +109,7 @@ pkg_install() {
     macos) brew install "$brew_pkg" ;;
     omarchy) omarchy pkg add "$arch_pkg" ;;
     arch) sudo pacman -S --needed --noconfirm "$arch_pkg" ;;
-    debian) sudo apt-get install -y "$debian_pkg" ;;
+    debian|grok-bot) sudo apt-get install -y "$debian_pkg" ;;
     *) fail "Unsupported platform: $DOTFILES_PLATFORM"; return 1 ;;
   esac
 }

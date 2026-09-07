@@ -6,6 +6,7 @@ the profile matching the destination computer; remote access does not change tha
 - [mac.md](./mac.md): macOS workstation.
 - [omarchy-desktop.md](./omarchy-desktop.md): user-facing Omarchy desktop.
 - [omarchy-server.md](./omarchy-server.md): Omarchy server workstation.
+- [grok-bot.md](./grok-bot.md): Cursor / Grok Bot Debian agent sandbox.
 
 Prefer the owner's explicit role declaration or the private host-management record. OS evidence
 (`uname -s`, `/etc/omarchy-release`) identifies the platform, but a graphical session does not alone
