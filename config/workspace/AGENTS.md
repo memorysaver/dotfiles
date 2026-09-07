@@ -20,8 +20,9 @@ Keep changes, commits, and releases scoped to their owning repository.
   [orchestration-rules/README.md](./orchestration-rules/README.md), then load the relevant machine,
   agent or dispatch reference. This is the only rules directory deployed under Work.
   Direct project development follows the project rules; it does not require creating a worker.
-- Host agent inventory and downstream management: use the private
-  `~/idea/private-config/computers/README.md` when available.
+- Host agent inventory and downstream management: enter the selected
+  `orchestration-rules/README.md`, verify local identity, then read its `agents.md`.
+  Use `~/idea/private-config/computers/README.md` only to maintain cross-computer records.
   Do not infer deployed agents from public templates or installable tools.
 - New concepts, research, and reusable lessons: enter `~/idea/` and read its `AGENTS.md`.
   Research stays in idea; product decisions, code, and tests belong to the receiving repository.
