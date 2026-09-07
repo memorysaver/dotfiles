@@ -18,12 +18,13 @@ Keep changes, commits, and releases scoped to their owning repository.
 
 - Work-level coordination and dispatch: read [orchestrator rules](./workspace-rules/orchestrator.md).
   Direct project development follows the project rules; it does not require creating a worker.
-- Machine-specific work: identify the destination computer's profile using
-  [computer-rule/README.md](./computer-rule/README.md), then read only its matching profile.
+- Machine-specific work: read the selected [computer-rule/README.md](./computer-rule/README.md).
+  Its private per-computer rules reference the matching public profile; without a local binding,
+  the generic profile index explains how to select one. Never infer identity from the remote client.
 - Host agent inventory and downstream management: use the private
-  `~/Work/github/idea/deep-research/personal-productivity/host-management/README.md` when available.
+  `~/idea/private-config/computers/README.md` when available.
   Do not infer deployed agents from public templates or installable tools.
-- New concepts, research, and reusable lessons: enter `github/idea/` and read its `AGENTS.md`.
+- New concepts, research, and reusable lessons: enter `~/idea/` and read its `AGENTS.md`.
   Research stays in idea; product decisions, code, and tests belong to the receiving repository.
   A handoff is not downstream acceptance or implementation.
 

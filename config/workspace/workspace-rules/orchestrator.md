@@ -11,7 +11,8 @@ project follows that repository's instructions without requiring another worker.
 2. Read the target's nearest instructions and README, check Git status and ongoing workers, and
    identify overlapping file ownership before dispatch. Preserve existing work.
 3. General work and cross-project coordination belong in the topmost workspace rooted at `~/Work`.
-   Project work belongs in the project's dedicated workspace. Match canonical cwd, Git root, and
+   Project work belongs in the project's dedicated workspace, including `~/idea` and `~/.dotfiles`
+   outside Work. Match canonical cwd, Git root, and
    worktree identity; labels, sidebar position alone, and UI focus are not ownership evidence.
 4. Reuse a matching workspace and suitable existing worker. If none exists and the task authorizes
    dispatch there, create a dedicated project workspace. Resolve ambiguous destinations first.

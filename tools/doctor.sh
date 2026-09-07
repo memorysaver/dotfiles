@@ -50,7 +50,12 @@ check_link() {
 
 check_link "$HOME/Work/AGENTS.md" "$D/config/workspace/AGENTS.md"
 check_link "$HOME/Work/README.md" "$D/config/workspace/README.md"
-check_link "$HOME/Work/computer-rule" "$D/config/workspace/computer-rule"
+source "$D/lib/workspace.sh"
+if rule_source="$(workspace_rule_source)"; then
+  check_link "$HOME/Work/computer-rule" "$rule_source"
+else
+  hard "Computer rule selection is invalid or its private source is unavailable"
+fi
 check_link "$HOME/Work/workspace-rules" "$D/config/workspace/workspace-rules"
 
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then

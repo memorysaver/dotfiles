@@ -488,7 +488,7 @@ impl Reservations {
 pub struct Broker {
     herdr: HerdrClient,
     store: Arc<Mutex<TaskStore>>,
-    allowed_root: PathBuf,
+    allowed_roots: Vec<PathBuf>,
     reservations: Arc<Mutex<Reservations>>,
 }
 
@@ -498,17 +498,43 @@ impl Broker {
         state_dir: PathBuf,
         allowed_root: PathBuf,
     ) -> Result<Self, BrokerError> {
-        let allowed_root = expand_user(allowed_root).canonicalize().map_err(|error| {
-            BrokerError::new(
-                "path_not_found",
-                format!("allowed root is unavailable: {error}"),
-            )
-        })?;
+        Self::with_roots(herdr_socket, state_dir, vec![allowed_root])
+    }
+
+    pub fn with_roots(
+        herdr_socket: PathBuf,
+        state_dir: PathBuf,
+        allowed_roots: Vec<PathBuf>,
+    ) -> Result<Self, BrokerError> {
+        if allowed_roots.is_empty() {
+            return Err(BrokerError::new(
+                "invalid_request",
+                "at least one allowed root is required",
+            ));
+        }
+        let allowed_roots = allowed_roots
+            .into_iter()
+            .map(|root| {
+                let root = expand_user(root).canonicalize().map_err(|error| {
+                    BrokerError::new(
+                        "path_not_found",
+                        format!("allowed root is unavailable: {error}"),
+                    )
+                })?;
+                if !root.is_dir() {
+                    return Err(BrokerError::new(
+                        "path_not_found",
+                        "allowed root must be a directory",
+                    ));
+                }
+                Ok(root)
+            })
+            .collect::<Result<Vec<_>, BrokerError>>()?;
         let store = TaskStore::new(expand_user(state_dir))?;
         Ok(Self {
             herdr: HerdrClient::new(expand_user(herdr_socket)),
             store: Arc::new(Mutex::new(store)),
-            allowed_root,
+            allowed_roots,
             reservations: Arc::new(Mutex::new(Reservations::new())),
         })
     }
@@ -558,13 +584,14 @@ impl Broker {
         let resolved = path.canonicalize().map_err(|error| {
             BrokerError::new("path_not_found", format!("cwd is unavailable: {error}"))
         })?;
-        if resolved.strip_prefix(&self.allowed_root).is_err() {
+        if !self
+            .allowed_roots
+            .iter()
+            .any(|root| resolved.starts_with(root))
+        {
             return Err(BrokerError::new(
                 "path_not_allowed",
-                format!(
-                    "cwd must remain under the allowed workspace root: {}",
-                    self.allowed_root.display()
-                ),
+                "cwd must remain under an explicitly allowed workspace root",
             ));
         }
         if !resolved.is_dir() {
@@ -1356,11 +1383,11 @@ pub async fn run_daemon(
     socket_path: PathBuf,
     herdr_socket: PathBuf,
     state_dir: PathBuf,
-    allowed_root: PathBuf,
+    allowed_roots: Vec<PathBuf>,
 ) -> Result<(), BrokerError> {
     let socket_path = expand_user(socket_path);
     prepare_socket(&socket_path)?;
-    let broker = Broker::new(herdr_socket, state_dir, allowed_root)?;
+    let broker = Broker::with_roots(herdr_socket, state_dir, allowed_roots)?;
     broker.prune_history()?;
     let listener = UnixListener::bind(&socket_path).map_err(|error| {
         BrokerError::new(
@@ -1526,6 +1553,45 @@ fn stdin_is_terminal() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn multiple_roots_allow_only_explicit_canonical_directories() {
+        let temp = std::env::temp_dir().join(format!("dispatch-roots-{}", Uuid::new_v4()));
+        for name in [
+            "Work/project",
+            "idea/private-config",
+            ".dotfiles",
+            "idea-other",
+            "outside",
+        ] {
+            fs::create_dir_all(temp.join(name)).unwrap();
+        }
+        let roots = vec![temp.join("Work"), temp.join("idea"), temp.join(".dotfiles")];
+        let broker = Broker::with_roots(temp.join("socket"), temp.join("state"), roots).unwrap();
+        for name in ["Work/project", "idea", "idea/private-config", ".dotfiles"] {
+            assert!(broker.cwd(Some(&json!(temp.join(name)))).is_ok());
+        }
+        for name in ["idea-other", "outside", "idea/../outside"] {
+            assert!(broker.cwd(Some(&json!(temp.join(name)))).is_err());
+        }
+        std::os::unix::fs::symlink(temp.join("outside"), temp.join("Work/escape")).unwrap();
+        assert!(broker.cwd(Some(&json!(temp.join("Work/escape")))).is_err());
+        assert!(Broker::with_roots(temp.join("socket"), temp.join("state"), vec![]).is_err());
+        assert!(Broker::with_roots(
+            temp.join("socket"),
+            temp.join("state"),
+            vec![temp.join("missing")]
+        )
+        .is_err());
+        fs::write(temp.join("file"), "not a root").unwrap();
+        assert!(Broker::with_roots(
+            temp.join("socket"),
+            temp.join("state"),
+            vec![temp.join("file")]
+        )
+        .is_err());
+        fs::remove_dir_all(temp).unwrap();
+    }
 
     #[test]
     fn task_slug_matches_dispatch_naming_rules() {

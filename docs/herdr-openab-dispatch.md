@@ -22,7 +22,7 @@ The broker listens on:
 ```
 
 The socket and state directory use mode `0700`/`0600`. The broker only permits
-working directories below `~/Work`, recognized Herdr agent kinds, and these
+working directories below explicitly configured roots (default `~/Work`), recognized Herdr agent kinds, and these
 operations:
 
 ```text
@@ -61,7 +61,7 @@ herdr-dispatch dispatch \
   --confirmed \
   --task-id idea-20260905-001 \
   --kind codex \
-  --cwd ~/Work/github/idea \
+  --cwd ~/idea \
   --layout workspace \
   --label idea-dispatch \
   --prompt 'Inspect the approved idea task and return a receipt. Do not broaden scope.'
@@ -145,3 +145,12 @@ Read the [shared orchestration policy](../config/workspace/workspace-rules/orche
 reusable integration, not a particular host's installed agents. Host deployment records and local
 E2E receipts are maintained in the private idea host-management collection. The public repository
 owns broker source and generic tests; live authentication and broker state remain on the host.
+
+## Repositories outside Work
+
+`--allowed-root` may be repeated to allow separate canonical repository roots, such as `~/idea`
+and `~/.dotfiles`, without permitting the entire home directory. Each configured root must exist;
+symlink escapes and similarly prefixed sibling paths remain rejected. The default unit still allows
+only Work. Actual host root lists belong in private configuration or a local systemd drop-in, not
+in the public template. Existing `HERDR_DISPATCH_ALLOWED_ROOT` remains the single-root fallback when
+no explicit flags are supplied. Restart the broker after changing its root list; workers are separate.
