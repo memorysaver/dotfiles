@@ -14,9 +14,9 @@ ensure_dir "$workspace_root/github"
 ensure_dir "$workspace_root/cowork"
 ensure_dir "$workspace_root/tries"
 ensure_symlink "$DOTFILES_DIR/config/workspace/AGENTS.md" "$workspace_root/AGENTS.md"
-workspace_link_rule "$rule_source" "$workspace_root/computer-rule"
+workspace_link_rule "$rule_source" "$workspace_root/orchestration-rules"
 
 ensure_symlink "$DOTFILES_DIR/config/workspace/README.md" "$workspace_root/README.md"
-ensure_symlink "$DOTFILES_DIR/config/workspace/workspace-rules" "$workspace_root/workspace-rules"
+workspace_remove_legacy_rules "$workspace_root" "$rule_source"
 
 ok "Shared workspace ready at $workspace_root"

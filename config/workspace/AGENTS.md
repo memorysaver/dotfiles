@@ -16,11 +16,10 @@ Keep changes, commits, and releases scoped to their owning repository.
 
 ## Task references
 
-- Work-level coordination and dispatch: read [orchestrator rules](./workspace-rules/orchestrator.md).
+- Machine-specific work and Work-level coordination: enter
+  [orchestration-rules/README.md](./orchestration-rules/README.md), then load the relevant machine,
+  agent or dispatch reference. This is the only rules directory deployed under Work.
   Direct project development follows the project rules; it does not require creating a worker.
-- Machine-specific work: read the selected [computer-rule/README.md](./computer-rule/README.md).
-  Its private per-computer rules reference the matching public profile; without a local binding,
-  the generic profile index explains how to select one. Never infer identity from the remote client.
 - Host agent inventory and downstream management: use the private
   `~/idea/private-config/computers/README.md` when available.
   Do not infer deployed agents from public templates or installable tools.

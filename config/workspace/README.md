@@ -9,12 +9,11 @@ computer; it does not turn these computers into a shared scheduler or synchroniz
 ```text
 ~/.dotfiles/                       Public workflow and installer source
 ~/idea/                            Private concepts, research and configuration
-└── private-config/computers/<id>/computer-rule/
+└── private-config/computers/<id>/orchestration-rules/
 ~/Work/
 ├── AGENTS.md       -> ~/.dotfiles/config/workspace/AGENTS.md
 ├── README.md       -> ~/.dotfiles/config/workspace/README.md
-├── computer-rule/  -> selected private machine rules (public profiles when unbound)
-├── workspace-rules/ -> ~/.dotfiles/config/workspace/workspace-rules/
+├── orchestration-rules/  -> selected private machine rules (public profiles when unbound)
 ├── github/                       Regular or owner-led repositories
 ├── cowork/                       Externally co-developed repositories
 └── tries/                        Experiments; respect existing try-managed layouts
@@ -30,7 +29,7 @@ folders. Create a repository or worktree only when the task calls for it.
 Start a management agent in a Herdr workspace rooted at `~/Work` to locate projects, dispatch tasks,
 and follow results. Use a project's dedicated workspace to implement work or join an existing worker.
 The orchestrator and the person use the same project workspaces. Check ongoing work before taking
-over; a second pane is not a separate checkout. See [orchestrator rules](./workspace-rules/orchestrator.md).
+over; a second pane is not a separate checkout. See [orchestration entrypoint](./orchestration-rules/README.md).
 
 Remote control uses the destination host's paths, rules, permissions, and session. Identify that host
 before issuing commands. Nothing in this layout authorizes dispatch to another computer.
@@ -50,7 +49,7 @@ private repositories automatically. Generic public templates do not declare whic
 
 ## Setup and updates
 
-For a public installation, `just workspace` creates the directories and four links, using the
+For a public installation, `just workspace` creates the directories and three links, using the
 public computer-profile index until an identity is selected. Private installations select once:
 
 ```bash
@@ -60,7 +59,7 @@ just workspace
 
 The ID comes from the private host-management index. It is stored only in
 `~/.config/dotfiles/computer-id`, never in public dotfiles. Selection requires that computer's
-`private-config/computers/<computer-id>/computer-rule/{README.md,profile}` to exist, and checks
+`private-config/computers/<computer-id>/orchestration-rules/{README.md,profile}` to exist, and checks
 that its profile matches this platform. It never guesses from hostname or the SSH client.
 Each private directory owns its machine rules and agent references; common profiles stay in dotfiles.
 
@@ -103,3 +102,11 @@ any existing `~/idea` before an explicitly requested move. Preserve dirty work, 
 worktrees after moving, and retain the old path as a compatibility symlink while existing sessions
 use it. Do not create a second clone or automatically delete the alias. New setups place the private
 checkout directly at `~/idea`; workspace setup itself never clones it.
+
+## Upgrade from separate rule directories
+
+After updating both source checkouts, run `just workspace` with the existing local identity.
+It creates the unified `orchestration-rules` link, then removes only the exact old managed
+`computer-rule` and `workspace-rules` symlinks. Custom directories and foreign links are preserved
+with a warning. Do not copy both old rule trees into the new one: private machine contents reference
+the public profiles and shared dispatch procedures. Existing agent sessions must reread the new entry.

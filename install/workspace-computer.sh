@@ -9,10 +9,10 @@ if [ -e "$id_file" ] || [ -L "$id_file" ]; then
   [ "$(cat "$id_file")" = "$1" ] || { fail "Computer is already bound to another ID; review the local identity before changing it"; exit 1; }
 fi
 rule_source="$(workspace_rule_source "$1")"
-target="${WORKSPACE_ROOT:-$HOME/Work}/computer-rule"
+target="${WORKSPACE_ROOT:-$HOME/Work}/orchestration-rules"
 if [ -e "$target" ] || [ -L "$target" ]; then
-  [ -L "$target" ] && { [ "$(readlink "$target")" = "$DOTFILES_DIR/config/workspace/computer-rule" ] ||
-    [ "$(readlink "$target")" = "$rule_source" ]; } || { fail "Preserving conflicting computer-rule path"; exit 1; }
+  [ -L "$target" ] && { [ "$(readlink "$target")" = "$DOTFILES_DIR/config/workspace/orchestration-rules" ] ||
+    [ "$(readlink "$target")" = "$rule_source" ]; } || { fail "Preserving conflicting orchestration-rules path"; exit 1; }
 fi
 ensure_dir "$(dirname "$id_file")"
 tmp_id="$(mktemp "${id_file}.XXXXXX")"
@@ -21,4 +21,5 @@ printf '%s\n' "$1" > "$tmp_id"
 chmod 600 "$tmp_id"
 workspace_link_rule "$rule_source" "$target"
 mv "$tmp_id" "$id_file"
+workspace_remove_legacy_rules "${WORKSPACE_ROOT:-$HOME/Work}" "$rule_source"
 ok "Computer identity selected; future workspace syncs reuse its private rules"
