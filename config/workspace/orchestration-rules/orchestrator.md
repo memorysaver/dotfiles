@@ -41,6 +41,10 @@ user panes without authorization. The top-level Work workspace remains the manag
 
 ## Private deployment context
 
-For host-agent management, read the private idea host-management index referenced by `../AGENTS.md`.
-Actual agent rosters, deployment choices, and downstream relationships stay there. Public dotfiles
-contains only this common mechanism; active tasks and session IDs remain machine-local runtime data.
+For local agent management, enter `~/Work/orchestration-rules/README.md`, verify the destination
+identity, then read `agents.md` in that selected directory. Read
+`~/idea/private-config/computers/README.md` only when maintaining cross-computer records.
+If private rules or inventory are unavailable, report the missing context instead of inferring
+deployed agents from public templates. Actual agent rosters, deployment choices, and downstream
+relationships stay in private idea. Public dotfiles contains only this common mechanism; active
+tasks and session IDs remain machine-local runtime data.
