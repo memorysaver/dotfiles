@@ -37,9 +37,12 @@ read         read recent output for one dispatched agent
 wait         wait for idle/done/blocked/unknown
 ```
 
-`dispatch` requires `--confirmed`; the OpenAB orchestrator must only pass that
-flag after the user confirms the proposed repository, cwd, worker, layout, and
-permissions in Discord. The broker does not store prompts or agent output.
+`dispatch` requires `--confirmed`; pass it only within the user-authorized task and destination.
+Users identify projects and outcomes; the orchestrator resolves canonical cwd, worker and fresh
+layout IDs without asking for routine placement approval. Follow the
+[autonomy and routing rules](../config/workspace/orchestration-rules/orchestrator.md) and
+[external adapter](../config/workspace/orchestration-rules/external-dispatch.md).
+The broker does not store prompts or agent output.
 After `agent.start`, it waits for Herdr to report the named agent as
 `interactive_ready` before sending `agent.prompt`, so the startup transition
 cannot race the prompt submission.
@@ -77,8 +80,10 @@ herdr-dispatch wait --task-id idea-20260905-001 --timeout-ms 3600000
 ```
 
 Use `--layout tab --workspace-id <id>` for an independent tab in an existing
-workspace. Use `--layout pane --target-pane-id <id>` only when the user has
-approved splitting that exact pane. All created layout operations use
+workspace. Use `--layout pane --target-pane-id <id>` for a non-disruptive split next to related
+work within the authorized scope. Resolve and verify the ID from live state; users do not need
+to specify it. Create a workspace only when no matching one exists or isolation was requested.
+All created layout operations use
 `focus=false` so the user's current view is preserved.
 
 The broker is deliberately not a general remote shell. It does not accept raw
