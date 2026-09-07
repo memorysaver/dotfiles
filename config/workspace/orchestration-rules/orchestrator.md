@@ -14,13 +14,31 @@ project follows that repository's instructions without requiring another worker.
    Project work belongs in the project's dedicated workspace, including `~/idea` and `~/.dotfiles`
    outside Work. Match canonical cwd, Git root, and
    worktree identity; labels, sidebar position alone, and UI focus are not ownership evidence.
-4. Reuse a matching workspace and suitable existing worker. If none exists and the task authorizes
-   dispatch there, create a dedicated project workspace. Resolve ambiguous destinations first.
-   Use a task tab for independent work or a specific relevant pane split for closely related work.
-   A pane visiting a repo does not make its enclosing general workspace the project's home.
+4. Reuse a matching project workspace and a suitable existing worker after checking ongoing work.
+   If the workspace exists but lacks a suitable worker, create a task tab or relevant pane split
+   inside that workspace. Create a project workspace only when no matching workspace exists;
+   an explicitly requested isolated workspace is an exception. A pane visiting a repo does not
+   make its enclosing general workspace the project's home.
 5. Pass the objective, destination cwd, constraints, expected deliverable, and verification criteria.
    Honor the user's existing authorization; ask only for missing scope or authority. Creating a pane
    does not authorize a repository, worktree, destructive action, or unrelated task.
+
+## Autonomy and human intent
+
+Users identify projects and desired outcomes, not workspace, tab or pane IDs. Resolve the project
+from conversation context and repository evidence, then discover fresh IDs from live state yourself.
+Do not ask users to supply IDs or approve routine placement. When a task and destination are already
+authorized for dispatch, selecting a suitable worker and creating the necessary workspace, tab or
+pane within that scope are execution details. Honor any explicit worker or placement preference.
+
+Default to a new task tab for independent work; a new pane split next to related work is also allowed
+when it preserves the existing worker and focus. Reuse suitable workers without interrupting or
+redirecting unrelated work. If several workspaces match the same checkout, choose a suitable one
+from live context; different plausible repositories or worktrees require resolving the ambiguity.
+Ask in project terms, not internal IDs, only when missing scope or destination prevents a safe choice,
+or when an action would interrupt existing work, close/move/repurpose user panes, or exceed existing
+authorization. Prefer a non-disruptive new tab when it resolves a placement issue within scope.
+Report the chosen project and route without treating the update as a new approval gate.
 
 ## Control and follow-up
 
