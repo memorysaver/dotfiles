@@ -30,7 +30,7 @@ Skills are installed **per project**, never into a global skill directory. Nothi
 symlinked into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the
 Antigravity CLI's directory.
 
-**Exceptions**, installed globally by `install/agents.sh` (`GLOBAL_SKILLS`). Two
+**Exceptions**, installed globally by `install/agent-skills.sh` (also called by `just agents`). Two
 conditions, both required:
 
 1. **Inert until deliberately activated.** The skill cannot fire on an unrelated task the
@@ -42,11 +42,14 @@ conditions, both required:
 | Skill | Added | Condition 1 | Condition 2 |
 | --- | --- | --- | --- |
 | `herdr` | 2026-08-03 | ✅ Frontmatter requires `HERDR_ENV=1` and tells the agent to stop when unset, so it does nothing outside a Herdr-managed pane. | ✅ |
-| `i-have-adhd` | 2026-08-04 | ✅ `disable-model-invocation: true` — the model cannot auto-invoke it at all. Only `/i-have-adhd` activates it. | ✅ |
+| `show-me` | 2026-09-08 | User-selected override: model-invocable visual explanations; no explicit-invocation guard. | ✅ Cross-project explanation style. |
 | `agent-browser` | 2026-08-04 | ❌ **Override, decided 2026-08-06** — always-on is the point. | ✅ CLI is installed globally by `tools.sh`. |
 
-The first two clear condition 1 by different mechanisms — a runtime env guard versus a
-frontmatter flag — so the test is the property, not the mechanism.
+`show-me` replaces `i-have-adhd` by explicit user decision on 2026-09-08.
+It uses concise diagrams, code sketches and focused HTML artifacts. Preserve upstream triggers;
+do not add a manual-only guard. On Linux, use the available opener instead of macOS `open`.
+Run `just agent-skills` to refresh all three defaults and their agent links, then remove the
+retired skill. Pull alone cannot update external skill installations.
 
 **`agent-browser` overrides condition 1 by an explicit decision on 2026-08-06.** It has no
 guard and no `disable-model-invocation`. Its description is deliberately broad
@@ -68,7 +71,7 @@ otherwise, even if browser instructions do show up in unrelated sessions. To und
 day comes:
 
 ```bash
-npx skills@1.5.20 remove agent-browser -g -a '*' -y   # then drop it from GLOBAL_SKILLS
+npx skills@1.5.20 remove agent-browser -g -y   # then drop it from install/agent-skills.sh
 ```
 
 The ❌ above stays because it is factually accurate about the skill, not because the
@@ -153,7 +156,7 @@ skill. Recover from git history if they are ever wanted back.
 | Skill(s) | Repo | Notes |
 | --- | --- | --- |
 | `herdr` | `herdrdev/herdr` | **Global** — see Policy above. The repo also offers `herdr-pre-release-audit`, `herdr-throwaway-repro`, and `triage`; all three are for developing Herdr itself, not for using it, so they are deliberately not installed. |
-| `i-have-adhd` | `ayghri/i-have-adhd` | **Global** — see Policy above. MIT. Output-shaping style, invoked with `/i-have-adhd`. The repo also ships a Claude Code plugin whose `SessionStart` hook makes it always-on when `~/.claude/.i-have-adhd-always` exists; `skills add` does not install hooks, so that mode needs the plugin instead (see "plugin != skill" below). |
+| `show-me` | `humanlayer/skills`, path `plugins/show-me/skills/show-me` | **Global** — user-selected visual explanation default. Install the skill directory; no plugin hooks are installed. |
 | superpowers (brainstorming, systematic-debugging, TDD, writing-plans, …) | `obra/superpowers` | ~14 skills. Not `obra/superpowers-marketplace` — that resolves but exposes 0. |
 | document-skills (`xlsx`, `docx`, `pptx`, `pdf`, …) | `anthropics/skills` | ~19 skills. |
 | obsidian (`defuddle`, `json-canvas`, `obsidian-bases`, `obsidian-cli`, `obsidian-markdown`) | `kepano/obsidian-skills` | **Needs `--full-depth`.** |
