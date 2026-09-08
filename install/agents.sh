@@ -79,7 +79,7 @@ if ! has herdr; then
   case "$DOTFILES_PLATFORM" in
     macos) brew install herdr ;;
     omarchy) omarchy pkg add herdr ;;
-    arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr install failed" ;;
+    arch|debian|grok-bot) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr install failed" ;;
     *)     warn "Unsupported OS for Herdr -- skipping" ;;
   esac
 elif [ "$UPGRADE" = 1 ]; then
@@ -87,7 +87,7 @@ elif [ "$UPGRADE" = 1 ]; then
   case "$DOTFILES_PLATFORM" in
     macos) brew upgrade herdr || ok "Herdr already at the latest release" ;;
     omarchy) ok "Herdr upgrades with omarchy update" ;;
-    arch|debian) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr upgrade failed" ;;
+    arch|debian|grok-bot) curl -fsSL https://herdr.dev/install.sh | sh || warn "Herdr upgrade failed" ;;
   esac
 else
   ok "Herdr already installed ($(herdr --version 2>/dev/null))"

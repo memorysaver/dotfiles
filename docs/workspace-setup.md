@@ -17,6 +17,9 @@ The ID comes from the private host-management index. It is stored only in
 `~/.config/dotfiles/computer-id`, never in public dotfiles. Selection requires that computer's
 `private-config/computers/<computer-id>/orchestration-rules/{README.md,profile}` to exist, and checks
 that its profile matches this platform. It never guesses from hostname or the SSH client.
+Supported public profile names today are `mac`, `omarchy-server`, `omarchy-desktop`, and
+`grok-bot`. The Grok Bot Debian sandbox normally stays unbound (public rules only) unless a
+private `~/idea` host record with profile `grok-bot` is deliberately selected.
 Each private directory owns its machine rules and agent references; common profiles stay in dotfiles.
 
 For an already-bound computer with intact links, pull dotfiles and idea to update rule content;

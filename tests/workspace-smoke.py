@@ -51,6 +51,7 @@ with tempfile.TemporaryDirectory(prefix='workspace lifecycle ') as tmp:
     source = fixture('test-server', 'omarchy-server')
     fixture('test-desktop', 'omarchy-desktop')
     fixture('test-mac', 'mac')
+    fixture('test-grok', 'grok-bot')
     for invalid in ['../escape', 'unknown', '', 'test-mac']:
         run('workspace-computer.sh', invalid, ok=False)
         assert not identity.exists()
@@ -120,4 +121,11 @@ with tempfile.TemporaryDirectory(prefix='workspace lifecycle ') as tmp:
     run('workspace-computer.sh', 'test-mac', extra={'DOTFILES_PLATFORM': 'macos',
         'WORKSPACE_ROOT': str(root / 'MacWork'), 'WORKSPACE_ID_FILE': str(root / 'mac-id')})
     assert (root / 'MacWork/orchestration-rules').resolve() == hosts / 'test-mac/orchestration-rules'
+    # Grok Bot sandbox may bind only when private profile is grok-bot.
+    run('workspace-computer.sh', 'test-server', ok=False, extra={'DOTFILES_PLATFORM': 'grok-bot',
+        'WORKSPACE_ROOT': str(root / 'GrokWorkBad'), 'WORKSPACE_ID_FILE': str(root / 'grok-id-bad')})
+    assert not (root / 'grok-id-bad').exists()
+    run('workspace-computer.sh', 'test-grok', extra={'DOTFILES_PLATFORM': 'grok-bot',
+        'WORKSPACE_ROOT': str(root / 'GrokWork'), 'WORKSPACE_ID_FILE': str(root / 'grok-id')})
+    assert (root / 'GrokWork/orchestration-rules').resolve() == hosts / 'test-grok/orchestration-rules'
 print('Workspace lifecycle and per-computer identity checks passed.')

@@ -31,6 +31,21 @@ setup-debian:
     @bash {{ dotfiles }}/install/platform-check.sh debian
     @just _setup
 
+# Grok Bot Debian agent sandbox: same shared tools as Debian, then link + doctor
+# like Omarchy — without Hypr/Moonlight/mail/desktop overlays.
+setup-grok-bot:
+    @bash {{ dotfiles }}/install/platform-check.sh grok-bot
+    @echo "Grok Bot sandbox package installs may need sudo; authenticate once to begin."
+    @sudo -v
+    @just _setup
+    @just grok-bot
+    @just link
+    @just doctor
+
+# Record the Grok Bot recipe stamp (no desktop or mail pieces).
+grok-bot:
+    @bash {{ dotfiles }}/install/grok-bot.sh
+
 # Shared orchestration. The portable workspace policy is installed everywhere;
 # application-config linking remains a separate, conflict-aware step.
 _setup: workspace core runtimes agents tools seed-agents

@@ -16,7 +16,7 @@ elif ! has_working gh; then
   case "$DOTFILES_PLATFORM" in
     macos) brew install gh ;;
     arch) sudo pacman -S --needed --noconfirm github-cli ;;
-    debian)
+    debian|grok-bot)
       (type -p wget >/dev/null || sudo apt-get install -y wget) \
         && sudo mkdir -p -m 755 /etc/apt/keyrings \
         && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null \
@@ -36,7 +36,7 @@ if ! has_working glab; then
     macos) brew install glab ;;
     omarchy) omarchy pkg add glab ;;
     arch) sudo pacman -S --needed --noconfirm glab ;;
-    debian)
+    debian|grok-bot)
       GLAB_VERSION=$(curl -s "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
       ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       curl -Lo /tmp/glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/${GLAB_VERSION}/downloads/glab_${GLAB_VERSION#v}_linux_${ARCH}.tar.gz"
@@ -58,7 +58,7 @@ if ! has yq; then
     macos) brew install yq ;;
     omarchy) omarchy pkg add yq ;;
     arch) sudo pacman -S --needed --noconfirm yq ;;
-    debian)
+    debian|grok-bot)
       YQ_VERSION=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest" | grep -Po '"tag_name": "\K[^"]*')
       ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       sudo curl -Lo /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}"
@@ -76,7 +76,7 @@ if ! has just; then
     macos) brew install just ;;
     omarchy) omarchy pkg add just ;;
     arch) sudo pacman -S --needed --noconfirm just ;;
-    debian)
+    debian|grok-bot)
       curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
       ;;
   esac

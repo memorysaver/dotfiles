@@ -220,6 +220,18 @@ if [ "$DOTFILES_PLATFORM" = macos ]; then
   done
 fi
 
+# --- Grok Bot recipe stamp -------------------------------------------------
+if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
+  head_ "Grok Bot sandbox"
+  stamp="$HOME/.config/dotfiles/grok-bot-recipe"
+  if [ -f "$stamp" ] && grep -Fq 'platform=grok-bot' "$stamp"; then
+    pass "recipe stamp present (~/.config/dotfiles/grok-bot-recipe)"
+  else
+    hard "Grok Bot recipe stamp missing — run: just grok-bot"
+  fi
+  pass "desktop/mail overlays intentionally skipped on grok-bot"
+fi
+
 # --- Summary ---------------------------------------------------------------
 printf '\n\033[1mSummary:\033[0m %d passed, %d warning(s), %d failed\n' "$PASS" "$WARN" "$FAIL"
 [ "$FAIL" -eq 0 ] || { printf '\033[31mSome checks failed.\033[0m\n' >&2; exit 1; }

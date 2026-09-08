@@ -25,7 +25,7 @@ workspace_rule_source() {
   }
   profile="$(cat "$hosts/$id/orchestration-rules/profile")"
   case "$DOTFILES_PLATFORM:$profile" in
-    macos:mac|omarchy:omarchy-server|omarchy:omarchy-desktop) ;;
+    macos:mac|omarchy:omarchy-server|omarchy:omarchy-desktop|grok-bot:grok-bot) ;;
     *) fail "Selected computer profile does not match this platform"; return 1 ;;
   esac
   printf '%s\n' "$hosts/$id/orchestration-rules"
