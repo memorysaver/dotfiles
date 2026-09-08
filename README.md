@@ -237,6 +237,17 @@ it caused remote pointer coordinate drift in this headless configuration.
 The module is a managed real file rather than a symlink because Hyprland's
 sandboxed Lua loader cannot require a target outside `~/.config/hypr`.
 
+Omarchy hides 1Password from screen capture by default, so its window appears
+black through Moonlight even while the app works. To opt in to displaying it on
+a trusted remote desktop, copy `config/hypr/1password_remote.lua` to
+`~/.config/hypr/1password_remote.lua` and add
+`require("hypr.1password_remote")` after the defaults in the host-owned
+`~/.config/hypr/hyprland.lua`. Run `hyprctl reload` and check
+`hyprctl configerrors`. This also allows other screenshots and screen sharing
+to capture 1Password; it is not restricted to Moonlight or Tailscale. Remove the
+require line and reload to restore Omarchy's capture protection. This module is
+not enabled by the normal setup or the headless display installer.
+
 ## macOS headless remote workstation
 
 The tested AC-only closed-lid path for a MacBook is recorded in
