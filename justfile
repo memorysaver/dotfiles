@@ -68,6 +68,10 @@ agents:
 herdr-dispatch:
     @bash {{ dotfiles }}/install/herdr-dispatch.sh
 
+# Refresh global default skills for all agents without upgrading agent CLIs
+agent-skills:
+    @bash {{ dotfiles }}/install/agent-skills.sh
+
 # Upgrade all AI coding agents to their latest release
 update-agents:
     @bash {{ dotfiles }}/install/agents.sh --upgrade

@@ -24,7 +24,7 @@ just setup
 |--------|-------|
 | `just core` | platform shell, tmux, starship, nvim, lazygit, git-lfs, direnv |
 | `just runtimes` | pyenv, uv, nvm, Node.js, Bun, Rust |
-| `just agents` | Herdr, global skills (`herdr`, `i-have-adhd`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Antigravity CLI (agy), Grok Build, Pi |
+| `just agents` | Herdr, global skills (`herdr`, `show-me`, `agent-browser`), Claude Code, Codex CLI, OpenCode, Antigravity CLI (agy), Grok Build, Pi |
 | `just tools` | gh, glab, jq, yq, just, agent-browser, portless, cliamp, lazydocker, mole (macOS only) |
 | `just infra` | Terraform, Pulumi, SST *(opt-in, not in default setup)* |
 
@@ -461,7 +461,7 @@ Links under `~/.claude/skills`, `~/.codex/skills` and `~/.pi/agent/skills` **tha
 into this repo** are the one exception: those are deleted, not dereferenced. Skills moved
 to per-project installs in the same migration, so dereferencing would rebuild the global
 skill tree as real directories — one duplicate copy per agent — which is exactly what that
-change removed. The `herdr`, `i-have-adhd` and `agent-browser` links that `just agents`
+change removed. The `herdr`, `show-me` and `agent-browser` links that `just agents`
 installs in those same directories point at `~/.agents/skills`, not here, so they fall
 under the never-touched rule above and survive. Reinstall what a project needs with
 `npx skills add memorysaver/dotfiles`; see
@@ -526,8 +526,8 @@ smoke tests separately cover the Omarchy shell overlay and ownership boundary.
 Shared skills live under `agents/skills/<skill-name>/` and are the single source of
 truth. They are **not installed globally** — as of 2026-07-28 nothing is symlinked into
 `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the Antigravity CLI's
-skill directory. The exceptions are `herdr`, `i-have-adhd` and `agent-browser`, installed globally by
-`just agents`. The first two stay inert until deliberately activated; `agent-browser` is a
+skill directory. The exceptions are `herdr`, `show-me` and `agent-browser`, installed globally by
+`just agents`. Herdr retains its explicit activation guard; `show-me` is a user-selected visual explanation default. `agent-browser` is a
 deliberate override that does not. `docs/agent-skills-sources.md` states the bar in full.
 Install everything else per project, from this public repo:
 
@@ -595,3 +595,9 @@ diff ~/.claude/settings.json ~/.dotfiles/agents/claude/settings.json
 ## License
 
 MIT
+
+### Refresh global default skills
+
+Run `just agent-skills` after pulling to refresh `herdr`, `show-me`, and `agent-browser`
+for all supported agents and remove the retired `i-have-adhd` skill. This does not upgrade
+agent CLIs or replace their live configuration. Existing sessions must reload skills.

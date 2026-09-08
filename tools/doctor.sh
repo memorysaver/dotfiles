@@ -156,7 +156,7 @@ fi
 # docs/agent-skills-sources.md. ~/.agents/skills holds the canonical copy.
 head_ "Global agent skills"
 
-for s in herdr i-have-adhd agent-browser; do
+for s in herdr show-me agent-browser; do
   if [ -f "$HOME/.agents/skills/$s/SKILL.md" ]; then
     pass "$s"
   else
