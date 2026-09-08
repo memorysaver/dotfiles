@@ -22,7 +22,7 @@ The broker listens on:
 ```
 
 The socket and state directory use mode `0700`/`0600`. The broker only permits
-working directories below `~/Work`, recognized Herdr agent kinds, and these
+working directories below explicitly configured roots (default `~/Work`), recognized Herdr agent kinds, and these
 operations:
 
 ```text
@@ -37,9 +37,12 @@ read         read recent output for one dispatched agent
 wait         wait for idle/done/blocked/unknown
 ```
 
-`dispatch` requires `--confirmed`; the OpenAB orchestrator must only pass that
-flag after the user confirms the proposed repository, cwd, worker, layout, and
-permissions in Discord. The broker does not store prompts or agent output.
+`dispatch` requires `--confirmed`; pass it only within the user-authorized task and destination.
+Users identify projects and outcomes; the orchestrator resolves canonical cwd, worker and fresh
+layout IDs without asking for routine placement approval. Follow the
+[autonomy and routing rules](../config/workspace/orchestration-rules/orchestrator.md) and
+[external adapter](../config/workspace/orchestration-rules/external-dispatch.md).
+The broker does not store prompts or agent output.
 After `agent.start`, it waits for Herdr to report the named agent as
 `interactive_ready` before sending `agent.prompt`, so the startup transition
 cannot race the prompt submission.
@@ -61,7 +64,7 @@ herdr-dispatch dispatch \
   --confirmed \
   --task-id idea-20260905-001 \
   --kind codex \
-  --cwd ~/Work/github/idea \
+  --cwd ~/idea \
   --layout workspace \
   --label idea-dispatch \
   --prompt 'Inspect the approved idea task and return a receipt. Do not broaden scope.'
@@ -77,8 +80,10 @@ herdr-dispatch wait --task-id idea-20260905-001 --timeout-ms 3600000
 ```
 
 Use `--layout tab --workspace-id <id>` for an independent tab in an existing
-workspace. Use `--layout pane --target-pane-id <id>` only when the user has
-approved splitting that exact pane. All created layout operations use
+workspace. Use `--layout pane --target-pane-id <id>` for a non-disruptive split next to related
+work within the authorized scope. Resolve and verify the ID from live state; users do not need
+to specify it. Create a workspace only when no matching one exists or isolation was requested.
+All created layout operations use
 `focus=false` so the user's current view is preserved.
 
 The broker is deliberately not a general remote shell. It does not accept raw
@@ -135,13 +140,22 @@ parent-linked verification task; do not rerun mutations. Legacy records have no 
 
 Run regression checks with `cargo test --locked` and `cargo clippy --all-targets --locked -- -D warnings`
 in `tools/herdr-dispatch-rs`, then deploy with `just herdr-dispatch`. Deployment restarts only the
-broker, not the Herdr workers. The shared adapter is in `~/Work/workspace-rules/external-dispatch.md`;
+broker, not the Herdr workers. The shared adapter is in `~/.dotfiles/config/workspace/orchestration-rules/external-dispatch.md`;
 existing orchestrator sessions must reread it to pick up the new follow-up workflow.
 
 ## Policy and deployment ownership
 
-Read the [shared orchestration policy](../config/workspace/workspace-rules/orchestrator.md) and
-[external adapter](../config/workspace/workspace-rules/external-dispatch.md). These describe the
+Read the [shared orchestration policy](../config/workspace/orchestration-rules/orchestrator.md) and
+[external adapter](../config/workspace/orchestration-rules/external-dispatch.md). These describe the
 reusable integration, not a particular host's installed agents. Host deployment records and local
 E2E receipts are maintained in the private idea host-management collection. The public repository
 owns broker source and generic tests; live authentication and broker state remain on the host.
+
+## Repositories outside Work
+
+`--allowed-root` may be repeated to allow separate canonical repository roots, such as `~/idea`
+and `~/.dotfiles`, without permitting the entire home directory. Each configured root must exist;
+symlink escapes and similarly prefixed sibling paths remain rejected. The default unit still allows
+only Work. Actual host root lists belong in private configuration or a local systemd drop-in, not
+in the public template. Existing `HERDR_DISPATCH_ALLOWED_ROOT` remains the single-root fallback when
+no explicit flags are supplied. Restart the broker after changing its root list; workers are separate.

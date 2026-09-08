@@ -16,14 +16,15 @@ Keep changes, commits, and releases scoped to their owning repository.
 
 ## Task references
 
-- Work-level coordination and dispatch: read [orchestrator rules](./workspace-rules/orchestrator.md).
+- Machine-specific work and Work-level coordination: enter
+  [orchestration-rules/README.md](./orchestration-rules/README.md), then load the relevant machine,
+  agent or dispatch reference. This is the only rules directory deployed under Work.
   Direct project development follows the project rules; it does not require creating a worker.
-- Machine-specific work: identify the destination computer's profile using
-  [computer-rule/README.md](./computer-rule/README.md), then read only its matching profile.
-- Host agent inventory and downstream management: use the private
-  `~/Work/github/idea/deep-research/personal-productivity/host-management/README.md` when available.
+- Host agent inventory and downstream management: enter the selected
+  `orchestration-rules/README.md`, verify local identity, then read its `agents.md`.
+  Use `~/idea/private-config/computers/README.md` only to maintain cross-computer records.
   Do not infer deployed agents from public templates or installable tools.
-- New concepts, research, and reusable lessons: enter `github/idea/` and read its `AGENTS.md`.
+- New concepts, research, and reusable lessons: enter `~/idea/` and read its `AGENTS.md`.
   Research stays in idea; product decisions, code, and tests belong to the receiving repository.
   A handoff is not downstream acceptance or implementation.
 

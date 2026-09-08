@@ -19,7 +19,9 @@ rg -F '@just grok-bot' "$repo_root/justfile" >/dev/null
 rg -F 'debian|grok-bot)' "$repo_root/lib/helpers.sh" >/dev/null
 rg -F 'is_grok_bot_sandbox' "$repo_root/lib/helpers.sh" >/dev/null
 rg -F 'install/grok-bot.sh' "$repo_root/justfile" >/dev/null
-rg -F 'grok-bot.md' "$repo_root/config/workspace/computer-rule/README.md" >/dev/null
+rg -F 'grok-bot.md' "$repo_root/config/workspace/orchestration-rules/profiles/README.md" >/dev/null
+test -f "$repo_root/config/workspace/orchestration-rules/profiles/grok-bot.md"
+rg -F 'grok-bot:grok-bot' "$repo_root/lib/workspace.sh" >/dev/null
 
 rg -F '@just omarchy-apps' "$repo_root/justfile" >/dev/null
 rg -F '@just omarchy-moonlight' "$repo_root/justfile" >/dev/null

@@ -54,8 +54,7 @@ just setup
 │   ├── lazygit/
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
-│   │   ├── computer-rule/     # Portable macOS, Omarchy, and Grok Bot profiles
-│   │   └── workspace-rules/   # Shared local orchestration and external adapter
+│   │   └── orchestration-rules/ # Common profiles (mac/Omarchy/Grok Bot), orchestration, adapter
 │   ├── hypr/                 # Additive Omarchy/Moonlight module
 │   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
 ├── tools/                     # Small machine-local helper programs
@@ -105,7 +104,9 @@ just --list            # Show all available recipes
 `just setup` detects the platform and dispatches to one of the explicit setup
 recipes. Every platform setup first runs `just workspace`: it creates the shared
 `~/Work/{github,cowork,tries}` skeleton and links `AGENTS.md`, `README.md`,
-`computer-rule/`, and `workspace-rules/` to the repository-owned workspace policy. A conflicting file is preserved and stops the
+and `orchestration-rules/`. Common rules come from dotfiles; a selected computer
+uses its private rule directory. Run `just workspace-computer <computer-id>` once after syncing the
+private machine records; later `just workspace` runs reuse the local ID. A conflicting file is preserved and stops the
 recipe; review it before using `DOTFILES_LINK_MODE=backup just workspace`.
 
 Other application configuration remains separate from tool setup. Run
@@ -151,6 +152,14 @@ Debian 一樣走 apt / upstream installer，但 platform id 是 `grok-bot`，不
 Detection (see `lib/helpers.sh`): Debian-family OS, user `box` with
 `HOME=/home/box`, plus a sandbox marker (`CURSOR_AGENT=1`, `SAND_BOX_*`, or
 `/exec-daemon`). Packaging cases treat `grok-bot` like `debian`.
+
+The public machine profile lives at
+[`config/workspace/orchestration-rules/profiles/grok-bot.md`](./config/workspace/orchestration-rules/profiles/grok-bot.md).
+`lib/workspace.sh` accepts the `grok-bot:grok-bot` platform/profile pair when a
+private host record is selected. By default the sandbox stays **unbound**:
+`just workspace` links the public `orchestration-rules/` tree because this shared
+agent host is ephemeral and usually has no `~/idea/private-config/computers/<id>/`
+entry. Do not invent a private binding unless that record already exists.
 
 | Step | What it does |
 | --- | --- |
