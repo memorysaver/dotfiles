@@ -193,7 +193,7 @@ if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
       # Durable PATH entry for agent shells that may not load nvm
       mkdir -p "$HOME/.local/bin"
       node_bin="$(command -v node)"
-      hf_mjs="$(node -p "require('path').join(require('path').dirname(process.execPath),'../lib/node_modules/hyperframes/bin/hyperframes.mjs")" 2>/dev/null || true)"
+      hf_mjs="$(node -p "require('path').join(require('path').dirname(process.execPath), '../lib/node_modules/hyperframes/bin/hyperframes.mjs')" 2>/dev/null || true)"
       if [ ! -f "$hf_mjs" ]; then
         hf_mjs="$(npm root -g)/hyperframes/bin/hyperframes.mjs"
       fi
