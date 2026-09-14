@@ -163,6 +163,60 @@ else
   ok "Mole already installed ($(mole --version 2>/dev/null | awk '/^Mole version/{print $3; exit}'))"
 fi
 
+# --- Hyperframes (Grok Bot Short / video compositions) ---
+# npm package requires Node >= 22. Install only on grok-bot; James Cameron /
+# short-builder need `hyperframes` on PATH after Update Computer. Do not use
+# ephemeral file:/tmp/*.tgz installs.
+if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
+  if has_working hyperframes; then
+    ok "hyperframes already installed ($(hyperframes --version 2>/dev/null | head -1))"
+  elif ! has npm && ! [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+    warn "npm/nvm not found — skipping hyperframes"
+  else
+    info "Installing hyperframes (Node >= 22)..."
+    (
+      set +u
+      unset NPM_CONFIG_PREFIX
+      NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+      if [ -s "$NVM_DIR/nvm.sh" ]; then
+        # shellcheck disable=SC1090
+        . "$NVM_DIR/nvm.sh"
+        nvm install 22 >/dev/null
+        nvm use 22 >/dev/null
+      fi
+      major="$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)"
+      if [ "${major:-0}" -lt 22 ]; then
+        warn "hyperframes needs Node >= 22 (have $(node --version 2>/dev/null || echo none)) — skipping"
+        exit 0
+      fi
+      npm install -g hyperframes
+      # Durable PATH entry for agent shells that may not load nvm
+      mkdir -p "$HOME/.local/bin"
+      node_bin="$(command -v node)"
+      hf_mjs="$(node -p "require('path').join(require('path').dirname(process.execPath),'../lib/node_modules/hyperframes/bin/hyperframes.mjs")" 2>/dev/null || true)"
+      if [ ! -f "$hf_mjs" ]; then
+        hf_mjs="$(npm root -g)/hyperframes/bin/hyperframes.mjs"
+      fi
+      if [ -f "$hf_mjs" ]; then
+        cat >"$HOME/.local/bin/hyperframes" <<EOF
+#!/usr/bin/env bash
+unset NPM_CONFIG_PREFIX
+export NVM_DIR="\${NVM_DIR:-\$HOME/.nvm}"
+[ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
+nvm use 22 >/dev/null 2>&1 || true
+exec node "$hf_mjs" "\$@"
+EOF
+        chmod +x "$HOME/.local/bin/hyperframes"
+      fi
+      if has_working hyperframes; then
+        ok "hyperframes installed ($(hyperframes --version 2>/dev/null | head -1))"
+      else
+        warn "hyperframes install finished but --version failed"
+      fi
+    ) || warn "hyperframes install failed"
+  fi
+fi
+
 # Skill-backing CLIs (opencli, podwise, wavespeed-cli, qmd, uipro-cli) are no longer
 # installed globally on every machine. Each existed only to make one skill in
 # agents/skills/ runnable, so they belong wherever that skill is actually used.
