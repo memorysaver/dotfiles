@@ -12,7 +12,7 @@ if [ "$DOTFILES_PLATFORM" != grok-bot ]; then
 fi
 
 info "Applying Grok Bot sandbox overlay..."
-info "Includes: workspace, core, runtimes, agents, tools, seed-agents, link, doctor"
+info "Includes: workspace, core, runtimes, agents, tools (incl. hyperframes), seed-agents, link, doctor"
 info "Skips: omarchy-apps, Moonlight/Hypr, Himalaya/Ortie, Ghostty, macOS headless helpers"
 
 ensure_dir "$HOME/.config/dotfiles"

@@ -230,6 +230,11 @@ if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
     hard "Grok Bot recipe stamp missing — run: just grok-bot"
   fi
   pass "desktop/mail overlays intentionally skipped on grok-bot"
+  if has_working hyperframes; then
+    pass "hyperframes ($(hyperframes --version 2>/dev/null | head -1))"
+  else
+    soft "hyperframes missing — run: just tools (needs Node >= 22 / nvm)"
+  fi
 fi
 
 # --- Summary ---------------------------------------------------------------
