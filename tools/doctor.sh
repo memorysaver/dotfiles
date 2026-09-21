@@ -235,6 +235,16 @@ if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
   else
     soft "hyperframes missing — run: just tools (needs Node >= 22 / nvm)"
   fi
+  if has tailscale; then
+    pass "tailscale ($(tailscale version 2>/dev/null | head -1))"
+  else
+    soft "tailscale missing — run: just tools"
+  fi
+  if has dagu; then
+    pass "dagu ($(dagu version 2>/dev/null | head -1))"
+  else
+    soft "dagu missing — run: just tools"
+  fi
 fi
 
 # --- Summary ---------------------------------------------------------------
