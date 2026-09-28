@@ -185,12 +185,13 @@ skill. Recover from git history if they are ever wanted back.
 | codex (`rescue`, `setup`, runtime helpers) | `openai/codex-plugin-cc` | ~3 skills. |
 | `ui-ux-pro-max` | `nextlevelbuilder/ui-ux-pro-max-skill` | **Needs `--full-depth`.** |
 | `aep-onboard`, `aep-scaffold` | `memorysaver/agentic-engineering-patterns` | **Needs `--full-depth`.** |
+| `typesafe-ai` | `typesafe-ai/skills` | TypeSafe System One / Jev. Per project only — description is too broad for the global bar. Do not vendor (live docs are the source of truth). Do not also install the Claude plugin (`typesafe@typesafe-ai`); that duplicates the same `SKILL.md`. No `--full-depth`. |
 
 `--full-depth` matters whenever a repo has a `SKILL.md` at its root: without it the CLI
 stops there and never descends into subdirectories, so nested skills look missing.
 
 Every repo above was verified with `npx skills add <repo> --list` on 2026-07-29 against
-CLI `1.5.20`.
+CLI `1.5.20`. `typesafe-ai` was verified the same way on 2026-09-17.
 
 ### No upstream to install from
 
