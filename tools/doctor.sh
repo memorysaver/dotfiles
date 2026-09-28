@@ -201,12 +201,18 @@ if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   else
     soft "~/.claude/themes/omarchy.json missing — run: omarchy-theme-set-claude --activate"
   fi
+  # `mise activate` may put the Mise install dir ahead of the ~/.local/bin wrapper;
+  # both are Mise-owned. Only the vendor copy in ~/.grok/bin is drift.
   grok_cmd="$(command -v grok 2>/dev/null || true)"
-  if [ "$grok_cmd" = "$HOME/.local/bin/grok" ]; then
-    pass "grok is the Omarchy Mise wrapper"
-  elif [ -n "$grok_cmd" ]; then
-    soft "grok is $grok_cmd — expected ~/.local/bin/grok (do not put ~/.grok/bin on PATH)"
-  fi
+  case "$grok_cmd" in
+    "$HOME/.local/bin/grok"|"$HOME"/.local/share/mise/*)
+      pass "grok is the Omarchy Mise wrapper (${grok_cmd/#$HOME/\~})" ;;
+    "$HOME"/.grok/bin/*)
+      soft "grok is the vendor copy in ~/.grok/bin — do not put ~/.grok/bin on PATH; use ~/.local/bin/grok" ;;
+    "") ;;
+    *)
+      soft "grok is $grok_cmd — expected the Omarchy Mise wrapper ~/.local/bin/grok" ;;
+  esac
 fi
 
 # --- Agent config drift ----------------------------------------------------
