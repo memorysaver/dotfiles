@@ -1,130 +1,50 @@
-# Moshi + Herdr remote access
+# Tailscale SSH + Herdr remote access
 
-This is the recovery record for the Omarchy host that is reached over
-Tailscale. It describes the deliberate two-path setup and the parts that must
-remain machine-local.
+The intended Omarchy host baseline uses Tailscale SSH on port 22 for both
+Herdr remote attach and SSH terminal access. Tailscale identity and the cloud
+SSH policy authenticate connections; Moshi pairing keys are no longer needed.
 
-## Current policy
+## Recovery
 
-| Use | Endpoint | Server | Authentication |
-| --- | --- | --- | --- |
-| Herdr remote attach | <tailscale-ip>:22 | Tailscale SSH | Tailscale identity and tailnet ACLs |
-| Moshi | <tailscale-ip>:2222 | system OpenSSH (sshd) | one ED25519 public key; passwords and root login disabled |
+1. Restore the usual dotfiles tools with `just setup-omarchy`.
+2. Authenticate Tailscale on this host and enable Tailscale SSH:
 
-The two rows are different products. “SSH over Tailscale” means ordinary
-OpenSSH traffic routed through the Tailscale VPN. “Tailscale SSH” is Tailscale's
-own SSH server and authentication path. Tailscale SSH uses port 22 on the
-Tailscale interface; the normal sshd process is therefore kept on port 2222
-for Moshi and any other ordinary SSH client.
+   ```bash
+   sudo tailscale up
+   sudo tailscale set --ssh
+   ```
 
-Moshi does not inherently require port 2222. It needs normal OpenSSH key
-authentication, and its usual default is port 22. Port 2222 exists here only
-because port 22 is intentionally reserved for Tailscale SSH. If Tailscale SSH
-is not used, Moshi can use ordinary sshd on its normal port instead.
-
-See the [Moshi Tailscale guide](https://getmoshi.app/docs/tailscale) and
-[Tailscale SSH documentation](https://tailscale.com/docs/features/tailscale-ssh)
-for the distinction between these paths.
-
-## What is tracked
-
-- config/remote-access/sshd/99-moshi-herdr.conf.example is the non-secret
-  OpenSSH policy.
-- tools/audit-remote-access.sh and just audit-remote-access verify the
-  firewall, Tailscale, sshd, and local file permissions without repairing
-  anything.
-- This document records the firewall rule and the reinstall order.
-
-The following are intentionally not stored in Git:
-
-- Tailscale node identity and interactive login state;
-- tailnet ACLs/grants, which are managed in the Tailscale admin console;
-- the actual ~/.ssh/authorized_keys and any private key;
-- ~/.config/moshi/config.toml, which may contain machine-specific connection
-  or credential data.
-
-## Fresh Omarchy recovery
-
-Run these steps on the machine that will host sshd and Moshi, not on the
-client workstation. Start with the normal dotfiles setup:
-
-~~~bash
-cd ~/.dotfiles
-just setup-omarchy
-~~~
-
-On a new installation, authenticate Tailscale interactively and enable
-Tailscale SSH:
-
-~~~bash
-sudo tailscale up
-sudo tailscale set --ssh
-tailscale status
-~~~
-
-Install the tracked OpenSSH policy. Before restarting sshd, make sure there
-is no other active system-OpenSSH Port 22 line; port 22 is reserved for
-Tailscale SSH in this design.
-
-~~~bash
-sudo install -Dm644 \
-  config/remote-access/sshd/99-moshi-herdr.conf.example \
-  /etc/ssh/sshd_config.d/99-moshi-herdr.conf
-
-sudo sshd -t
-sudo sshd -T | awk '$1 == "port" { print }'
-sudo systemctl enable --now sshd
-sudo systemctl restart sshd
-~~~
-
-The effective configuration must include port 2222. If an existing
-configuration still enables system OpenSSH on port 22, resolve that conflict
-before restarting the service.
-
-Keep the firewall limited to the Tailscale interface. Review the existing
-rules first; the default deny command is appropriate for this baseline but
-may not be appropriate for a host with other intentional inbound services.
-
-~~~bash
-sudo ufw status verbose
-sudo ufw default deny incoming
-sudo ufw allow in on tailscale0 to any port 2222 proto tcp
-sudo ufw enable
-~~~
-
-Do not add a broad 2222/tcp ALLOW Anywhere rule and do not create a router
-port-forward. Port 2222 is not made safe by being a nonstandard port; the
-security boundary is Tailscale reachability, the interface-specific firewall
-rule, key-only authentication, and the tailnet ACL.
-
-Complete Moshi's interactive pairing/key setup on the host, then verify the
-local permissions:
-
-~~~bash
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/authorized_keys
-chmod 700 ~/.config/moshi
-chmod 600 ~/.config/moshi/config.toml
-~~~
-
-Finally, run the read-only audit on this host:
-
-~~~bash
-just audit-remote-access
-~~~
-
-It is expected to report failures on a fresh host until Tailscale, sshd, the
-firewall, Moshi, and the authorized key have all been restored.
+3. Confirm a separate client can connect through Tailscale SSH before disabling
+   any existing OpenSSH fallback. Keep the `openssh` package for its client.
+4. Keep system `sshd.service` and any `sshd.socket` inactive and disabled.
+   Remove Moshi-specific SSH drop-ins and explicit TCP 2222 firewall rules.
+5. Keep UFW enabled with its incoming deny policy. No public port 22 or 2222
+   allow rule or router forwarding is needed for this baseline. The former
+   `tailscale0` TCP 2222 allow rule is retired as well.
+6. Run `just audit-remote-access` to check the local baseline. Review the
+   cloud-managed SSH policy separately; see the README's Tailnet SSH section.
 
 ## Connectivity checks
 
 From another machine on the tailnet:
 
-~~~bash
-ssh <tailscale-ip>                         # Tailscale SSH / Herdr path
-ssh -p 2222 <user>@<tailscale-ip>          # ordinary OpenSSH / Moshi path
-~~~
+```bash
+ssh <user>@<tailscale-host>
+herdr --remote <user>@<tailscale-host>
+```
 
-Run herdr --remote from a normal terminal outside an existing Herdr session;
-Herdr disables nested Herdr sessions by default. A tailscale ping only proves
-Tailscale reachability; it does not prove that either SSH port is listening.
+Remove any client SSH alias or saved connection override that selects port
+2222. Use Herdr remote attach from a normal terminal outside an existing Herdr
+session. `tailscale ping` alone does not prove SSH login works. Tailscale SSH
+is handled by `tailscaled`, so a kernel TCP 22 listener is not required.
+
+## Ownership and history
+
+Tailscale node identity, credentials, runtime state and cloud ACLs remain
+outside this repository. Generic tools and this baseline are owned by dotfiles.
+
+The 2026-08-29 setup added Moshi and an OpenSSH endpoint on port 2222 alongside
+Tailscale SSH 22. Commit `8bd09c8` recorded its recovery procedure and example
+policy. On 2026-09-08 the owner requested retiring that endpoint and retaining
+Tailscale SSH only. The old recovery procedure remains in Git history; do not
+reinstall its Moshi drop-in or pairing keys.

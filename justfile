@@ -60,7 +60,7 @@ core:
 runtimes:
     @bash {{ dotfiles }}/install/runtimes.sh
 
-# Install Herdr + AI coding agents: Claude Code, Codex, OpenCode, agy, Grok Build, Pi
+# Install Herdr + AI coding agents. On Omarchy, Claude/Codex/Pi/Grok are Mise wrappers.
 agents:
     @bash {{ dotfiles }}/install/agents.sh
 
@@ -72,7 +72,8 @@ herdr-dispatch:
 agent-skills:
     @bash {{ dotfiles }}/install/agent-skills.sh
 
-# Upgrade all AI coding agents to their latest release
+# Upgrade AI coding agents. On Omarchy this is `omarchy update mise` for
+# Claude/Codex/Pi/Grok, not each vendor's self-updater.
 update-agents:
     @bash {{ dotfiles }}/install/agents.sh --upgrade
 
@@ -80,7 +81,7 @@ update-agents:
 validate-skills:
     @bash {{ dotfiles }}/tools/validate-agent-skills.sh
 
-# Audit the Moshi + Herdr remote-access security baseline (read-only; uses sudo)
+# Audit the Tailscale SSH + Herdr remote-access security baseline (read-only; uses sudo)
 audit-remote-access:
     @bash {{ dotfiles }}/tools/audit-remote-access.sh
 

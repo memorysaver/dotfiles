@@ -24,6 +24,27 @@ alone. For reference, as of 2026-07-29:
 Do not prune these to "clean up" global skills. They are how each agent is expected to
 work out of the box.
 
+### Omarchy-shipped skills
+
+On Omarchy, the OS is another vendor. It packages `omarchy` and `diagnose-crash`
+under `/usr/share/omarchy/default/agents/skills/` and symlinks them into
+`~/.claude/skills`, `~/.agents/skills`, `~/.codex/skills`, and
+`~/.pi/agent/skills` (and Hermes when that is installed). Claude Code reads
+`~/.claude/skills`, so that is how it gets the Omarchy customization skill.
+
+These links are not this repo's global exceptions, not per-project installs, and
+not leftovers from the 2026-07-28 migration. `just adopt-agents` already ignores
+them because they do not point here. Do not:
+
+- clone `robzolkos/omarchy-skill` or any other third-party copy over the link
+- add the skill to `agents/skills/` or `install/agent-skills.sh`
+- copy `/usr/share/omarchy/default/agents/skills/omarchy` into a real directory
+  under `~/.claude/skills` (that freezes a package file and breaks updates)
+
+The skill is experimental in Omarchy's own manual. Prefer plan mode before letting
+an agent rewrite Hyprland or shell config, and use `omarchy refresh` / `omarchy
+reinstall configs` if it makes a mess. Content updates arrive with `omarchy update`.
+
 ## Policy
 
 Skills are installed **per project**, never into a global skill directory. Nothing is
@@ -164,12 +185,13 @@ skill. Recover from git history if they are ever wanted back.
 | codex (`rescue`, `setup`, runtime helpers) | `openai/codex-plugin-cc` | ~3 skills. |
 | `ui-ux-pro-max` | `nextlevelbuilder/ui-ux-pro-max-skill` | **Needs `--full-depth`.** |
 | `aep-onboard`, `aep-scaffold` | `memorysaver/agentic-engineering-patterns` | **Needs `--full-depth`.** |
+| `typesafe-ai` | `typesafe-ai/skills` | TypeSafe System One / Jev. Per project only — description is too broad for the global bar. Do not vendor (live docs are the source of truth). Do not also install the Claude plugin (`typesafe@typesafe-ai`); that duplicates the same `SKILL.md`. No `--full-depth`. |
 
 `--full-depth` matters whenever a repo has a `SKILL.md` at its root: without it the CLI
 stops there and never descends into subdirectories, so nested skills look missing.
 
 Every repo above was verified with `npx skills add <repo> --list` on 2026-07-29 against
-CLI `1.5.20`.
+CLI `1.5.20`. `typesafe-ai` was verified the same way on 2026-09-17.
 
 ### No upstream to install from
 

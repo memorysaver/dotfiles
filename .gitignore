@@ -8,8 +8,7 @@
 .env
 *.local
 
-# Remote-access credentials and machine-local state. Keep only the policy
-# template in config/remote-access/ under version control.
+# Remote-access credentials and machine-local state must stay out of Git.
 config/remote-access/**/authorized_keys
 config/remote-access/**/known_hosts
 config/remote-access/**/config.toml

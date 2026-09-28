@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify the Moshi + Herdr remote-access security baseline on this Omarchy host.
+# Verify the Tailscale SSH + Herdr remote-access security baseline on this Omarchy host.
 # Read-only: this script reports drift and never repairs configuration.
 
 set -uo pipefail
@@ -11,13 +11,13 @@ Usage: tools/audit-remote-access.sh
 
 Checks the local security baseline for:
   - UFW enabled with deny-by-default inbound policy
-  - no public UFW allow rule for OpenSSH port 2222
+  - no remaining UFW allow rule for retired TCP port 2222
   - Tailscale running with Tailscale SSH enabled
-  - OpenSSH enabled on port 2222 with key-only authentication
-  - SSH and Moshi key/config ownership and permissions
+  - system OpenSSH disabled and TCP 2222 closed
+  - Moshi installation and pairing state removed
 
 The audit is read-only. It requests sudo so it can inspect the effective UFW
-and sshd configuration. FAIL results produce exit status 1; warnings do not.
+and service configuration. FAIL results produce exit status 1; warnings do not.
 EOF
   exit 0
 fi
@@ -52,7 +52,7 @@ require_command() {
 }
 
 head_ "Audit prerequisites"
-for command_name in systemctl ufw sshd ss tailscale jq ssh-keygen; do
+for command_name in systemctl ufw ss tailscale jq; do
   require_command "$command_name"
 done
 
@@ -76,15 +76,14 @@ else
   hard "UFW incoming policy is not deny-by-default"
 fi
 
-# A broad ALLOW for 2222 would expose OpenSSH on LAN/public interfaces. An
-# interface-specific tailscale0 rule is compatible with this baseline.
-public_2222_rules=$(awk '
-  $0 ~ /2222\/tcp/ && $0 ~ /ALLOW IN/ && $0 !~ /tailscale0/ { print }
+# The former Moshi endpoint must no longer have an explicit allow rule.
+retired_rules=$(awk '
+  $0 ~ /2222/ && $0 ~ /ALLOW IN/ { print }
 ' <<<"$ufw_status")
-if [[ -z $public_2222_rules ]]; then
-  pass "no broad UFW allow rule exposes TCP 2222"
+if [[ -z $retired_rules ]]; then
+  pass "no UFW allow rule remains for TCP 2222"
 else
-  hard "TCP 2222 has a non-Tailscale ALLOW rule: ${public_2222_rules//$'\n'/; }"
+  hard "retired port 2222 still has an ALLOW rule: ${retired_rules//$'\n'/; }"
 fi
 
 head_ "Tailscale"
@@ -115,103 +114,38 @@ fi
 peer_count=$(jq -r '(.Peer // {}) | length' <<<"$tailscale_status" 2>/dev/null || printf '?')
 soft "tailnet ACL/grants are cloud-managed and cannot be fully audited here; compare against the README section 'Tailnet SSH access policy' when device membership changes (currently $peer_count peer(s))"
 
-head_ "OpenSSH for Moshi and Herdr"
-if systemctl is-enabled --quiet sshd && systemctl is-active --quiet sshd; then
-  pass "sshd is enabled and active"
-else
-  hard "sshd must be enabled and active"
-fi
-
-if sshd -t; then
-  pass "sshd configuration validates"
-else
-  hard "sshd configuration is invalid"
-fi
-
-sshd_effective=$(sshd -T 2>/dev/null || true)
-check_sshd_value() {
-  local key=$1 expected=$2
-  if awk -v key="$key" -v expected="$expected" '
-    tolower($1) == tolower(key) && tolower($2) == tolower(expected) { found=1 }
-    END { exit !found }
-  ' <<<"$sshd_effective"; then
-    pass "sshd $key = $expected"
+head_ "Retired OpenSSH endpoint"
+for unit in sshd.service sshd.socket; do
+  if systemctl is-active --quiet "$unit" 2>/dev/null || systemctl is-enabled --quiet "$unit" 2>/dev/null; then
+    hard "$unit must be inactive and disabled"
   else
-    hard "sshd $key must be $expected"
+    pass "$unit is inactive and not enabled"
   fi
-}
-if [[ -z $sshd_effective ]]; then
-  hard "sshd -T returned no effective configuration"
-fi
-check_sshd_value port 2222
-check_sshd_value pubkeyauthentication yes
-check_sshd_value passwordauthentication no
-check_sshd_value kbdinteractiveauthentication no
-check_sshd_value permitrootlogin no
-
-if ss -ltnH | awk '$4 ~ /:2222$/ { found=1 } END { exit !found }'; then
-  pass "OpenSSH is listening on TCP 2222"
-else
-  hard "nothing is listening on TCP 2222"
-fi
-
-if ss -ltnH | awk '$4 ~ /:22$/ { found=1 } END { exit !found }'; then
-  soft "a kernel listener also owns TCP 22; verify it is intentional (Tailscale SSH normally intercepts this in netstack)"
-else
-  pass "system OpenSSH is not listening on TCP 22"
-fi
-
-head_ "User SSH and Moshi state"
-ssh_dir=$TARGET_HOME/.ssh
-authorized_keys=$ssh_dir/authorized_keys
-
-check_mode_owner() {
-  local path=$1 expected_mode=$2
-  if [[ ! -e $path ]]; then
-    hard "$path is missing"
-    return
-  fi
-  local actual_mode actual_owner
-  actual_mode=$(stat -c '%a' "$path")
-  actual_owner=$(stat -c '%U' "$path")
-  if [[ $actual_mode == "$expected_mode" && $actual_owner == "$TARGET_USER" ]]; then
-    pass "${path/#$TARGET_HOME/\~} is owned by $TARGET_USER with mode $expected_mode"
+done
+if listeners=$(ss -ltnH '( sport = :2222 )'); then
+  if [[ -z $listeners ]]; then
+    pass "TCP 2222 has no listener"
   else
-    hard "${path/#$TARGET_HOME/\~} is $actual_owner mode $actual_mode; expected $TARGET_USER mode $expected_mode"
-  fi
-}
-
-check_mode_owner "$ssh_dir" 700
-check_mode_owner "$authorized_keys" 600
-
-if [[ -r $authorized_keys ]]; then
-  key_count=$(awk 'NF && $1 !~ /^#/ { count++ } END { print count + 0 }' "$authorized_keys")
-  if [[ $key_count == 1 ]]; then
-    pass "authorized_keys contains exactly one key"
-  else
-    hard "authorized_keys contains $key_count keys; baseline expects exactly one Moshi key"
-  fi
-
-  if awk 'NF && $1 !~ /^#/ && ($1 == "ssh-ed25519" || $2 == "ssh-ed25519") { found=1 } END { exit !found }' "$authorized_keys"; then
-    pass "the authorized key uses ED25519"
-  else
-    hard "the authorized key is not ED25519"
-  fi
-fi
-
-moshi_dir=$TARGET_HOME/.config/moshi
-moshi_config=$moshi_dir/config.toml
-check_mode_owner "$moshi_dir" 700
-if [[ -f $moshi_config ]]; then
-  config_mode=$(stat -c '%a' "$moshi_config")
-  config_owner=$(stat -c '%U' "$moshi_config")
-  if [[ $config_owner == "$TARGET_USER" && ( $config_mode == 600 || $config_mode == 644 ) ]]; then
-    pass "~/.config/moshi/config.toml has expected ownership and safe mode $config_mode"
-  else
-    hard "~/.config/moshi/config.toml is $config_owner mode $config_mode; expected $TARGET_USER mode 600 or 644"
+    hard "TCP 2222 still has a listener"
   fi
 else
-  hard "~/.config/moshi/config.toml is missing"
+  hard "cannot inspect TCP listeners"
+fi
+
+head_ "Moshi removal"
+for path in "$TARGET_HOME/.local/bin/moshi" "$TARGET_HOME/.local/bin/moshi-hook" \
+  "$TARGET_HOME/.config/moshi" "$TARGET_HOME/.local/state/moshi" \
+  /etc/ssh/sshd_config.d/40-moshi-herdr.conf /etc/ssh/sshd_config.d/99-moshi-herdr.conf; do
+  if [[ -e $path || -L $path ]]; then
+    hard "retired Moshi path remains: $path"
+  else
+    pass "retired Moshi path absent: $path"
+  fi
+done
+if [[ -f $TARGET_HOME/.ssh/authorized_keys ]] && grep -q 'moshi-pair:' "$TARGET_HOME/.ssh/authorized_keys"; then
+  hard "a Moshi pairing key remains in authorized_keys"
+else
+  pass "no Moshi pairing key remains in authorized_keys"
 fi
 
 head_ "Summary"

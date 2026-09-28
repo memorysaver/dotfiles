@@ -152,8 +152,9 @@ if [ "$DOTFILES_PLATFORM" = omarchy ]; then
 fi
 
 # --- Global agent skills ---------------------------------------------------
-# The only skills installed globally; everything else is per project. See
-# docs/agent-skills-sources.md. ~/.agents/skills holds the canonical copy.
+# Skills this repo installs globally; everything else from this repo is per
+# project. See docs/agent-skills-sources.md. ~/.agents/skills holds the
+# canonical copy of herdr / show-me / agent-browser.
 head_ "Global agent skills"
 
 for s in herdr show-me agent-browser; do
@@ -168,6 +169,50 @@ done
 # served by the CLI. Stub without CLI is a live pointer to a missing command.
 if [ -f "$HOME/.agents/skills/agent-browser/SKILL.md" ] && ! has agent-browser; then
   hard "agent-browser skill installed but its CLI is missing — the stub points at a command that does not exist. Run: just tools"
+fi
+
+# Omarchy packages its own agent skills and links them into Claude Code. Those
+# are OS-owned, not this repo's global exceptions. A real directory here means
+# someone cloned a third-party copy over the package link.
+if [ "$DOTFILES_PLATFORM" = omarchy ]; then
+  head_ "Omarchy Claude Code skills"
+  skills_src="/usr/share/omarchy/default/agents/skills"
+  for s in omarchy diagnose-crash; do
+    expected="$skills_src/$s"
+    if [ ! -d "$expected" ]; then
+      hard "$expected missing — update or repair Omarchy"
+      continue
+    fi
+    for dest in "$HOME/.claude/skills/$s" "$HOME/.agents/skills/$s"; do
+      label="${dest/#$HOME/\~}"
+      if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$expected" ]; then
+        pass "$label"
+      elif [ -L "$dest" ]; then
+        hard "$label → $(readlink "$dest") (expected $expected) — Omarchy relinks these on update"
+      elif [ -e "$dest" ]; then
+        hard "$label is a real file or directory, not Omarchy's skill link — remove it and let Omarchy relink"
+      else
+        hard "$label missing — Omarchy should symlink $s from $skills_src"
+      fi
+    done
+  done
+  if [ -f "$HOME/.claude/themes/omarchy.json" ]; then
+    pass "~/.claude/themes/omarchy.json"
+  else
+    soft "~/.claude/themes/omarchy.json missing — run: omarchy-theme-set-claude --activate"
+  fi
+  # `mise activate` may put the Mise install dir ahead of the ~/.local/bin wrapper;
+  # both are Mise-owned. Only the vendor copy in ~/.grok/bin is drift.
+  grok_cmd="$(command -v grok 2>/dev/null || true)"
+  case "$grok_cmd" in
+    "$HOME/.local/bin/grok"|"$HOME"/.local/share/mise/*)
+      pass "grok is the Omarchy Mise wrapper (${grok_cmd/#$HOME/\~})" ;;
+    "$HOME"/.grok/bin/*)
+      soft "grok is the vendor copy in ~/.grok/bin — do not put ~/.grok/bin on PATH; use ~/.local/bin/grok" ;;
+    "") ;;
+    *)
+      soft "grok is $grok_cmd — expected the Omarchy Mise wrapper ~/.local/bin/grok" ;;
+  esac
 fi
 
 # --- Agent config drift ----------------------------------------------------

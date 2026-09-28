@@ -15,6 +15,10 @@ if [ -d "$HOME/.opencode/bin" ]; then
   export PATH="$HOME/.opencode/bin:$PATH"
 fi
 
-if [ -d "$HOME/.grok/bin" ]; then
-  export PATH="$HOME/.grok/bin:$PATH"
+# Vendor Grok Build installer lands in ~/.grok/bin and would recapture PATH
+# after `grok update`. On Omarchy, grok is the Mise wrapper in ~/.local/bin.
+if [ ! -r /etc/omarchy-release ] && ! command -v omarchy >/dev/null 2>&1; then
+  if [ -d "$HOME/.grok/bin" ]; then
+    export PATH="$HOME/.grok/bin:$PATH"
+  fi
 fi

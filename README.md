@@ -55,8 +55,7 @@ just setup
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
 │   │   └── orchestration-rules/ # Common profiles (mac/Omarchy/Grok Bot), orchestration, adapter
-│   ├── hypr/                 # Additive Omarchy/Moonlight module
-│   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
+│   └── hypr/                 # Additive Omarchy/Moonlight module
 ├── tools/                     # Small machine-local helper programs
 │   └── herdr-dispatch-rs/     # Rust OpenAB-to-Herdr broker and CLI
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
@@ -67,7 +66,7 @@ just setup
 │   └── skills/           # Skill source, installed per project by the skills CLI
 ├── docs/                     # Recovery and ownership notes
 │   ├── herdr-openab-dispatch.md # OpenAB-to-Herdr design and operations
-│   └── remote-access.md         # Moshi + Herdr over Tailscale
+│   └── remote-access.md         # Tailscale SSH + Herdr
 └── env/                     # Environment config
     ├── .env.example
     └── .envrc.template
@@ -95,7 +94,7 @@ just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
 just seed-agents       # Copy agent config templates to ~ (never overwrites)
 just doctor            # Health-check this machine (read-only, exits 1 on failure)
-just audit-remote-access # Audit the Moshi + Herdr SSH baseline (read-only)
+just audit-remote-access # Audit the Tailscale SSH + Herdr baseline (read-only)
 just check-agent-links # Warn if any agent config still links back into this repo
 just infra             # Install infrastructure tools (opt-in)
 just --list            # Show all available recipes
@@ -260,23 +259,17 @@ of normal setup because it prevents idle sleep and can drain the battery.
 
 ## Tailnet SSH access policy
 
-Remote access to the Omarchy workstation runs over Tailscale, and two SSH
-services own different ports:
+Remote access to the Omarchy workstation uses Tailscale SSH on port 22,
+served by `tailscaled`. Herdr remote attach and ordinary SSH clients use this
+same endpoint. Keep the OpenSSH client installed for outbound SSH connections.
 
-The Beelink recovery and Moshi/OpenSSH setup steps are in
+Recovery and verification steps are in
 [`docs/remote-access.md`](docs/remote-access.md).
 
-| Port | Service | Host key |
-| --- | --- | --- |
-| 22 | Tailscale SSH, served by `tailscaled` in netstack | Generated and held by `tailscaled` |
-| 2222 | OpenSSH, key-only, reachable on `tailscale0` | The machine's `/etc/ssh` host keys |
-
-`herdr --remote <host>` and a plain `ssh <host>` both use port 22, so they are
-answered by Tailscale SSH rather than OpenSSH. That is why
-`just audit-remote-access` reports a kernel listener on TCP 22 as a soft note,
-and why the host key on port 22 can appear to change without the machine being
-compromised: reinstalling the workstation or re-enabling Tailscale SSH replaces
-the key that port presents, and OpenSSH's host key on 2222 is unrelated to it.
+The former Moshi/OpenSSH endpoint on port 2222 is retired. The local baseline
+requires system `sshd` to be disabled, port 2222 to have no listener or explicit
+firewall allow rule, and Moshi installation and pairing state to be absent.
+Tailscale SSH host keys belong to `tailscaled`, independently of `/etc/ssh` keys.
 
 When `REMOTE HOST IDENTIFICATION HAS CHANGED` appears for port 22, rescan the
 key and confirm the fingerprint matches the one quoted in the warning before
@@ -311,8 +304,7 @@ Two deliberate departures from Tailscale's default block:
   A custom `checkPeriod` would soften that, but it is a Premium/Enterprise
   feature: saving one on a Free tailnet fails with `Functionality outside your
   plan`. The real choice is every 12 hours or never.
-- `autogroup:nonroot` with `root` removed. This matches the `permitrootlogin no`
-  baseline the audit already enforces for OpenSSH — log in as the workstation
+- `autogroup:nonroot` with `root` removed. Log in as the workstation
   user and `sudo` on the box. Left in place, `accept` would allow passwordless
   root logins from every device in the tailnet.
 
@@ -364,6 +356,28 @@ supplied by Omarchy, so it retains its official installation route. macOS also
 retains the existing Homebrew/vendor routes; this ownership rule is specific to
 Omarchy.
 
+### Coding agents on Omarchy
+
+Omarchy owns Claude Code, Codex, Pi, and Grok on this platform: install,
+update, and the `~/.local/bin` wrappers. OpenCode is in the same Mise set.
+Do not reinstall them with each vendor's curl/npm installer, and do not
+advance them with `claude update`, `codex update`, `pi update`, or
+`grok update` — those fight the wrappers. `agy` stays a personal vendor
+binary; it is not in this set.
+
+| Piece | Omarchy's method |
+| --- | --- |
+| Install | `omarchy-mise-install claude`, `codex`, `pi`, `npm:@xai-official/grok grok` |
+| Update | `omarchy update` (includes Mise), or just the tools with `omarchy update mise` / `mup`. Grok's ELF still lands in `~/.grok/bin` after launch; keep that directory off PATH so `grok` stays the Mise wrapper |
+| Launch | `cx` / `cy` / `a`, or `omarchy agent` after `omarchy default agent <name>`. Claude starts with `--permission-mode auto`. Launches from `$HOME` start in `~/Work` |
+| Claude skills | Package-owned `omarchy` and `diagnose-crash`, symlinked from `/usr/share/omarchy/default/agents/skills/` into `~/.claude/skills/` and `~/.agents/skills/` |
+| Claude theme | `omarchy-theme-set-claude` writes `~/.claude/themes/omarchy.json`; `--activate` sets `"theme": "custom:omarchy"` |
+
+`just update-agents` on Omarchy must go through the same Mise owner, not the
+vendor installers. Do not clone a third-party `omarchy` skill over the package
+link. Personal `ccauto` / `ccyolo` aliases stay for `--rc` remote control and
+for non-Omarchy machines.
+
 Other declared Omarchy tools follow their native owner as well:
 
 | Owner | Dotfiles selections |
@@ -372,7 +386,8 @@ Other declared Omarchy tools follow their native owner as well:
 | Arch packages through `omarchy pkg add` | Git LFS, direnv, glab, yq, just, Terraform, Pulumi |
 | Omarchy service/setup commands | 1Password and Voxtype |
 | Omarchy Mise wrappers | gh and the supported coding agents listed above |
-| Personal additions | `agy`, SST, agent-browser, portless, and global agent skills |
+| Omarchy agent skills | `omarchy` and `diagnose-crash` for Claude Code and the other harnesses |
+| Personal additions | `agy`, SST, agent-browser, portless, and the herdr / show-me / agent-browser global skills |
 
 Desktop applications already supplied by Omarchy remain Omarchy's
 responsibility. Platform-specific additions belong in the Omarchy installation
@@ -524,11 +539,15 @@ smoke tests separately cover the Omarchy shell overlay and ownership boundary.
 ## Shared Skill Portability
 
 Shared skills live under `agents/skills/<skill-name>/` and are the single source of
-truth. They are **not installed globally** — as of 2026-07-28 nothing is symlinked into
-`~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the Antigravity CLI's
-skill directory. The exceptions are `herdr`, `show-me` and `agent-browser`, installed globally by
-`just agents`. Herdr retains its explicit activation guard; `show-me` is a user-selected visual explanation default. `agent-browser` is a
-deliberate override that does not. `docs/agent-skills-sources.md` states the bar in full.
+truth. They are **not installed globally** — as of 2026-07-28 nothing from this repo
+is symlinked into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the
+Antigravity CLI's skill directory. The exceptions this repo installs globally are
+`herdr`, `show-me` and `agent-browser`, via `just agents`. Herdr retains its explicit
+activation guard; `show-me` is a user-selected visual explanation default.
+`agent-browser` is a deliberate override that does not. On Omarchy, the OS also
+symlinks its own `omarchy` and `diagnose-crash` skills into those directories;
+those links are vendor-owned, not leftovers. `docs/agent-skills-sources.md` states
+the bar in full.
 Install everything else per project, from this public repo:
 
 ```bash

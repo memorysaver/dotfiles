@@ -1,4 +1,7 @@
 # Aliases supported by both Bash and Zsh.
+# On Omarchy the platform Claude Code launcher is `cx`
+# (`claude --permission-mode auto`). These keep --rc for remote control and
+# remain the spelling on non-Omarchy machines.
 alias ccusage='ccusage blocks --live'
 alias ccyolo='claude --dangerously-skip-permissions --rc'
 alias agyolo='agy --dangerously-skip-permissions'
