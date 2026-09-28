@@ -29,7 +29,7 @@ rg -F 'omarchy-sunshine-headless:' "$repo_root/justfile" >/dev/null
 rg -F '@just link' "$repo_root/justfile" >/dev/null
 rg -F '@just doctor' "$repo_root/justfile" >/dev/null
 rg -F 'audit-remote-access' "$repo_root/justfile" >/dev/null
-rg -F 'Port 2222' "$repo_root/config/remote-access/sshd/99-moshi-herdr.conf.example" >/dev/null
+test ! -e "$repo_root/config/remote-access/sshd/99-moshi-herdr.conf.example"
 rg -F 'tailscale0' "$repo_root/docs/remote-access.md" >/dev/null
 rg -F 'omarchy install service 1password' "$repo_root/install/omarchy-apps.sh" >/dev/null
 rg -F 'omarchy install service tailscale' "$repo_root/install/omarchy-apps.sh" >/dev/null

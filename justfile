@@ -80,7 +80,7 @@ update-agents:
 validate-skills:
     @bash {{ dotfiles }}/tools/validate-agent-skills.sh
 
-# Audit the Moshi + Herdr remote-access security baseline (read-only; uses sudo)
+# Audit the Tailscale SSH + Herdr remote-access security baseline (read-only; uses sudo)
 audit-remote-access:
     @bash {{ dotfiles }}/tools/audit-remote-access.sh
 

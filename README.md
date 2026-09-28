@@ -55,8 +55,7 @@ just setup
 │   ├── macos/                  # Opt-in macOS headless launch agents
 │   ├── workspace/             # ~/Work navigation policy
 │   │   └── orchestration-rules/ # Common profiles (mac/Omarchy/Grok Bot), orchestration, adapter
-│   ├── hypr/                 # Additive Omarchy/Moonlight module
-│   └── remote-access/        # Non-secret Moshi/OpenSSH policy template
+│   └── hypr/                 # Additive Omarchy/Moonlight module
 ├── tools/                     # Small machine-local helper programs
 │   └── herdr-dispatch-rs/     # Rust OpenAB-to-Herdr broker and CLI
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
@@ -67,7 +66,7 @@ just setup
 │   └── skills/           # Skill source, installed per project by the skills CLI
 ├── docs/                     # Recovery and ownership notes
 │   ├── herdr-openab-dispatch.md # OpenAB-to-Herdr design and operations
-│   └── remote-access.md         # Moshi + Herdr over Tailscale
+│   └── remote-access.md         # Tailscale SSH + Herdr
 └── env/                     # Environment config
     ├── .env.example
     └── .envrc.template
@@ -95,7 +94,7 @@ just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
 just seed-agents       # Copy agent config templates to ~ (never overwrites)
 just doctor            # Health-check this machine (read-only, exits 1 on failure)
-just audit-remote-access # Audit the Moshi + Herdr SSH baseline (read-only)
+just audit-remote-access # Audit the Tailscale SSH + Herdr baseline (read-only)
 just check-agent-links # Warn if any agent config still links back into this repo
 just infra             # Install infrastructure tools (opt-in)
 just --list            # Show all available recipes
@@ -260,23 +259,17 @@ of normal setup because it prevents idle sleep and can drain the battery.
 
 ## Tailnet SSH access policy
 
-Remote access to the Omarchy workstation runs over Tailscale, and two SSH
-services own different ports:
+Remote access to the Omarchy workstation uses Tailscale SSH on port 22,
+served by `tailscaled`. Herdr remote attach and ordinary SSH clients use this
+same endpoint. Keep the OpenSSH client installed for outbound SSH connections.
 
-The Beelink recovery and Moshi/OpenSSH setup steps are in
+Recovery and verification steps are in
 [`docs/remote-access.md`](docs/remote-access.md).
 
-| Port | Service | Host key |
-| --- | --- | --- |
-| 22 | Tailscale SSH, served by `tailscaled` in netstack | Generated and held by `tailscaled` |
-| 2222 | OpenSSH, key-only, reachable on `tailscale0` | The machine's `/etc/ssh` host keys |
-
-`herdr --remote <host>` and a plain `ssh <host>` both use port 22, so they are
-answered by Tailscale SSH rather than OpenSSH. That is why
-`just audit-remote-access` reports a kernel listener on TCP 22 as a soft note,
-and why the host key on port 22 can appear to change without the machine being
-compromised: reinstalling the workstation or re-enabling Tailscale SSH replaces
-the key that port presents, and OpenSSH's host key on 2222 is unrelated to it.
+The former Moshi/OpenSSH endpoint on port 2222 is retired. The local baseline
+requires system `sshd` to be disabled, port 2222 to have no listener or explicit
+firewall allow rule, and Moshi installation and pairing state to be absent.
+Tailscale SSH host keys belong to `tailscaled`, independently of `/etc/ssh` keys.
 
 When `REMOTE HOST IDENTIFICATION HAS CHANGED` appears for port 22, rescan the
 key and confirm the fingerprint matches the one quoted in the warning before
@@ -311,8 +304,7 @@ Two deliberate departures from Tailscale's default block:
   A custom `checkPeriod` would soften that, but it is a Premium/Enterprise
   feature: saving one on a Free tailnet fails with `Functionality outside your
   plan`. The real choice is every 12 hours or never.
-- `autogroup:nonroot` with `root` removed. This matches the `permitrootlogin no`
-  baseline the audit already enforces for OpenSSH — log in as the workstation
+- `autogroup:nonroot` with `root` removed. Log in as the workstation
   user and `sudo` on the box. Left in place, `accept` would allow passwordless
   root logins from every device in the tailnet.
 
