@@ -356,6 +356,28 @@ supplied by Omarchy, so it retains its official installation route. macOS also
 retains the existing Homebrew/vendor routes; this ownership rule is specific to
 Omarchy.
 
+### Coding agents on Omarchy
+
+Omarchy owns Claude Code, Codex, Pi, and Grok on this platform: install,
+update, and the `~/.local/bin` wrappers. OpenCode is in the same Mise set.
+Do not reinstall them with each vendor's curl/npm installer, and do not
+advance them with `claude update`, `codex update`, `pi update`, or
+`grok update` — those fight the wrappers. `agy` stays a personal vendor
+binary; it is not in this set.
+
+| Piece | Omarchy's method |
+| --- | --- |
+| Install | `omarchy-mise-install claude`, `codex`, `pi`, `npm:@xai-official/grok grok` |
+| Update | `omarchy update` (includes Mise), or just the tools with `omarchy update mise` / `mup`. Grok's ELF still lands in `~/.grok/bin` after launch; keep that directory off PATH so `grok` stays the Mise wrapper |
+| Launch | `cx` / `cy` / `a`, or `omarchy agent` after `omarchy default agent <name>`. Claude starts with `--permission-mode auto`. Launches from `$HOME` start in `~/Work` |
+| Claude skills | Package-owned `omarchy` and `diagnose-crash`, symlinked from `/usr/share/omarchy/default/agents/skills/` into `~/.claude/skills/` and `~/.agents/skills/` |
+| Claude theme | `omarchy-theme-set-claude` writes `~/.claude/themes/omarchy.json`; `--activate` sets `"theme": "custom:omarchy"` |
+
+`just update-agents` on Omarchy must go through the same Mise owner, not the
+vendor installers. Do not clone a third-party `omarchy` skill over the package
+link. Personal `ccauto` / `ccyolo` aliases stay for `--rc` remote control and
+for non-Omarchy machines.
+
 Other declared Omarchy tools follow their native owner as well:
 
 | Owner | Dotfiles selections |
@@ -364,7 +386,8 @@ Other declared Omarchy tools follow their native owner as well:
 | Arch packages through `omarchy pkg add` | Git LFS, direnv, glab, yq, just, Terraform, Pulumi |
 | Omarchy service/setup commands | 1Password and Voxtype |
 | Omarchy Mise wrappers | gh and the supported coding agents listed above |
-| Personal additions | `agy`, SST, agent-browser, portless, and global agent skills |
+| Omarchy agent skills | `omarchy` and `diagnose-crash` for Claude Code and the other harnesses |
+| Personal additions | `agy`, SST, agent-browser, portless, and the herdr / show-me / agent-browser global skills |
 
 Desktop applications already supplied by Omarchy remain Omarchy's
 responsibility. Platform-specific additions belong in the Omarchy installation
@@ -516,11 +539,15 @@ smoke tests separately cover the Omarchy shell overlay and ownership boundary.
 ## Shared Skill Portability
 
 Shared skills live under `agents/skills/<skill-name>/` and are the single source of
-truth. They are **not installed globally** — as of 2026-07-28 nothing is symlinked into
-`~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the Antigravity CLI's
-skill directory. The exceptions are `herdr`, `show-me` and `agent-browser`, installed globally by
-`just agents`. Herdr retains its explicit activation guard; `show-me` is a user-selected visual explanation default. `agent-browser` is a
-deliberate override that does not. `docs/agent-skills-sources.md` states the bar in full.
+truth. They are **not installed globally** — as of 2026-07-28 nothing from this repo
+is symlinked into `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, or the
+Antigravity CLI's skill directory. The exceptions this repo installs globally are
+`herdr`, `show-me` and `agent-browser`, via `just agents`. Herdr retains its explicit
+activation guard; `show-me` is a user-selected visual explanation default.
+`agent-browser` is a deliberate override that does not. On Omarchy, the OS also
+symlinks its own `omarchy` and `diagnose-crash` skills into those directories;
+those links are vendor-owned, not leftovers. `docs/agent-skills-sources.md` states
+the bar in full.
 Install everything else per project, from this public repo:
 
 ```bash

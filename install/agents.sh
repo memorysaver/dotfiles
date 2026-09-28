@@ -48,13 +48,18 @@ if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   omarchy-mise-install npm:@xai-official/grok grok
   omarchy-mise-install pi
 
-  # Recreating Omarchy's wrapper keeps ownership correct, but `mise use`
-  # does not advance an already-installed `latest` alias. Pi also refuses
-  # `pi update` for release binaries managed by Mise, so upgrade it through
-  # the same owner explicitly.
+  # Recreating the wrappers keeps ownership correct, but `mise use` does not
+  # advance an already-installed `latest` alias. Claude/Codex/Pi/Grok self-
+  # updaters also fight these wrappers (Pi refuses `pi update` outright).
+  # Upgrade through the same command Omarchy's own update uses.
   if [ "$UPGRADE" = 1 ]; then
-    info "Upgrading Pi coding agent with Mise..."
-    mise upgrade pi
+    info "Upgrading Omarchy-managed coding agents with Mise..."
+    if has omarchy-update-mise; then
+      omarchy-update-mise
+    else
+      MISE_MINIMUM_RELEASE_AGE=0 mise upgrade \
+        claude codex opencode "npm:@xai-official/grok" pi
+    fi
   fi
 fi
 
@@ -97,6 +102,9 @@ fi
 bash "$(dirname "$0")/agent-skills.sh"
 
 # --- Claude Code --- (curl installer is idempotent and upgrades in place)
+# On Omarchy, the binary is Mise-wrapped and the omarchy / diagnose-crash
+# skills are package-owned links into ~/.claude/skills. This script must not
+# replace those links or run Anthropic's installer over the wrapper.
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   ok "Claude Code managed by Omarchy + Mise"
 elif should_setup claude; then

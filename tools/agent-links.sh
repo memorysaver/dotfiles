@@ -36,11 +36,13 @@ CONFIG_DIRS=(
   "$HOME/.config/opencode"
 )
 
-# Skills are installed per project since 2026-07-28 (see docs/agent-skills-sources.md).
-# A link here is a leftover from the global-symlink era, so `adopt` deletes it rather
-# than dereferencing it: copying would rebuild the global skill tree as real
-# directories -- three duplicate copies of every skill -- which is the exact layout
-# that migration dismantled.
+# Skills from this repo are installed per project since 2026-07-28 (see
+# docs/agent-skills-sources.md). A link *into this repo* here is a leftover from
+# the global-symlink era, so `adopt` deletes it rather than dereferencing it:
+# copying would rebuild the global skill tree as real directories -- three
+# duplicate copies of every skill -- which is the exact layout that migration
+# dismantled. Omarchy's own omarchy / diagnose-crash links point at
+# /usr/share/omarchy and are foreign: leave them alone.
 SKILL_DIRS=(
   "$HOME/.claude/skills"
   "$HOME/.codex/skills"

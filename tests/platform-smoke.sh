@@ -43,9 +43,19 @@ rg -F 'mode = "1920x1200@60"' "$repo_root/config/hypr/sunshine_headless.lua" >/d
 rg -F 'scale = 1.25' "$repo_root/config/hypr/sunshine_headless.lua" >/dev/null
 rg -F 'tailscale btop chromium moonlight obsidian voxtype' "$repo_root/tools/doctor.sh" >/dev/null
 rg -F 'Moonlight remote-desktop mode' "$repo_root/tools/doctor.sh" >/dev/null
-rg -F 'npx --yes skills@1.5.20 add' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'npx --yes skills@1.5.20 add' "$repo_root/install/agent-skills.sh" >/dev/null
 rg -F 'mise use --global node@latest' "$repo_root/install/runtimes.sh" >/dev/null
 rg -F 'omarchy-mise-install claude' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'Coding agents on Omarchy' "$repo_root/README.md" >/dev/null
+rg -F 'omarchy update mise' "$repo_root/README.md" >/dev/null
+rg -F 'omarchy-update-mise' "$repo_root/install/agents.sh" >/dev/null
+rg -F 'do not put `~/.grok/bin` on PATH' "$repo_root/config/workspace/orchestration-rules/profiles/omarchy-server.md" >/dev/null
+rg -F 'do not put `~/.grok/bin` on PATH' "$repo_root/config/workspace/orchestration-rules/profiles/omarchy-desktop.md" >/dev/null
+rg -F 'grok is the Omarchy Mise wrapper' "$repo_root/tools/doctor.sh" >/dev/null
+rg -F 'Omarchy-shipped skills' "$repo_root/docs/agent-skills-sources.md" >/dev/null
+rg -F 'Omarchy Claude Code skills' "$repo_root/tools/doctor.sh" >/dev/null
+rg -F 'omarchy diagnose-crash' "$repo_root/tools/doctor.sh" >/dev/null
+rg -F 'omarchy-theme-set-claude --activate' "$repo_root/tools/doctor.sh" >/dev/null
 rg -F 'omarchy-mise-install codex' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'omarchy-mise-install opencode' "$repo_root/install/agents.sh" >/dev/null
 rg -F 'omarchy-mise-install npm:@xai-official/grok grok' "$repo_root/install/agents.sh" >/dev/null
