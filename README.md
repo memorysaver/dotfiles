@@ -20,6 +20,9 @@ just setup
 
 ## What's Included
 
+Optional: [standalone Blender with an isolated AMD HIP runtime](docs/blender.md),
+installed without upgrading system packages.
+
 | Recipe | Tools |
 |--------|-------|
 | `just core` | platform shell, tmux, starship, nvim, lazygit, git-lfs, direnv |
