@@ -43,10 +43,17 @@ pub(super) fn plan(
             ));
         }
         if let Some(agent) = matches.first() {
+            let kind_conflict = agent["agent"] != route["kind"];
             orchestrator::verify_agent(
                 agent,
                 route["name"].as_str().unwrap(),
-                route["kind"].as_str().unwrap(),
+                if allow_missing {
+                    agent["agent"]
+                        .as_str()
+                        .ok_or_else(|| BrokerError::internal("Missing live agent kind"))?
+                } else {
+                    route["kind"].as_str().unwrap()
+                },
                 Path::new(route["cwd"].as_str().unwrap()),
             )?;
             let workspace = safe_text(agent.get("workspace_id"), "workspace_id", 256)?;
@@ -70,7 +77,7 @@ pub(super) fn plan(
                     "Role layout is absent from snapshot",
                 ));
             }
-            result.push(json!({"name":route["name"],"cwd":route["cwd"],"workspace_id":workspace,"tab_id":tab,"pane_id":agent["pane_id"],"terminal_id":agent["terminal_id"],"missing":false}));
+            result.push(json!({"name":route["name"],"cwd":route["cwd"],"workspace_id":workspace,"tab_id":tab,"pane_id":agent["pane_id"],"terminal_id":agent["terminal_id"],"missing":false,"kind_conflict":kind_conflict,"observed_kind":agent["agent"]}));
         } else if allow_missing {
             result.push(json!({"name":route["name"],"cwd":route["cwd"],"missing":true}));
         } else {
@@ -259,6 +266,26 @@ mod tests {
         assert!(plan(&snapshot, &binding, false).is_err());
         snapshot["protocol"] = json!(21);
         assert!(plan(&snapshot, &binding, true).is_err());
+    }
+    #[test]
+    fn live_snapshot_overrides_stale_kind_and_preview_preserves_incompatible_role() {
+        let (mut snapshot, mut binding) = fixture();
+        binding["projects"]["a"]["kind"] = json!("claude");
+        let preview = plan(&snapshot, &binding, true).unwrap();
+        assert_eq!(preview[2]["kind_conflict"], true);
+        assert_eq!(preview[2]["missing"], false);
+        assert!(plan(&snapshot, &binding, false).is_err());
+        snapshot["agents"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|a| a["name"] != "project-orchestrator-a");
+        let preview = plan(&snapshot, &binding, true).unwrap();
+        assert_eq!(preview[2]["missing"], true);
+        snapshot["agents"].as_array_mut().unwrap().push(json!({"name":"project-orchestrator-a","agent":"claude","cwd":binding["projects"]["a"]["cwd"],"workspace_id":"wa","tab_id":"wa:t1","pane_id":"wa:p2","terminal_id":"new-generation"}));
+        assert_eq!(
+            plan(&snapshot, &binding, false).unwrap()[2]["kind_conflict"],
+            false
+        );
     }
     #[test]
     fn conflicting_names_roots_and_shared_workspaces_fail() {

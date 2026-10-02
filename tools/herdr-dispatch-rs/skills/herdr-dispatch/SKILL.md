@@ -148,14 +148,17 @@ The broker and default Herdr server must already be running (operator deployment
 Edit YAML and run `start`: the broker validates and adopts changes from its pinned YAML source
 in place, without restarting services. `start --dry-run` previews pending settings without applying
 them. Changed settings are refused while events are unfinished; retain the original YAML until
-events finish. Computer/established Project owner changes and root/socket/state location changes
+events finish. Computer identity, Project name/cwd and root/socket/state location changes
 require explicit migration/deployment. Invalid settings leave the active policy and receipts intact.
 Repeated starts reuse sessions only after verifying their launch settings and preserve
 terminal generations; they do not send business tasks, restart agents or change existing
 sessions' model/permission settings. `start --dry-run` reports configured launch settings,
-observed foreground argv and launch status. A real start fails with
-`launch_settings_mismatch` before adopting YAML or sending bootstrap prompts when a live
-role differs or cannot be verified. Preserve that session and arrange explicit handoff/relaunch.
+observed foreground argv and launch status. Herdr's live snapshot determines presence;
+stale broker records do not freeze a closed Project role's agent kind. A missing Project
+role starts with YAML's kind/launcher/args. Incompatible or unverified live sessions are
+preserved and listed in `issues`, while other missing roles may still start. Partial starts
+emit JSON with `success: false`, exit 1 and skip layout moves; inspect each project's result
+before retrying. Preserve listed sessions and arrange explicit handoff/relaunch.
 Custom wrappers require this broker's launch receipt for the same settings, terminal and
 foreground process; a legacy wrapper without a receipt is unverified. Launch checks do not
 prove permissions after interactive changes. Deploy a matching broker if audit support is missing.

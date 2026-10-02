@@ -331,20 +331,49 @@ impl Host {
             json!({"cwd":self.paths.get("workspace"),"kind":self.kind,
             "role_binding":binding,"dry_run":preview,"enforce_launch":true})
         };
-        let preflight = crate::broker_call(
-            &self.socket,
-            "managed_layout",
-            params(true),
-            Duration::from_secs(60),
-        )?;
-        if preflight["launch_audited"] != true {
-            return fail("Broker did not verify existing launch settings; sessions preserved");
-        }
-        let computer = self.ensure()?;
+        let roles = configuration["roles"]
+            .as_array()
+            .ok_or_else(|| error("Missing live role plan"))?;
+        let eligible = |name: &str| {
+            roles
+                .iter()
+                .find(|r| r["name"] == name)
+                .is_some_and(|r| r["missing"] == true || r["launch_status"] == "matched")
+        };
+        let mut issues = Vec::new();
+        let computer = if eligible("computer-orchestrator") {
+            match self.ensure() {
+                Ok(value) => value,
+                Err(e) => {
+                    issues.push(json!({"name":"computer-orchestrator","error":e.to_string()}));
+                    Value::Null
+                }
+            }
+        } else {
+            issues.push(json!({"name":"computer-orchestrator","error":"Live launch differs from YAML or is unverified; preserved"}));
+            Value::Null
+        };
         let mut projects = Vec::new();
         for p in self.projects()? {
             let id = text(&p["project"], "project")?;
-            projects.push(json!({"project":id,"result":self.ensure_project(id, None)?}));
+            let name = text(&p["route"]["name"], "role name")?;
+            if !eligible(name) {
+                issues.push(json!({"project":id,"name":name,"error":"Live launch differs from YAML or is unverified; preserved"}));
+                projects.push(json!({"project":id,"preserved":true}));
+                continue;
+            }
+            match self.ensure_project(id, None) {
+                Ok(value) => projects.push(json!({"project":id,"result":value})),
+                Err(e) => {
+                    issues.push(json!({"project":id,"name":name,"error":e.to_string()}));
+                    projects.push(json!({"project":id,"error":e.to_string()}));
+                }
+            }
+        }
+        if !issues.is_empty() {
+            return Ok(
+                json!({"success":false,"configuration":configuration,"computer":computer,"projects":projects,"issues":issues,"layout_applied":false}),
+            );
         }
         let layout = crate::broker_call(
             &self.socket,
@@ -356,7 +385,7 @@ impl Host {
             return fail("Broker did not verify managed launch settings after startup");
         }
         Ok(
-            json!({"configuration":configuration,"computer":computer,"projects":projects,"layout":layout,
+            json!({"success":true,"configuration":configuration,"computer":computer,"projects":projects,"layout":layout,
             "launch_policy":"Configured launchers and args are verified before existing sessions are reused; mismatches require an explicit handoff/relaunch."}),
         )
     }

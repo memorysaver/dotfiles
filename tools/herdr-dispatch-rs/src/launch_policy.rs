@@ -115,6 +115,13 @@ impl Broker {
                 role["launch_status"] = json!("pending_start");
                 continue;
             }
+            if role["kind_conflict"] == true {
+                role["launch_status"] = json!("kind_conflict");
+                if enforce {
+                    return Err(BrokerError::new("launch_settings_mismatch", format!("{name}: Herdr reports a different live agent kind; preserve the session until its owner closes it")));
+                }
+                continue;
+            }
             let result = self
                 .herdr
                 .call(

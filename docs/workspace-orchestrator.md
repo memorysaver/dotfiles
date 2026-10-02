@@ -24,9 +24,13 @@ no truncation or hashing. Project labels place a primary workspace; name/kind/cw
 generation bind the route. Relative escapes, duplicate checkouts/keys and wrong occupants fail.
 Each role's permission policy belongs to its registered launcher; role args configure
 models/effort/service tier. `start` verifies foreground executable argv against those
-settings before reusing roles and after cold startup. A mismatch returns
-`launch_settings_mismatch`, preserving conversations and pending receipts; arrange an
-explicit handoff/relaunch rather than treating the role as configured successfully.
+settings before reusing roles and after cold startup. Herdr's live snapshot decides
+presence; persisted role records do not require a closed Project role to retain its old
+agent kind. Project kind is mutable launch configuration while name/cwd remain ownership.
+Absent roles start using YAML, including a Codex-to-Claude change. Incompatible live
+roles are preserved and listed in `issues`; they do not prevent other absent roles from
+starting. Partial starts emit JSON with `success: false` and exit 1, without layout moves.
+Arrange handoff/relaunch for those listed sessions rather than treating them as configured.
 `start --dry-run` reports configured settings, observed argv and launch status without
 applying changes. This verifies launch settings, not later interactive permission changes.
 Custom wrapper launches need a broker-issued receipt bound to settings, terminal ID,
@@ -68,7 +72,7 @@ status reads can succeed while pending.
 
 `start` automatically validates and reloads the broker's pinned YAML in place, then starts/reuses
 roles and arranges workspaces. `start --dry-run` does not apply settings or move/start agents.
-Launch auditing precedes configuration adoption, bootstrap prompts and layout moves. The
+Launch auditing precedes configuration adoption and determines eligibility per role. The
 CLI requires a matching broker with launch-audit support instead of accepting an older
 broker that ignores verification options. `ensure`/supervision continue maintaining role
 presence without interrupting existing working, blocked or unknown conversations.

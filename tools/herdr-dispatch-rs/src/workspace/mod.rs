@@ -234,6 +234,9 @@ pub async fn run(args: impl IntoIterator<Item = std::ffi::OsString>) -> Result<(
         }
     };
     println!("{}", serde_json::to_string(&result)?);
+    if result["success"] == false {
+        return fail("Managed start partially completed; inspect projects/issues in the JSON result. Conflicting live sessions were preserved.");
+    }
     Ok(())
 }
 async fn watch(config: Option<&Path>) {

@@ -13,7 +13,9 @@ fn validate_change(previous: &Value, binding: &Value) -> Result<(), BrokerError>
         }
         for (id, route) in old["projects"].as_object().into_iter().flatten() {
             if let Some(next) = binding["projects"].get(id) {
-                for key in ["name", "cwd", "kind"] {
+                // Kind is launch configuration, not ownership. Herdr presence
+                // decides whether a role can be started or must be preserved.
+                for key in ["name", "cwd"] {
                     if route[key] != next[key] {
                         return Err(BrokerError::new(
                             "role_owner_conflict",
@@ -72,6 +74,7 @@ impl Broker {
         Ok(())
     }
     pub(super) async fn reload_config(&self, params: &Value) -> Result<Value, BrokerError> {
+        let _guard = self.orchestrator_lock.lock().await;
         let dry_run = params["dry_run"]
             .as_bool()
             .ok_or_else(|| BrokerError::new("invalid_request", "dry_run must be boolean"))?;
@@ -110,7 +113,7 @@ impl Broker {
             .clone();
         let mut roles = managed_layout::plan(&snapshot, &candidate["binding"], true)?;
         if params["audit_launch"] == true {
-            self.audit_role_launches(&mut roles, &candidate["binding"], !dry_run)
+            self.audit_role_launches(&mut roles, &candidate["binding"], false)
                 .await?;
         }
         if changed && !dry_run {
@@ -163,7 +166,7 @@ mod tests {
                 "role_owner_conflict"
             );
         }
-        for field in ["name", "cwd", "kind"] {
+        for field in ["name", "cwd"] {
             let mut next = original.clone();
             next["projects"]["media"][field] = json!("different");
             assert_eq!(
@@ -171,6 +174,21 @@ mod tests {
                 "role_owner_conflict"
             );
         }
+    }
+    #[test]
+    fn project_kind_is_mutable_launch_configuration_but_events_must_be_drained() {
+        let mut original = binding();
+        original["projects"] =
+            json!({"p":{"name":"project-orchestrator-p","cwd":"/p","kind":"codex"}});
+        let mut next = original.clone();
+        next["projects"]["p"]["kind"] = json!("claude");
+        let mut state = json!({"role_binding":original,"events":{}});
+        assert!(validate_change(&state, &next).is_ok());
+        state["events"]["event"] = json!({"state":"accepted"});
+        assert_eq!(
+            validate_change(&state, &next).unwrap_err().code,
+            "configuration_busy"
+        );
     }
     #[test]
     fn adoption_is_shared_and_keeps_event_history_on_failure() {

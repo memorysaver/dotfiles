@@ -8,6 +8,68 @@ struct Fixture {
     root: PathBuf,
     host: Host,
 }
+
+#[test]
+fn start_launches_missing_project_while_preserving_live_kind_conflict() {
+    let mut fixture = Fixture::new();
+    let config = fixture.root.join("projects.yaml");
+    for id in ["a", "b"] {
+        let repo = fixture.host.paths.get("workspace").join("github").join(id);
+        fs::create_dir_all(&repo).unwrap();
+        for name in ["AGENTS.md", "README.md"] {
+            fs::write(repo.join(name), "instructions").unwrap();
+        }
+        assert!(std::process::Command::new("git")
+            .args(["init", "-q"])
+            .arg(repo)
+            .status()
+            .unwrap()
+            .success());
+    }
+    fs::write(&config, "version: 1\ncomputer:\n  id: fixture\n  mode: standalone\n  orchestrator: {kind: codex}\nprojects:\n  a:\n    enabled: true\n    path: github/a\n    orchestrator: {key: a, kind: claude, launcher: [claude, --dangerously-skip-permissions], args: [--model, claude-opus-5-5, --effort, high]}\n    tasks: {}\n  b:\n    enabled: true\n    path: github/b\n    orchestrator: {key: b, kind: claude}\n    tasks: {}\n").unwrap();
+    fixture.host.config = Some(config);
+    let listener = UnixListener::bind(&fixture.host.socket).unwrap();
+    let thread = std::thread::spawn(move || {
+        for (op, result) in [
+            (
+                "reload_config",
+                json!({"launch_audited":true,"roles":[{"name":"computer-orchestrator","missing":false,"launch_status":"matched"},{"name":"project-orchestrator-a","missing":true,"launch_status":"pending_start"},{"name":"project-orchestrator-b","missing":false,"launch_status":"kind_conflict"}]}),
+            ),
+            ("ensure_orchestrator", json!({"created":false})),
+            (
+                "ensure_project_orchestrator",
+                json!({"created":true,"agent":{"agent":"claude"}}),
+            ),
+        ] {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut line = String::new();
+            BufReader::new(stream.try_clone().unwrap())
+                .read_line(&mut line)
+                .unwrap();
+            let request: Value = serde_json::from_str(&line).unwrap();
+            assert_eq!(request["op"], op);
+            if op == "ensure_project_orchestrator" {
+                assert_eq!(request["params"]["project"], "a");
+                assert_eq!(
+                    request["params"]["route"]["launcher"],
+                    json!(["claude", "--dangerously-skip-permissions"])
+                );
+                assert_eq!(
+                    request["params"]["route"]["args"],
+                    json!(["--model", "claude-opus-5-5", "--effort", "high"])
+                );
+            }
+            writeln!(stream, "{}", json!({"id":request["id"],"result":result})).unwrap();
+        }
+    });
+    let result = fixture.host.start(false).unwrap();
+    assert_eq!(result["success"], false);
+    assert_eq!(result["projects"][0]["result"]["created"], true);
+    assert_eq!(result["projects"][1]["preserved"], true);
+    assert_eq!(result["issues"].as_array().unwrap().len(), 1);
+    assert_eq!(result["layout_applied"], false);
+    thread.join().unwrap();
+}
 impl Fixture {
     fn new() -> Self {
         let root = env::temp_dir().join(format!("rust-orch-{}", Uuid::new_v4()));
