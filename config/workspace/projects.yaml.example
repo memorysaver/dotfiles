@@ -13,6 +13,7 @@ runtime:
   poll_seconds: 30
   broker_state_dir: ~/.config/herdr-dispatchd
   execution_state_dir: ~/.local/state/workspace-orchestrator
+project_order: [indiehackin-media]
 projects:
   indiehackin-media:
     enabled: true

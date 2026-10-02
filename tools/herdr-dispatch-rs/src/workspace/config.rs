@@ -204,7 +204,7 @@ impl Host {
         let result = crate::broker_call(
             &self.socket,
             "ensure_orchestrator",
-            json!({"confirmed":true,"cwd":self.paths.get("workspace"),"kind":self.kind,"agent_name":"computer-orchestrator","role_binding":self.role_binding()?,"agent_args":self.args,"prompt":self.bootstrap(),"start_timeout_ms":30000}),
+            json!({"confirmed":true,"cwd":self.paths.get("workspace"),"kind":self.kind,"agent_name":"computer-orchestrator","role_binding":self.role_binding()?,"agent_args":self.args,"launcher":self.computer_launcher()?,"prompt":self.bootstrap(),"start_timeout_ms":30000}),
             Duration::from_secs(210),
         )?;
         atomic_json(
@@ -305,7 +305,45 @@ impl Host {
                 }
             }
         }
+        if self.config.is_some() {
+            if let Some(order) = self.yaml()?.get("project_order") {
+                let order = argv(order, false)?;
+                projects.sort_by_key(|p| order.iter().position(|id| p["project"] == *id).unwrap());
+            }
+        }
         Ok(projects)
+    }
+    pub fn start(&self, dry_run: bool) -> Result<Value> {
+        let binding = self.role_binding()?;
+        let params = |preview| {
+            json!({"cwd":self.paths.get("workspace"),"kind":self.kind,
+            "role_binding":binding,"dry_run":preview})
+        };
+        let plan = crate::broker_call(
+            &self.socket,
+            "managed_layout",
+            params(true),
+            Duration::from_secs(60),
+        )?;
+        if dry_run {
+            return Ok(plan);
+        }
+        let computer = self.ensure()?;
+        let mut projects = Vec::new();
+        for p in self.projects()? {
+            let id = text(&p["project"], "project")?;
+            projects.push(json!({"project":id,"result":self.ensure_project(id, None)?}));
+        }
+        let layout = crate::broker_call(
+            &self.socket,
+            "managed_layout",
+            params(false),
+            Duration::from_secs(120),
+        )?;
+        Ok(
+            json!({"computer":computer,"projects":projects,"layout":layout,
+            "launch_policy":"Existing sessions are reused; configured launchers and args apply to newly started agents."}),
+        )
     }
     pub fn ensure_project(&self, id: &str, adopt: Option<&str>) -> Result<Value> {
         let selected = self.project(id)?;

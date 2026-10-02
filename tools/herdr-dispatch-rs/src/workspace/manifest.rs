@@ -48,21 +48,22 @@ fn role(v: &Value, project: bool) -> Result<()> {
         if project {
             &["key", "kind", "launcher", "args"]
         } else {
-            &["kind", "args"]
+            &["kind", "launcher", "args"]
         },
         "orchestrator",
     )?;
     supported_kind(text(&v["kind"], "orchestrator kind")?)?;
     let args = argv(v.get("args").unwrap_or(&json!([])), false)?;
     crate::orchestrator::validate_role_args(&args)?;
-    if project
-        && v.get("launcher").is_some_and(|l| {
-            l.as_array().is_some_and(|a| {
-                a.iter()
-                    .any(|v| matches!(v.as_str(), Some("-c" | "-lc" | "--command")))
-            })
+    if let Some(launcher) = v.get("launcher") {
+        argv(launcher, true)?;
+    }
+    if v.get("launcher").is_some_and(|l| {
+        l.as_array().is_some_and(|a| {
+            a.iter()
+                .any(|v| matches!(v.as_str(), Some("-c" | "-lc" | "--command")))
         })
-    {
+    }) {
         return fail("Launcher must be executable argv, without an embedded shell command");
     }
     if project
@@ -92,11 +93,26 @@ pub(super) fn parse(raw: &str) -> Result<Value> {
             "runtime",
             "binding",
             "projects",
+            "project_order",
         ],
         "manifest",
     )?;
     if value["version"] != 1 {
         return fail("Manifest version must be 1");
+    }
+    if let Some(order) = value.get("project_order") {
+        let order = argv(order, false)?;
+        let enabled: HashSet<&str> = value["projects"]
+            .as_object()
+            .ok_or_else(|| error("projects must be a mapping"))?
+            .iter()
+            .filter(|(_, p)| p["enabled"] == true)
+            .map(|(id, _)| id.as_str())
+            .collect();
+        let selected: HashSet<&str> = order.iter().map(String::as_str).collect();
+        if selected.len() != order.len() || selected != enabled {
+            return fail("project_order must list every enabled project exactly once");
+        }
     }
     fields(
         &value["computer"],
@@ -447,8 +463,17 @@ impl Host {
             })
             .collect::<serde_json::Map<_, _>>();
         Ok(
-            json!({"protocol":2,"computer_id":self.computer,"computer_home":self.paths.get("workspace"),"kind":self.kind,"computer_name":COMPUTER_NAME,"projects":projects,"digest":sha256(serde_json::to_vec(&self.yaml()?)?.as_slice())}),
+            json!({"protocol":2,"computer_id":self.computer,"computer_home":self.paths.get("workspace"),"kind":self.kind,"computer_name":COMPUTER_NAME,"computer_launch":{"args":self.args,"launcher":self.computer_launcher()?},"project_order":self.projects()?.iter().map(|p|p["project"].clone()).collect::<Vec<_>>(),"projects":projects,"digest":sha256(serde_json::to_vec(&self.yaml()?)?.as_slice())}),
         )
+    }
+    pub(super) fn computer_launcher(&self) -> Result<Value> {
+        if self.config.is_none() {
+            return Ok(Value::Null);
+        }
+        Ok(self.yaml()?["computer"]["orchestrator"]
+            .get("launcher")
+            .cloned()
+            .unwrap_or(Value::Null))
     }
     pub(super) fn yaml_registry(&self) -> Result<Value> {
         let mut rows = self.yaml()?["projects"].clone();
@@ -493,6 +518,29 @@ mod tests {
             false
         )
         .is_err());
+    }
+    #[test]
+    fn explicit_launchers_and_fast_model_options() {
+        assert!(role(&json!({"kind":"codex","launcher":["codex","--yolo"],"args":["--model","gpt-6.1-sol","-c","model_reasoning_effort=medium","-c","service_tier=fast"]}), false).is_ok());
+        assert!(role(&json!({"kind":"codex","launcher":[]}), false).is_err());
+        assert!(role(
+            &json!({"kind":"codex","launcher":["bash","-lc","codex --yolo"]}),
+            false
+        )
+        .is_err());
+        assert!(role(
+            &json!({"kind":"codex","args":["-c","approval_policy=never"]}),
+            false
+        )
+        .is_err());
+    }
+    #[test]
+    fn project_order_requires_exact_enabled_inventory() {
+        let raw=basic().replace("projects: {}", "projects:\n  media:\n    enabled: true\n    path: github/media\n    orchestrator: {key: media, kind: codex}\n    tasks: {}\n  other:\n    enabled: false\n    path: github/other\n    orchestrator: {key: other, kind: codex}\n    tasks: {}\n");
+        assert!(parse(&(raw.clone() + "project_order: [media]\n")).is_ok());
+        for order in ["[]", "[media, media]", "[missing]", "[media, other]"] {
+            assert!(parse(&(raw.clone() + &format!("project_order: {order}\n"))).is_err());
+        }
     }
     #[test]
     fn yaml_paths_and_registry_bind_to_computer_root() {

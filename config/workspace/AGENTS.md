@@ -74,11 +74,12 @@ needs durable event identity, deduplication and an event-specific acknowledgment
 infer these from idle/done. Service startup belongs to the host's service manager, not to reading
 AGENTS.md. Presence maintains the role. Registered business events use the separate durable broker queue,
 explicit instruction readiness and a real Herdr callback shell; see the resolved dotfiles
-`docs/workspace-orchestrator.md`. Keep the model permission policy and project launchers unchanged.
+`docs/workspace-orchestrator.md`. Use configured role launchers; change permissions only under
+explicit host authorization.
 
 ## Load the dispatch skill
 
-Before registered project dispatch, Dagu event inspection/delivery, or a supplied orchestrator
+Before managed role startup, registered project dispatch, Dagu event inspection/delivery, or a supplied orchestrator
 callback, run `herdr-dispatch --skills` and read its complete stdout. This is the CLI's embedded
 agent skill; the command prints instructions without installing a global skill or submitting work.
 Do not assume `$herdr-dispatch` is registered with the current agent product.
@@ -87,6 +88,10 @@ registered tasks. Follow the skill for submission, frozen-input retries, verific
 For a custom Computer home/config, explicitly supply `HERDR_COMPUTER_HOME` and `--config` on each
 invocation. Use broker-supplied callbacks verbatim, including project and nonce when supplied.
 Direct project development follows project rules; loading this file starts no service or task.
+For an operator-requested startup, `herdr-dispatch start --dry-run` previews the layout and
+`herdr-dispatch start` starts/reuses configured orchestrators and orders their workspaces.
+Computer home is first with its Computer-Orchestrator tab first; enabled projects follow YAML
+`project_order`. Existing sessions are reused; launcher/model changes apply on their next start.
 
 ## Registered project routing
 

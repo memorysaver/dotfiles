@@ -103,8 +103,8 @@ pub(crate) fn validate_role_args(args: &[String]) -> Result<(), BrokerError> {
             }
             "-c" => {
                 index += 1;
-                if index >= args.len() || !["model_reasoning_effort=low", "model_reasoning_effort=medium", "model_reasoning_effort=high", "model_reasoning_effort=xhigh"].contains(&args[index].as_str()) {
-                    return Err(BrokerError::new("invalid_request", "Only model effort configuration is allowed"));
+                if index >= args.len() || !["model_reasoning_effort=low", "model_reasoning_effort=medium", "model_reasoning_effort=high", "model_reasoning_effort=xhigh", "service_tier=fast", "service_tier=default"].contains(&args[index].as_str()) {
+                    return Err(BrokerError::new("invalid_request", "Only model effort/service tier configuration is allowed"));
                 }
             }
             _ => return Err(BrokerError::new("invalid_request", "Orchestrator args may only configure model/provider/effort; cwd and permissions are host-owned")),
@@ -357,15 +357,27 @@ impl Broker {
             &json!({"phase":"starting", "recovery_attempts":recovery_attempts, "name":name, "cwd":cwd, "kind":kind,
             "workspace_id":layout.workspace_id, "pane_id":layout.pane_id}),
         )?;
-        let start = self
-            .herdr
-            .call(
-                "agent.start",
-                json!({"name": name, "kind": kind,
-            "pane_id": layout.pane_id, "args": args, "timeout_ms": timeout}),
-                Duration::from_millis(timeout).saturating_add(Duration::from_secs(15)),
+        let start = if params["launcher"].is_array() {
+            self.launch_role(
+                &layout.pane_id,
+                &name,
+                &kind,
+                &cwd,
+                &args,
+                &params["launcher"],
             )
             .await?;
+            json!({"launcher":params["launcher"],"args":args})
+        } else {
+            self.herdr
+                .call(
+                    "agent.start",
+                    json!({"name": name, "kind": kind,
+            "pane_id": layout.pane_id, "args": args, "timeout_ms": timeout}),
+                    Duration::from_millis(timeout).saturating_add(Duration::from_secs(15)),
+                )
+                .await?
+        };
         let agent = self.wait_for_agent_ready(&name, timeout).await?;
         verify_agent(&agent, &name, &kind, &cwd)?;
         let prompted = self
@@ -460,6 +472,53 @@ mod tests {
     fn ensure_params(cwd: &Path) -> Value {
         json!({"confirmed":true,"cwd":cwd,"agent_name":"computer-orchestrator","kind":"codex",
             "prompt":"Confirm local role only", "start_timeout_ms":1000})
+    }
+    #[tokio::test]
+    async fn computer_starts_with_registered_launcher_and_model_args() {
+        let fixture = std::env::temp_dir().join(format!("computer-launcher-{}", Uuid::new_v4()));
+        fs::create_dir_all(&fixture).unwrap();
+        let (initial, temp, thread) = mock_broker(vec![
+            (
+                "agent.get",
+                json!({"error":{"code":"agent_not_found","message":"absent"}}),
+            ),
+            (
+                "session.snapshot",
+                json!({"result":{"snapshot":{"workspaces":[],"panes":[]}}}),
+            ),
+            (
+                "workspace.create",
+                json!({"result":{"workspace":{"workspace_id":"w1"},"tab":{"tab_id":"w1:t2"},"root_pane":{"pane_id":"w1:p2"}}}),
+            ),
+            ("pane.send_input", json!({"result":{}})),
+            ("agent.get", live_agent(&fixture, "idle")),
+            ("agent.rename", json!({"result":{}})),
+            ("agent.get", live_agent(&fixture, "idle")),
+            ("agent.prompt", json!({"result":{}})),
+        ]);
+        let broker = Broker::new(
+            initial.herdr.socket_path.clone(),
+            temp.join("state-2"),
+            fixture.clone(),
+        )
+        .unwrap();
+        let mut params = ensure_params(&fixture);
+        params["launcher"] = json!(["codex", "--yolo"]);
+        params["agent_args"] = json!([
+            "--model",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=medium",
+            "-c",
+            "service_tier=fast"
+        ]);
+        let result = broker.ensure_orchestrator(params).await.unwrap();
+        assert_eq!(result["created"], true);
+        assert_eq!(result["start"]["launcher"], json!(["codex", "--yolo"]));
+        assert_eq!(result["start"]["args"][5], "service_tier=fast");
+        thread.join().unwrap();
+        fs::remove_dir_all(fixture).unwrap();
+        fs::remove_dir_all(temp).unwrap();
     }
     #[tokio::test]
     async fn existing_unknown_agent_is_preserved_without_prompt() {

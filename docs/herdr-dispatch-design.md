@@ -25,6 +25,8 @@ herdr-dispatch check                  # validate config and repository locations
 herdr-dispatch check --live           # also inspect configured local server/roles, no startup
 herdr-dispatch projects list
 herdr-dispatch ensure                 # Computer presence, operator/supervisor use
+herdr-dispatch start --dry-run        # inspect managed roles/order without mutation
+herdr-dispatch start                  # start/reuse roles and arrange managed workspaces
 herdr-dispatch pump                   # advance authorized queued events
 herdr-dispatch paths                  # resolved routing paths, no mutation
 herdr-dispatch install                # operator deployment
@@ -102,6 +104,18 @@ registered identities if independently managed; no routing through a parent chec
 
 ## YAML v1
 
+`start` ensures Computer and then each enabled Project role in `project_order`, an optional
+top-level list containing every enabled project ID exactly once (otherwise alphabetical IDs).
+It uses native Herdr protocol 22 move operations to place Computer home first, then managed
+Project workspaces; each role's tab is first within its workspace. Existing matching sessions,
+workers and terminal generations remain intact. `start --dry-run` previews roles without mutation.
+The broker/default native server must be running. A layout conflict fails rather than moving
+panes between workspaces. Startup may partially complete on an error; inspect before retrying.
+Repeated starts reuse agents and do not submit business work. Launcher/model updates apply only
+to newly started agents. For explicitly authorized YOLO startup, a role may configure
+`launcher: [codex, --yolo]` and
+`args: [--model, gpt-6.1-sol, -c, model_reasoning_effort=medium, -c, service_tier=fast]`.
+
 The complete generic example is [projects.yaml.example](../config/workspace/projects.yaml.example).
 One manifest owns computer startup intent, local transport, project roles and registered tasks.
 Do not keep a second active registry in orchestrator.toml/projects.toml after migration.
@@ -143,8 +157,9 @@ Field rules:
   the existing regular identity file; a mismatch fails rather than overwriting identity.
 - `computer.orchestrator.kind` and project kind use the broker-supported kind allowlist and must
   be supported by the configured live Herdr server. `args` is an optional argv array, default `[]`;
-  permit model/effort arguments only for both roles. Project permission policy belongs to its
-  registered launcher, not extra args. Never silently drop unsupported existing arguments during
+  permit model/effort/service-tier arguments only for both roles. Each role's permission policy
+  belongs to its explicitly configured executable `launcher` argv, not extra args.
+  Never silently drop unsupported existing arguments during
   conversion; report them for host review. Preserve existing registered launchers.
 - `transport.broker_socket` defaults to the existing local path above; an override is absolute or
   `~/`. YAML v1 supports the local default Herdr server only, at `~/.config/herdr/herdr.sock`.

@@ -2,6 +2,106 @@
 use super::*;
 
 impl Broker {
+    pub(super) async fn launch_role(
+        &self,
+        pane_id: &str,
+        name: &str,
+        kind: &str,
+        cwd: &Path,
+        args: &[String],
+        launcher_value: &Value,
+    ) -> Result<(), BrokerError> {
+        let launcher = launcher_value
+            .as_array()
+            .ok_or_else(|| BrokerError::new("invalid_request", "Launcher must be argv"))?;
+        let argv: Vec<&str> = launcher
+            .iter()
+            .map(|v| {
+                v.as_str()
+                    .ok_or_else(|| BrokerError::new("invalid_request", "Launcher must be argv"))
+            })
+            .collect::<Result<_, _>>()?;
+        if argv.is_empty() {
+            return Err(BrokerError::new(
+                "invalid_request",
+                "Empty project launcher",
+            ));
+        }
+        let quote = |v: &str| format!("'{}'", v.replace('\'', "'\\''"));
+        let command = argv
+            .into_iter()
+            .map(quote)
+            .chain(args.iter().map(|v| quote(v)))
+            .collect::<Vec<_>>()
+            .join(" ");
+        self.herdr
+            .call(
+                "pane.send_input",
+                json!({"pane_id":pane_id,"text":command,"keys":["enter"]}),
+                Duration::from_secs(15),
+            )
+            .await?;
+        let deadline = Instant::now() + Duration::from_secs(30);
+        let detected = loop {
+            let result = self
+                .herdr
+                .call(
+                    "agent.get",
+                    json!({"target":pane_id}),
+                    Duration::from_secs(5),
+                )
+                .await;
+            if let Ok(result) = result {
+                let agent = &result["agent"];
+                if agent["agent_status"] == "blocked" {
+                    return Err(BrokerError::new(
+                        "agent_blocked",
+                        "Project startup approval needs human attention",
+                    ));
+                }
+                if agent["agent"] == kind
+                    && agent["interactive_ready"] != false
+                    && matches!(agent["agent_status"].as_str(), Some("idle" | "done"))
+                {
+                    break agent.clone();
+                }
+            }
+            if Instant::now() >= deadline {
+                return Err(BrokerError::new(
+                    "agent_not_ready",
+                    "Project launcher startup uncertain; preserve pane",
+                ));
+            }
+            tokio::time::sleep(Duration::from_millis(250)).await;
+        };
+        let mut expected = detected.clone();
+        if detected["name"]
+            .as_str()
+            .is_some_and(|existing| existing != name)
+        {
+            return Err(BrokerError::new(
+                "orchestrator_conflict",
+                "Launcher pane already belongs to another named agent",
+            ));
+        }
+        expected["name"] = json!(name);
+        orchestrator::verify_agent(&expected, name, kind, cwd)?;
+        if detected["agent"] != kind {
+            return Err(BrokerError::new(
+                "orchestrator_conflict",
+                "Unexpected project launcher kind",
+            ));
+        }
+        self.herdr
+            .call(
+                "agent.rename",
+                json!({"target":pane_id,"name":name}),
+                Duration::from_secs(15),
+            )
+            .await?;
+        Ok(())
+    }
+
     pub(super) async fn resolve_project(&self, route: &Value) -> Result<Value, BrokerError> {
         let cwd = self.cwd(route.get("cwd"))?;
         let name = self.agent_name(route.get("name"), "project-orchestrator")?;
@@ -168,81 +268,7 @@ impl Broker {
         })?;
         let args = self.agent_args(route.get("args"))?;
         if let Some(launcher) = route["launcher"].as_array() {
-            let argv: Vec<&str> = launcher
-                .iter()
-                .map(|v| {
-                    v.as_str()
-                        .ok_or_else(|| BrokerError::new("invalid_request", "Launcher must be argv"))
-                })
-                .collect::<Result<_, _>>()?;
-            if argv.is_empty() {
-                return Err(BrokerError::new(
-                    "invalid_request",
-                    "Empty project launcher",
-                ));
-            }
-            let quote = |v: &str| format!("'{}'", v.replace('\'', "'\\''"));
-            let command = argv
-                .into_iter()
-                .map(quote)
-                .chain(args.iter().map(|v| quote(v)))
-                .collect::<Vec<_>>()
-                .join(" ");
-            self.herdr
-                .call(
-                    "pane.send_input",
-                    json!({"pane_id":layout.pane_id,"text":command,"keys":["enter"]}),
-                    Duration::from_secs(15),
-                )
-                .await?;
-            let deadline = Instant::now() + Duration::from_secs(30);
-            let detected = loop {
-                let result = self
-                    .herdr
-                    .call(
-                        "agent.get",
-                        json!({"target":layout.pane_id}),
-                        Duration::from_secs(5),
-                    )
-                    .await;
-                if let Ok(result) = result {
-                    let agent = &result["agent"];
-                    if agent["agent_status"] == "blocked" {
-                        return Err(BrokerError::new(
-                            "agent_blocked",
-                            "Project startup approval needs human attention",
-                        ));
-                    }
-                    if agent["agent"] == kind
-                        && agent["interactive_ready"] != false
-                        && matches!(agent["agent_status"].as_str(), Some("idle" | "done"))
-                    {
-                        break agent.clone();
-                    }
-                }
-                if Instant::now() >= deadline {
-                    return Err(BrokerError::new(
-                        "agent_not_ready",
-                        "Project launcher startup uncertain; preserve pane",
-                    ));
-                }
-                tokio::time::sleep(Duration::from_millis(250)).await;
-            };
-            let mut expected = detected.clone();
-            expected["name"] = json!(name);
-            orchestrator::verify_agent(&expected, &name, &kind, &cwd)?;
-            if detected["agent"] != kind {
-                return Err(BrokerError::new(
-                    "orchestrator_conflict",
-                    "Unexpected project launcher kind",
-                ));
-            }
-            self.herdr
-                .call(
-                    "agent.rename",
-                    json!({"target":layout.pane_id,"name":name}),
-                    Duration::from_secs(15),
-                )
+            self.launch_role(&layout.pane_id, &name, &kind, &cwd, &args, &json!(launcher))
                 .await?;
         } else {
             self.herdr.call("agent.start",json!({"name":name,"kind":kind,"pane_id":layout.pane_id,"args":args,"timeout_ms":30000}),Duration::from_secs(45)).await?;

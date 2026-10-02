@@ -124,6 +124,11 @@ enum Command {
         live: bool,
     },
     Ensure,
+    /// Start/reuse managed roles and arrange their workspaces in configured order.
+    Start {
+        #[arg(long)]
+        dry_run: bool,
+    },
     Watch,
     Pump,
     Install,
@@ -186,6 +191,7 @@ pub async fn run(args: impl IntoIterator<Item = std::ffi::OsString>) -> Result<(
                     host.check()
                 }
                 Command::Ensure => host.ensure()?,
+                Command::Start { dry_run } => host.start(dry_run)?,
                 Command::Pump => host.pump()?,
                 Command::Install => host.install()?,
                 Command::Event(args) => host.event(*args).await?,

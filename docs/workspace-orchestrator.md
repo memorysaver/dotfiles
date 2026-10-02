@@ -22,7 +22,8 @@ Computer uses `computer-orchestrator` at Computer home. Project uses `project-or
 at its exact Git root with readable AGENTS.md/README.md. The explicit short key is 1..11 characters;
 no truncation or hashing. Project labels place a primary workspace; name/kind/cwd/native terminal
 generation bind the route. Relative escapes, duplicate checkouts/keys and wrong occupants fail.
-Project permission policy belongs to its registered launcher; role args configure models/effort.
+Each role's permission policy belongs to its registered launcher; role args configure
+models/effort/service tier. Explicit launcher settings apply to newly started sessions.
 
 ## Delivery and acceptance
 
@@ -44,6 +45,8 @@ herdr-dispatch check
 herdr-dispatch check --live
 herdr-dispatch projects list
 herdr-dispatch ensure
+herdr-dispatch start --dry-run
+herdr-dispatch start
 herdr-dispatch projects ensure --project <project-id>
 herdr-dispatch event submit --project <project-id> --task <task-id> --event-id <stable-id> --wait
 herdr-dispatch event status --event-id <stable-id>

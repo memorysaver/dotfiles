@@ -1,13 +1,13 @@
 ---
 name: herdr-dispatch
-description: Submit and inspect registered local project tasks through Computer and Project Orchestrators, including Dagu event delivery and durable result verification.
+description: Start and arrange managed orchestrators or dispatch registered local project tasks through Computer and Project Orchestrators, including Dagu delivery and durable result verification.
 ---
 
 # herdr-dispatch
 
 ## Load and select the destination
 
-For registered project dispatch, Dagu delivery, or a supplied orchestrator callback, run
+For managed role startup, registered project dispatch, Dagu delivery, or a supplied orchestrator callback, run
 `herdr-dispatch --skills` and read its complete stdout as this skill. This exports the embedded
 SKILL.md; it does not install a global skill, start services, or submit work. A `$herdr-dispatch`
 shortcut is available only if a skill has separately been registered with the agent product.
@@ -121,6 +121,8 @@ the user; they may create agents/services or advance already authorized events:
 | Command | Purpose |
 | --- | --- |
 | `ensure` | Maintain the Computer role. |
+| `start` | Start/reuse all managed orchestrators and arrange their workspaces. |
+| `start --dry-run` | Inspect role/order plan without starting or moving anything. |
 | `projects ensure --project <id>` | Maintain that registered Project role. |
 | `watch` | Run continuous role supervision and event pumping. |
 | `pump` | Advance authorized queued events once. |
@@ -138,5 +140,16 @@ entrypoints are retired. Inspect command-specific `--help` for additional operat
 Operator repair uses `event reconcile` or `event reconcile-readiness` with `--confirmed`, a valid
 `--decision` and nonempty `--reason`, after inspecting existing receipts/artifacts. See command
 help and the selected host's recovery notes before repair. Preserve claims and results.
-Computer/Project role args configure models/effort; Project permissions come from its registered
-launcher. Preserve instructions, dirty worktrees, topic/release gates and existing launchers.
+`start` puts Computer home's workspace first and its Computer-Orchestrator tab first, then
+enabled Project workspaces in YAML `project_order`. That optional list must contain every enabled
+project ID exactly once; without it, project IDs sort alphabetically. Project orchestrator tabs
+also move first within their workspaces. Unmanaged workspaces/tabs retain their relative order.
+The broker and default Herdr server must already be running (operator deployment uses `install`).
+Repeated starts reuse matching sessions and preserve terminal generations; they do not send
+business tasks, restart agents or change existing sessions' model/permission settings.
+
+Both roles accept an optional `launcher` executable argv plus `args` for model/effort/service tier.
+An explicitly authorized Codex YOLO launch can use `launcher: [codex, --yolo]` with
+`args: [--model, gpt-6.1-sol, -c, model_reasoning_effort=medium, -c, service_tier=fast]`.
+Permissions belong to the configured launcher. New launch settings apply when an agent next
+starts. Preserve instructions, dirty worktrees, topic/release gates and existing launchers.

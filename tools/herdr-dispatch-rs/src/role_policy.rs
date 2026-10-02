@@ -41,7 +41,10 @@ impl Broker {
         }
         if !matches!(
             operation,
-            "ensure_orchestrator" | "ensure_project_orchestrator" | "orchestrator_event"
+            "ensure_orchestrator"
+                | "ensure_project_orchestrator"
+                | "orchestrator_event"
+                | "managed_layout"
         ) {
             return Ok(());
         }
@@ -63,6 +66,15 @@ impl Broker {
         }
         if operation == "ensure_orchestrator" && params["agent_name"] != "computer-orchestrator" {
             return Err(Self::role_error("Computer role has a fixed name"));
+        }
+        if operation == "ensure_orchestrator"
+            && binding.get("computer_launch").is_some()
+            && (params["agent_args"] != binding["computer_launch"]["args"]
+                || params["launcher"] != binding["computer_launch"]["launcher"])
+        {
+            return Err(Self::role_error(
+                "Computer launcher/args must match registered configuration",
+            ));
         }
         if operation == "ensure_project_orchestrator" || params["action"] == "resolve_project" {
             let route = &params["route"];
