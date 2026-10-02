@@ -51,9 +51,9 @@ impl Broker {
             serde_json::from_slice(&fs::read(&path).map_err(|e| state_error(&path, e))?)
                 .map_err(|e| state_error(&path, e))?
         } else {
-            json!({"schema":1,"events":{},"ready":null})
+            json!({"schema":self.event_schema(),"events":{},"ready":null})
         };
-        if !value["events"].is_object() || value["schema"] != 1 {
+        if !value["events"].is_object() || value["schema"] != self.event_schema() {
             return Err(conflict("Unsupported event store"));
         }
         let previous_store = value.clone();
@@ -117,14 +117,14 @@ impl Broker {
             .herdr
             .call(
                 "agent.get",
-                json!({"target":"orchestrator"}),
+                json!({"target":"computer-orchestrator"}),
                 Duration::from_secs(15),
             )
             .await?;
         let agent = result
             .get("agent")
             .ok_or_else(|| BrokerError::new("herdr_protocol_error", "Agent missing"))?;
-        orchestrator::verify_agent(agent, "orchestrator", &kind, &cwd)?;
+        orchestrator::verify_agent(agent, "computer-orchestrator", &kind, &cwd)?;
         safe_text(agent.get("terminal_id"), "terminal_id", 256)?;
         Ok(agent.clone())
     }
@@ -142,7 +142,7 @@ impl Broker {
         }
         if action == "list" {
             return self.event_store(false, |s| {
-                Ok(json!({"events":s["events"],"ready":s["ready"]}))
+                Ok(json!({"events":s["events"],"ready":s["ready"],"legacy_names":s["legacy_names"]}))
             });
         }
         if action == "status" {
@@ -174,7 +174,7 @@ impl Broker {
                     if old["payload"] != *payload || old["cwd"] != json!(cwd) || old["kind"] != kind { return Err(conflict("Same event ID has different payload or route")); }
                     return Ok(old.clone());
                 }
-                let record = json!({"event_id":id,"payload":payload,"cwd":cwd,"kind":kind,"state":"queued",
+                let record = json!({"role_binding":params["role_binding"],"event_id":id,"payload":payload,"cwd":cwd,"kind":kind,"state":"queued",
                     "nonce":Uuid::new_v4().to_string(),"created_at":now_iso(),"updated_at":now_iso()});
                 s["events"][&id] = record.clone(); Ok(record)
             });
@@ -531,7 +531,7 @@ impl Broker {
             .herdr
             .call(
                 "agent.prompt",
-                json!({"target":"orchestrator","text":text,"wait":{"until":["working","blocked"],"timeout_ms":10000}}),
+                json!({"target":"computer-orchestrator","text":text,"wait":{"until":["working","blocked"],"timeout_ms":10000}}),
                 Duration::from_secs(30),
             )
             .await;
@@ -604,7 +604,7 @@ mod tests {
         (broker, root, thread)
     }
     fn agent(cwd: &Path, status: &str) -> Value {
-        json!({"result":{"agent":{"name":"orchestrator","agent":"codex","cwd":cwd,"foreground_cwd":cwd,
+        json!({"result":{"agent":{"name":"computer-orchestrator","agent":"codex","cwd":cwd,"foreground_cwd":cwd,
             "workspace_id":"renamed-or-moved","terminal_id":"generation-1","agent_status":status,"interactive_ready":true}}})
     }
     fn request(root: &Path, action: &str) -> Value {

@@ -1,8 +1,7 @@
 # herdr-dispatch: computer and project routing
 
-Status: design proposal, not deployed. This changes the public interface of the installed single
-Rust executable. The existing two-hop protocol, frozen events and execution claims remain the base.
-The current deployed executable is still workspace-orchestrator; commands below are proposed.
+Status: Linux local YAML routing implementation is deployed for the first bound host. The requirements
+below also define cross-host acceptance; macOS and reboot/native restoration remain unverified.
 
 ## Interface and locations
 

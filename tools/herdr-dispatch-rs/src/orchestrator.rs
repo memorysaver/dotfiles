@@ -90,7 +90,7 @@ pub(super) fn verify_agent(
     }
     Ok(())
 }
-fn validate_role_args(args: &[String]) -> Result<(), BrokerError> {
+pub(crate) fn validate_role_args(args: &[String]) -> Result<(), BrokerError> {
     let mut index = 0;
     while index < args.len() {
         match args[index].as_str() {
@@ -204,8 +204,8 @@ impl Broker {
             ));
         }
         let cwd = self.cwd(params.get("cwd"))?;
-        let name = self.agent_name(params.get("agent_name"), "orchestrator")?;
-        if name != "orchestrator"
+        let name = self.agent_name(params.get("agent_name"), "computer-orchestrator")?;
+        if name != "computer-orchestrator"
             || params.get("agent_name").and_then(Value::as_str) != Some(name.as_str())
         {
             return Err(BrokerError::new(
@@ -263,7 +263,9 @@ impl Broker {
                 })?;
                 verify_agent(agent, &name, &kind, &cwd)?;
                 // An existing working/blocked/unknown agent is alive. Never prompt or restart it.
-                return Ok(json!({"type": "orchestrator", "created": false, "agent": agent}));
+                return Ok(
+                    json!({"type": "computer-orchestrator", "created": false, "agent": agent}),
+                );
             }
             Err(error) if matches!(error.code.as_str(), "not_found" | "agent_not_found") => {}
             Err(error) => return Err(error),
@@ -349,7 +351,7 @@ impl Broker {
         let layout = if let Some(layout) = restored {
             layout
         } else {
-            self.layout(&route, &cwd, "orchestrator").await?
+            self.layout(&route, &cwd, "computer-orchestrator").await?
         };
         save(
             &json!({"phase":"starting", "recovery_attempts":recovery_attempts, "name":name, "cwd":cwd, "kind":kind,
@@ -379,7 +381,7 @@ impl Broker {
             "workspace_id":layout.workspace_id, "pane_id":layout.pane_id}),
         )?;
         Ok(
-            json!({"type": "orchestrator", "created": true, "agent": agent,
+            json!({"type": "computer-orchestrator", "created": true, "agent": agent,
             "start": start, "prompt": prompted}),
         )
     }
@@ -413,9 +415,9 @@ mod tests {
         );
         assert_eq!(flat, vec!["w4"]);
 
-        let agent = json!({"name":"orchestrator", "agent":"codex", "cwd":cwd, "agent_status":"blocked","workspace_id":"w2"});
-        assert!(verify_agent(&agent, "orchestrator", "codex", &cwd).is_ok());
-        assert!(verify_agent(&agent, "orchestrator", "claude", &cwd).is_err());
+        let agent = json!({"name":"computer-orchestrator", "agent":"codex", "cwd":cwd, "agent_status":"blocked","workspace_id":"w2"});
+        assert!(verify_agent(&agent, "computer-orchestrator", "codex", &cwd).is_ok());
+        assert!(verify_agent(&agent, "computer-orchestrator", "claude", &cwd).is_err());
         assert!(verify_agent(&agent, "other", "codex", &cwd).is_err());
     }
     pub(super) fn mock_broker(
@@ -452,11 +454,11 @@ mod tests {
             "panes":[{"workspace_id":"w1","cwd":cwd}]}}})
     }
     fn live_agent(cwd: &Path, status: &str) -> Value {
-        json!({"result":{"agent":{"name":"orchestrator","agent":"codex",
+        json!({"result":{"agent":{"name":"computer-orchestrator","agent":"codex",
             "cwd":cwd,"workspace_id":"w1","pane_id":"w1:p2","agent_status":status}}})
     }
     fn ensure_params(cwd: &Path) -> Value {
-        json!({"confirmed":true,"cwd":cwd,"agent_name":"orchestrator","kind":"codex",
+        json!({"confirmed":true,"cwd":cwd,"agent_name":"computer-orchestrator","kind":"codex",
             "prompt":"Confirm local role only", "start_timeout_ms":1000})
     }
     #[tokio::test]
@@ -650,7 +652,7 @@ mod tests {
         ];
         assert_eq!(
             broker
-                .restored_role_layout(&previous, &panes, &fixture, "orchestrator")
+                .restored_role_layout(&previous, &panes, &fixture, "computer-orchestrator")
                 .await
                 .unwrap_err()
                 .code,
@@ -658,13 +660,13 @@ mod tests {
         );
         broker
             .event_store(true, |s| {
-                s["restore_candidates"]["orchestrator"]["first_seen"] =
+                s["restore_candidates"]["computer-orchestrator"]["first_seen"] =
                     json!(chrono::Utc::now().timestamp() - 31);
                 Ok(())
             })
             .unwrap();
         let layout = broker
-            .restored_role_layout(&previous, &panes, &fixture, "orchestrator")
+            .restored_role_layout(&previous, &panes, &fixture, "computer-orchestrator")
             .await
             .unwrap()
             .unwrap();

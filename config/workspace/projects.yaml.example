@@ -1,4 +1,4 @@
-# Proposed v1 format; example only, not an installed host inventory.
+# YAML v1 format; example only, not an installed host inventory.
 version: 1
 computer:
   id: local-machine

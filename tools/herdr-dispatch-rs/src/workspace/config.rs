@@ -169,118 +169,12 @@ pub struct Host {
 }
 impl Host {
     pub fn load(config: Option<&Path>) -> Result<Self> {
-        let paths = Paths::resolve(config)?;
-        regular_file(paths.get("identity"))?;
-        let computer = fs::read_to_string(paths.get("identity"))?
-            .trim()
-            .to_string();
-        if !Regex::new(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")?.is_match(&computer) {
-            return fail("Invalid computer identity");
-        }
-        let rules = paths
-            .get("hosts")
-            .join(&computer)
-            .join("orchestration-rules");
-        if paths
-            .get("workspace")
-            .join("orchestration-rules")
-            .canonicalize()?
-            != rules.canonicalize()?
-        {
-            return fail("Workspace rules do not match selected computer");
-        }
-        for file in ["AGENTS.md", "README.md"] {
-            if paths.get("workspace").join(file).canonicalize()?
-                != paths
-                    .get("dotfiles")
-                    .join("config/workspace")
-                    .join(file)
-                    .canonicalize()?
-            {
-                return fail(format!(
-                    "Work {file} must resolve to its managed dotfiles source"
-                ));
-            }
-        }
-        for file in ["README.md", "profile", "orchestrator.toml"] {
-            if !rules.join(file).is_file() {
-                return fail(format!("Selected computer is missing {file}"));
-            }
-        }
-        let profile = fs::read_to_string(rules.join("profile"))?;
-        let release = fs::read_to_string("/etc/os-release").unwrap_or_default();
-        let omarchy = release
-            .lines()
-            .any(|line| matches!(line, "ID=omarchy" | "ID=\"omarchy\""));
-        let valid = match env::consts::OS {
-            "macos" => profile.trim() == "mac",
-            "linux" => {
-                (omarchy && matches!(profile.trim(), "omarchy-server" | "omarchy-desktop"))
-                    || (!omarchy
-                        && profile.trim() == "grok-bot"
-                        && env::var("USER").as_deref() == Ok("box")
-                        && (env::var("CURSOR_AGENT").as_deref() == Ok("1")
-                            || Path::new("/exec-daemon").exists()))
-            }
-            _ => false,
-        };
-        if !valid {
-            return fail("Selected computer profile does not match actual OS");
-        }
-        let manifest = read_toml(&rules.join("orchestrator.toml"))?;
-        if manifest["computer_id"] != computer || manifest["enabled"] != true {
-            return fail("Manifest must enable this exact computer");
-        }
-        if manifest["agent"]["name"].as_str().unwrap_or("orchestrator") != "orchestrator" {
-            return fail("Fixed Computer name must be orchestrator");
-        }
-        let kind = manifest["agent"]["kind"]
-            .as_str()
-            .unwrap_or("codex")
-            .to_string();
-        supported_kind(&kind)?;
-        let args = manifest["agent"]
-            .get("args")
-            .cloned()
-            .unwrap_or_else(|| json!([]));
-        argv(&args, false)?;
-        let interval = manifest["poll_seconds"].as_u64().unwrap_or(30);
-        if !(10..=300).contains(&interval)
-            || manifest
-                .get("poll_seconds")
-                .is_some_and(|v| v.as_u64().is_none())
-        {
-            return fail("poll_seconds must be an integer between 10 and 300");
-        }
-        let socket = expand_at(
-            &home()?,
-            Path::new(
-                manifest["transport"]["broker_socket"]
-                    .as_str()
-                    .unwrap_or("~/.config/herdr-dispatchd/dispatch.sock"),
-            ),
-        )?;
-        if !socket.is_absolute() {
-            return fail("Broker socket must be absolute or ~/ relative");
-        }
-        for key in ["workspace", "dotfiles", "idea", "dags"] {
-            if !paths.get(key).is_dir() {
-                return fail(format!("Required directory missing: {key}"));
-            }
-        }
-        Ok(Self {
-            paths,
-            rules,
-            computer,
-            kind,
-            args,
-            interval,
-            socket,
-            config: config.map(weak_canonical).transpose()?,
+        Self::load_yaml(config).map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string()).into()
         })
     }
     pub fn check(&self) -> Value {
-        json!({"computer_id":self.computer,"rules":self.rules,"kind":self.kind,"broker_socket":self.socket,"paths":self.paths.json()})
+        json!({"computer_name":"computer-orchestrator","config":self.config,"computer_id":self.computer,"rules":self.rules,"kind":self.kind,"broker_socket":self.socket,"paths":self.paths.json()})
     }
     pub fn bootstrap(&self) -> String {
         format!("You are the fixed local Herdr Orchestrator for computer {}.\nRead Work AGENTS.md and README.md, then selected orchestration rules.\nResolved local paths: {}\nSelected private rules: {}\nKeep cwd at configured Work root. Manage only this computer. Preserve existing workers and dirty repositories. Dagu events go Computer -> fixed Project, which owns project handlers/producers/workers. Follow project topic and release gates. Do not do business work merely because this bootstrap ran. Do not publish, send messages, bypass approvals or replay uncertain work. Read host task definitions and confirm readiness for authorized work.",self.computer,self.paths.json(),self.rules.display())
@@ -291,6 +185,9 @@ impl Host {
         } else {
             "orchestrator_event"
         };
+        if self.config.is_some() {
+            values["role_binding"] = self.role_binding()?;
+        }
         values["cwd"] = json!(self.paths.get("workspace"));
         values["kind"] = json!(self.kind);
         if action != "ensure_project" {
@@ -307,7 +204,7 @@ impl Host {
         let result = crate::broker_call(
             &self.socket,
             "ensure_orchestrator",
-            json!({"confirmed":true,"cwd":self.paths.get("workspace"),"kind":self.kind,"agent_name":"orchestrator","agent_args":self.args,"prompt":self.bootstrap(),"start_timeout_ms":30000}),
+            json!({"confirmed":true,"cwd":self.paths.get("workspace"),"kind":self.kind,"agent_name":"computer-orchestrator","role_binding":self.role_binding()?,"agent_args":self.args,"prompt":self.bootstrap(),"start_timeout_ms":30000}),
             Duration::from_secs(210),
         )?;
         atomic_json(
@@ -317,17 +214,29 @@ impl Host {
         Ok(result)
     }
     pub fn reply_prefix(&self) -> Result<String> {
-        let mut parts = vec![home()?
-            .join(".local/bin/workspace-orchestrator")
-            .to_string_lossy()
-            .to_string()];
-        if let Some(config) = &self.config {
-            parts.extend(["--config".into(), config.to_string_lossy().to_string()]);
-        }
-        Ok(shell_join(&parts))
+        let config = self
+            .config
+            .as_ref()
+            .ok_or_else(|| error("Callback requires an absolute YAML config"))?;
+        Ok(format!(
+            "env {} {} --config {}",
+            quote(&format!(
+                "HERDR_COMPUTER_HOME={}",
+                self.paths.get("workspace").display()
+            )),
+            quote(&home()?.join(".local/bin/herdr-dispatch").to_string_lossy()),
+            quote(&config.to_string_lossy())
+        ))
     }
     pub fn registry(&self) -> Result<Value> {
+        if self.config.is_some() {
+            return self.yaml_registry();
+        }
+        #[cfg(not(test))]
+        return fail("A YAML project registry is required");
+        #[cfg(test)]
         let path = self.rules.join("projects.toml");
+        #[cfg(test)]
         Ok(if path.exists() {
             read_toml(&path)?["projects"].clone()
         } else {
@@ -365,7 +274,7 @@ impl Host {
         }
         let agent = &selected["orchestrator"];
         let name = text(&agent["name"], "project agent name")?;
-        if !Regex::new(r"^project-[a-z0-9_-]{1,24}$")?.is_match(name) {
+        if !Regex::new(r"^project-(?:orchestrator-)?[a-z0-9_-]{1,24}$")?.is_match(name) {
             return fail("Project needs a unique project-* name");
         }
         let kind = agent["kind"].as_str().unwrap_or("codex");
@@ -378,7 +287,7 @@ impl Host {
             route["launcher"] = launcher.clone();
         }
         Ok(
-            json!({"project":id,"repo":cwd,"workspace_label":selected["workspace_label"].as_str().unwrap_or(id),"route":route}),
+            json!({"project":id,"repo":cwd,"workspace_label":selected["workspace_label"].as_str().unwrap_or(id),"route":route,"tasks":selected["tasks"].as_object().map(|m|m.iter().map(|(id,t)|json!({"task":id,"scope":t["scope"],"input_env":t.get("input_env").cloned().unwrap_or(json!([])),"has_verifier":t.get("verify_entrypoint").is_some()})).collect::<Vec<_>>()).unwrap_or_default()}),
         )
     }
     pub fn projects(&self) -> Result<Vec<Value>> {
@@ -404,6 +313,11 @@ impl Host {
         self.call("ensure_project",json!({"confirmed":true,"project":id,"route":selected["route"],"workspace_label":selected["workspace_label"],"bootstrap":bootstrap,"adopt_pane":adopt}))
     }
     pub fn task(&self, project: &str, task: &str) -> Result<Value> {
+        if self.config.is_some() && project == "workspace-check" && task == "read-only-probe" {
+            return Ok(
+                json!({"project":project,"task":task,"project_cwd":self.paths.get("workspace"),"definition":{"entrypoint":["python3","-c","from pathlib import Path; import hashlib,json; p=Path.cwd(); a=p/'AGENTS.md'; assert a.is_file(); print(json.dumps({'cwd':str(p),'agents_sha256':hashlib.sha256(a.read_bytes()).hexdigest(),'read_only':True}))"],"timeout_seconds":30,"scope":"Read-only event transport acceptance; no project work or external messages."}}),
+            );
+        }
         let registry = self.registry()?;
         let selected = &registry[project];
         let definition = &selected["tasks"][task];

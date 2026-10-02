@@ -76,13 +76,13 @@ the broker is unavailable, report that external dispatch is blocked.
 
 ## Fixed Orchestrator supervisor
 
-`workspace-orchestrator ensure` uses the broker's allowlisted `ensure-orchestrator` operation.
+`herdr-dispatch ensure` uses the broker's allowlisted `ensure-orchestrator` operation.
 Configured host lifecycle authorization permits its `--confirmed` flag. This only maintains
 one named agent and submits its initial role bootstrap; it does not execute arbitrary commands,
 answer approval dialogs, rename existing agents, or stop the Herdr server. Dagu and the user
 supervisor use this external surface without setting `HERDR_ENV`. Existing project dispatch
 and its task/result history remain separate. Presence is health only. Registered Dagu business
-events use `workspace-orchestrator event submit`: Computer → fixed Project → project handler
+events use `herdr-dispatch event submit`: Computer → fixed Project → project handler
 → Computer result acceptance → Dagu. Consult `docs/workspace-orchestrator.md` for receipts,
 recovery and the private enabled-project registry. The supervisor also maintains registered Project roles.
 

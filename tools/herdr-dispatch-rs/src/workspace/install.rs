@@ -91,7 +91,7 @@ fn launch_agent(label: &str, args: &[String], path: &str, state: Option<&Path>) 
 impl Host {
     pub fn install(&self) -> Result<Value> {
         let home = home()?;
-        let binary = home.join(".local/bin/workspace-orchestrator");
+        let binary = home.join(".local/bin/herdr-dispatch");
         let source = binary.canonicalize()?;
         let releases = home
             .join(".local/libexec/workspace-orchestrator/releases")
@@ -157,6 +157,16 @@ impl Host {
                 managed(&server)?;
                 let (content, server_content) =
                     linux_units(&binary, &herdr, self.config.as_deref(), &path);
+                let content = content.replace(
+                    "[Service]",
+                    &format!(
+                        "[Service]\nEnvironment={}",
+                        unit_quote(&format!(
+                            "HERDR_COMPUTER_HOME={}",
+                            self.paths.get("workspace").display()
+                        ))
+                    ),
+                );
                 managed_write(&unit, &content)?;
                 managed_write(&server, &server_content)?;
                 unit

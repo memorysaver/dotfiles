@@ -25,36 +25,9 @@ enum Command {
     History(HistoryArgs),
     Result(ReadArgs),
     Dispatch(Box<DispatchArgs>),
-    EnsureOrchestrator(Box<EnsureArgs>),
-    EnsureProjectOrchestrator {
-        #[arg(long)]
-        request_file: PathBuf,
-    },
-    OrchestratorEvent {
-        #[arg(long)]
-        request_file: PathBuf,
-    },
     Status(TaskArgs),
     Read(ReadArgs),
     Wait(WaitArgs),
-}
-
-#[derive(Debug, Args)]
-struct EnsureArgs {
-    #[arg(long)]
-    confirmed: bool,
-    #[arg(long)]
-    cwd: String,
-    #[arg(long, default_value = "orchestrator")]
-    agent_name: String,
-    #[arg(long, default_value = "codex")]
-    kind: String,
-    #[arg(long = "agent-arg")]
-    agent_args: Vec<String>,
-    #[arg(long, default_value_t = 30_000)]
-    start_timeout_ms: u64,
-    #[arg(long)]
-    prompt_file: PathBuf,
 }
 
 #[derive(Debug, Args)]
@@ -161,36 +134,6 @@ fn command_request(command: Command) -> Result<(&'static str, Value, Duration), 
             json!({"task_id": args.task_id, "lines": args.lines}),
             Duration::from_secs(75),
         )),
-        Command::EnsureOrchestrator(args) => {
-            let prompt = read_prompt(None, Some(&args.prompt_file))?;
-            Ok((
-                "ensure_orchestrator",
-                json!({"confirmed": args.confirmed,
-                "cwd": args.cwd, "agent_name": args.agent_name, "kind": args.kind,
-                "agent_args": args.agent_args, "start_timeout_ms": args.start_timeout_ms,
-                "prompt": prompt}),
-                Duration::from_millis(args.start_timeout_ms)
-                    .saturating_add(Duration::from_secs(150)),
-            ))
-        }
-        Command::EnsureProjectOrchestrator { request_file } => {
-            let request = std::fs::read_to_string(request_file)
-                .map_err(|e| BrokerError::new("invalid_request", e.to_string()))?;
-            let params: Value = serde_json::from_str(&request)
-                .map_err(|e| BrokerError::new("invalid_request", e.to_string()))?;
-            Ok((
-                "ensure_project_orchestrator",
-                params,
-                Duration::from_secs(120),
-            ))
-        }
-        Command::OrchestratorEvent { request_file } => {
-            let request = std::fs::read_to_string(request_file)
-                .map_err(|error| BrokerError::new("invalid_request", error.to_string()))?;
-            let params: Value = serde_json::from_str(&request)
-                .map_err(|error| BrokerError::new("invalid_request", error.to_string()))?;
-            Ok(("orchestrator_event", params, Duration::from_secs(90)))
-        }
         Command::Dispatch(args) => {
             let prompt = read_prompt(args.prompt, args.prompt_file.as_deref())?;
             let timeout = Duration::from_millis(args.start_timeout_ms)

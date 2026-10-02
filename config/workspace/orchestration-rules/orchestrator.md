@@ -69,9 +69,9 @@ tasks and session IDs remain machine-local runtime data.
 
 ## Fixed agent lifecycle
 
-Each managed host maintains the unique live name `orchestrator` in the selected local Herdr
+Each managed host maintains the unique live name `computer-orchestrator` in the selected local Herdr
 server with canonical Work cwd. Agent name, configured kind and actual cwd identify the role;
-workspace labels, tab order and pane positions do not. Read the resolved host `orchestrator.toml` and its workflow
+workspace labels, tab order and pane positions do not. Read the resolved host `projects.yaml` and its workflow
 index. The supervisor calls the allowlisted broker's `ensure-orchestrator`; it reuses an existing
 agent only when kind/name/canonical cwd match, preserves working/blocked/unknown states, and
 starts a missing agent without stealing focus. A management tab is initial placement, not a routing
@@ -88,10 +88,10 @@ scheduled tasks require their own objectives, limits and artifact-based verifica
 
 ## Computer → Project hierarchy
 
-Dagu business events always enter the local Computer role `orchestrator` at canonical Work cwd.
+Dagu business events always enter the local Computer role `computer-orchestrator` at canonical Work cwd.
 It reads Work AGENTS.md and the selected host rules, acknowledges the event and delegates through
 the broker to the registered Project role. It does not execute project entrypoints directly.
-Each enabled repository has one fixed `project-*` role at its canonical Git root and one primary
+Each enabled repository has one fixed `project-orchestrator-<key>` role at its canonical Git root and one primary
 Herdr workspace. Project and workspace are related concepts: a project is the repository/ownership
 boundary; a Herdr workspace is its terminal container. Episode/feature worktrees may have linked
 workspaces or tabs without becoming additional managed projects.
@@ -101,7 +101,7 @@ project entrypoints and acceptance evidence. Project completion returns to Compu
 acceptance before Dagu completes and runs the project verifier. Internal Work-only health/probes
 are the explicit exception. Preserve project launchers and topic/release gates.
 
-The private selected host `projects.toml` is the enabled-project inventory: canonical repo path,
+The private selected host `projects.yaml` is the enabled-project inventory: canonical repo path,
 fixed role name/kind/launcher and registered task argv. Relative repo paths resolve under configured
 Work; absolute or home paths support other locations. Count enabled projects, not pane positions,
 worktrees or installed tools. Discover workspace/pane IDs at runtime. Reuse matching named roles

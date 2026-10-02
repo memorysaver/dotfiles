@@ -23,18 +23,18 @@ cargo build --release --locked --manifest-path "$crate_dir/Cargo.toml"
 install -d -m 0700 "$libexec_dir/releases"
 staging_dir="$(mktemp -d "$libexec_dir/.install.XXXXXX")"
 trap 'rm -rf "$staging_dir"' EXIT
-install -m 0755 "$release_dir/workspace-orchestrator" "$staging_dir/workspace-orchestrator"
-binary_hash="$(sha256sum "$staging_dir/workspace-orchestrator")"
+install -m 0755 "$release_dir/herdr-dispatch" "$staging_dir/herdr-dispatch"
+binary_hash="$(sha256sum "$staging_dir/herdr-dispatch")"
 binary_hash="${binary_hash%% *}"
 version_dir="$libexec_dir/releases/$binary_hash"
 if [[ -e "$version_dir" ]]; then
-  cmp "$staging_dir/workspace-orchestrator" "$version_dir/workspace-orchestrator"
+  cmp "$staging_dir/herdr-dispatch" "$version_dir/herdr-dispatch"
 else
   mv "$staging_dir" "$version_dir"
 fi
 if [[ ! -e "$current_binary" && ! -L "$current_binary" ]]; then
-  ln -s "$version_dir/workspace-orchestrator" "$current_binary"
-elif [[ ! -L "$current_binary" || "$(readlink "$current_binary")" != "$libexec_dir/releases/"*/workspace-orchestrator ]]; then
+  ln -s "$version_dir/herdr-dispatch" "$current_binary"
+elif [[ ! -L "$current_binary" || "$(readlink "$current_binary")" != "$libexec_dir/releases/"*/workspace-orchestrator && "$(readlink "$current_binary")" != "$libexec_dir/releases/"*/herdr-dispatch ]]; then
   printf 'Refusing to replace unmanaged runtime: %s\n' "$current_binary" >&2
   exit 1
 fi
@@ -48,7 +48,7 @@ link_managed() {
   fi
   if [[ -L "$target_path" ]] && {
     [[ -n "$legacy_path" && "$(readlink -f "$target_path")" == "$legacy_path" ]] ||
-    [[ "$source_path" == "$current_binary" && "$(readlink -f "$target_path")" == "$release_dir/workspace-orchestrator" ]];
+    [[ "$source_path" == "$current_binary" && "$(readlink -f "$target_path")" == "$release_dir/herdr-dispatch" ]];
   }; then
     ln -s "$source_path" "$target_path.next"
     mv -Tf "$target_path.next" "$target_path"
@@ -76,10 +76,10 @@ if [[ -f "$bin_dir/workspace-orchestrator" && ! -L "$bin_dir/workspace-orchestra
   ln -s "$current_binary" "$bin_dir/workspace-orchestrator.next"
   mv -Tf "$bin_dir/workspace-orchestrator.next" "$bin_dir/workspace-orchestrator"
 fi
-link_managed "$current_binary" "$bin_dir/workspace-orchestrator" "$release_dir/workspace-orchestrator"
+link_managed "$current_binary" "$bin_dir/workspace-orchestrator" "$release_dir/herdr-dispatch"
 link_managed "$dotfiles_dir/config/systemd/user/herdr-dispatchd.service" "$unit_dir/herdr-dispatchd.service"
 
-ln -s "$version_dir/workspace-orchestrator" "$current_binary.next"
+ln -s "$version_dir/herdr-dispatch" "$current_binary.next"
 mv -Tf "$current_binary.next" "$current_binary"
 
 systemctl --user daemon-reload

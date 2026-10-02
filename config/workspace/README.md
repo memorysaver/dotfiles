@@ -59,15 +59,17 @@ symlinks expose the updated files. Existing sessions must reread the entrypoints
 
 ## Fixed Orchestrator and configured locations
 
-Every managed computer keeps a fixed `orchestrator` agent whose cwd is its configured Work root.
-The local server, agent name, kind and canonical cwd identify it; tab/pane positions do not.
-The user supervisor maintains presence; the host's Dagu presence workflow provides a separate
-scheduled check. Busy or blocked agents are preserved, and task completion requires verified
-artifacts. This requirement supersedes older optional-agent deployment notes, without granting
-new business permissions or changing host project restrictions.
+Every managed computer keeps `computer-orchestrator` at its Computer home. Every enabled
+project has `project-orchestrator-<key>` at its canonical checkout root, in one primary workspace.
+Names, kinds, cwd and native generation identify roles; labels and layout do not select delivery.
+The supervisor maintains presence; Dagu submits registered events through Computer → Project →
+project handler → Computer result acceptance → project artifact verifier. Existing authorization
+and topic/release gates remain mandatory. Busy or blocked roles are preserved.
 
-The directory map above uses default locations. Resolve actual local locations with
-`workspace-orchestrator paths` or dotfiles `lib/workspace-paths.py`. Host overrides live in the
-local regular file `~/.config/dotfiles/workspace.toml`. The configured idea checkout owns
-`private-config/computers/<id>/orchestration-rules/{orchestrator.toml,workflows/}`; only that
-computer's workflows are linked into the configured Dagu DAGs directory. See `docs/workspace-orchestrator.md` in the resolved dotfiles checkout for deployment.
+`HERDR_COMPUTER_HOME` defaults to `~/Work`. Active dispatch settings use `<Computer home>/projects.yaml`
+or an explicit YAML `--config`; relative repo paths are based on Computer home. Actual bound-host
+YAML belongs in private idea and is linked into Work. YAML `binding` can set dotfiles, idea,
+identity, hosts and DAG locations. Initial provisioning may still use workspace.toml/Python;
+those legacy settings do not select the dispatch root. Use `herdr-dispatch check`, `projects list`
+and `--skills`. Runtime receipts, credentials and native IDs stay outside repositories.
+See the resolved dotfiles `docs/workspace-orchestrator.md` for deployment.

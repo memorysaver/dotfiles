@@ -25,6 +25,7 @@ mod history;
 mod orchestrator;
 mod orchestrator_events;
 mod project_orchestrator;
+mod role_policy;
 pub mod workspace;
 
 pub const MAX_TIMEOUT_MS: u64 = 3_600_000;
@@ -251,6 +252,7 @@ struct TaskStore {
     state_file: PathBuf,
     tasks: BTreeMap<String, Task>,
     last_pruned: Option<chrono::NaiveDate>,
+    schema_two: bool,
 }
 
 impl TaskStore {
@@ -259,23 +261,48 @@ impl TaskStore {
         fs::set_permissions(&state_dir, fs::Permissions::from_mode(0o700))
             .map_err(|error| state_error(&state_dir, error))?;
         let state_file = state_dir.join("tasks.json");
-        let tasks = if state_file.exists() {
+        let (tasks, schema_two) = if state_file.exists() {
             let content =
-                fs::read_to_string(&state_file).map_err(|error| state_error(&state_file, error))?;
-            serde_json::from_str(&content).map_err(|error| state_error(&state_file, error))?
+                fs::read_to_string(&state_file).map_err(|e| state_error(&state_file, e))?;
+            let value: Value =
+                serde_json::from_str(&content).map_err(|e| state_error(&state_file, e))?;
+            if value.get("schema").is_some_and(Value::is_number) {
+                if value["schema"] != 2 || !value["tasks"].is_object() {
+                    return Err(BrokerError::new(
+                        "state_schema_conflict",
+                        "Unsupported worker store schema",
+                    ));
+                }
+                (
+                    serde_json::from_value(value["tasks"].clone())
+                        .map_err(|e| state_error(&state_file, e))?,
+                    true,
+                )
+            } else {
+                (
+                    serde_json::from_value(value).map_err(|e| state_error(&state_file, e))?,
+                    false,
+                )
+            }
         } else {
-            BTreeMap::new()
+            (BTreeMap::new(), false)
         };
         Ok(Self {
             state_dir,
             state_file,
             tasks,
             last_pruned: None,
+            schema_two,
         })
     }
 
     fn save(&self) -> Result<(), BrokerError> {
-        let mut payload = serde_json::to_vec_pretty(&self.tasks)
+        let value = if self.schema_two {
+            json!({"schema":2,"tasks":self.tasks})
+        } else {
+            json!(self.tasks)
+        };
+        let mut payload = serde_json::to_vec_pretty(&value)
             .map_err(|error| state_error(&self.state_file, error))?;
         payload.push(b'\n');
         let temp_path = self
@@ -497,6 +524,7 @@ pub struct Broker {
     orchestrator_lock: Arc<tokio::sync::Mutex<()>>,
     orchestrator_events_lock: Arc<Mutex<()>>,
     broker_instance: String,
+    role_policy: Option<Value>,
 }
 
 impl Broker {
@@ -546,6 +574,7 @@ impl Broker {
             orchestrator_lock: Arc::new(tokio::sync::Mutex::new(())),
             orchestrator_events_lock: Arc::new(Mutex::new(())),
             broker_instance: Uuid::new_v4().to_string(),
+            role_policy: None,
         })
     }
 
@@ -594,10 +623,17 @@ impl Broker {
         let resolved = path.canonicalize().map_err(|error| {
             BrokerError::new("path_not_found", format!("cwd is unavailable: {error}"))
         })?;
-        if !self
-            .allowed_roots
-            .iter()
-            .any(|root| resolved.starts_with(root))
+        let exact_role = self.role_policy.as_ref().is_some_and(|p| {
+            p["binding"]["computer_home"] == json!(resolved)
+                || p["binding"]["projects"]
+                    .as_object()
+                    .is_some_and(|m| m.values().any(|r| r["cwd"] == json!(resolved)))
+        });
+        if !exact_role
+            && !self
+                .allowed_roots
+                .iter()
+                .any(|root| resolved.starts_with(root))
         {
             return Err(BrokerError::new(
                 "path_not_allowed",
@@ -1264,6 +1300,7 @@ impl Broker {
                 "params must be an object",
             ));
         }
+        self.validate_role_request(operation, &params)?;
         self.prune_history()?;
         match operation {
             "history" => self.history(&params),
@@ -1408,10 +1445,71 @@ pub async fn run_daemon(
     herdr_socket: PathBuf,
     state_dir: PathBuf,
     allowed_roots: Vec<PathBuf>,
+    role_policy: Value,
 ) -> Result<(), BrokerError> {
     let socket_path = expand_user(socket_path);
+    let mut broker = Broker::with_roots(herdr_socket, state_dir, allowed_roots)?;
+    broker.role_policy = Some(role_policy);
+    let previous = broker.event_store(false, |s| Ok(s.clone()))?;
+    let binding = &broker.role_policy.as_ref().unwrap()["binding"];
+    let old = &previous["role_binding"];
+    if old.is_object() && old != binding {
+        for key in ["computer_id", "computer_home", "kind", "computer_name"] {
+            if old[key] != binding[key] {
+                return Err(BrokerError::new(
+                    "role_owner_conflict",
+                    "Persisted Computer owner differs",
+                ));
+            }
+        }
+        for (id, route) in old["projects"].as_object().into_iter().flatten() {
+            if let Some(next) = binding["projects"].get(id) {
+                for key in ["name", "cwd", "kind"] {
+                    if route[key] != next[key] {
+                        return Err(BrokerError::new(
+                            "role_owner_conflict",
+                            "Existing Project owner differs; explicit migration required",
+                        ));
+                    }
+                }
+            }
+        }
+        if previous["events"]
+            .as_object()
+            .unwrap()
+            .values()
+            .any(|e| !matches!(e["state"].as_str(), Some("completed" | "failed")))
+        {
+            return Err(BrokerError::new(
+                "configuration_busy",
+                "Drain events before changing manifest bindings",
+            ));
+        }
+    }
+    let legacy = previous["legacy_names"]
+        .as_object()
+        .map(|m| m.keys().cloned().map(Value::String).collect::<Vec<_>>())
+        .unwrap_or_default();
+    broker.role_policy.as_mut().unwrap()["retired_names"]
+        .as_array_mut()
+        .unwrap()
+        .extend(legacy);
+    {
+        let mut store = broker
+            .store
+            .lock()
+            .map_err(|_| BrokerError::internal("task store lock poisoned"))?;
+        store.schema_two = true;
+        store.save()?;
+    }
+    broker.event_store(true, |state| {
+        if state["role_binding"] != broker.role_policy.as_ref().unwrap()["binding"] {
+            state["ready"] = Value::Null;
+        }
+        state["role_binding"] = broker.role_policy.as_ref().unwrap()["binding"].clone();
+        Ok(())
+    })?;
     prepare_socket(&socket_path)?;
-    let broker = Broker::with_roots(herdr_socket, state_dir, allowed_roots)?;
     broker.prune_history()?;
     let listener = UnixListener::bind(&socket_path).map_err(|error| {
         BrokerError::new(

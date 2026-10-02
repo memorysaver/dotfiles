@@ -3,8 +3,9 @@ Description=Herdr Dispatch Broker for OpenAB Orchestrator
 After=graphical-session.target
 
 [Service]
+Environment=HERDR_COMPUTER_HOME=%h/Work
 Type=simple
-ExecStart=%h/.local/bin/workspace-orchestrator daemon --socket %h/.config/herdr-dispatchd/dispatch.sock --herdr-socket %h/.config/herdr/herdr.sock --state-dir %h/.config/herdr-dispatchd --allowed-root %h/Work
+ExecStart=%h/.local/bin/herdr-dispatch daemon --socket %h/.config/herdr-dispatchd/dispatch.sock --herdr-socket %h/.config/herdr/herdr.sock --state-dir %h/.config/herdr-dispatchd --allowed-root %h/Work
 WorkingDirectory=%h/Work
 Environment=HOME=%h
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin

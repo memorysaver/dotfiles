@@ -44,7 +44,7 @@ Never put credentials in prompts, pane labels, messages, or notes.
 
 ## Fixed local Herdr Orchestrator
 
-Every managed computer must maintain one fixed agent named `orchestrator` with its cwd
+Every managed computer must maintain one fixed agent named `computer-orchestrator` with its cwd
 at the configured Work root. Routing identity is the local server, agent name, configured kind
 and canonical cwd; workspace labels, tab order and pane positions are runtime layout details. A local supervisor
 maintains its presence while the computer and user service are available; Dagu also checks
@@ -57,12 +57,13 @@ Only recover a confirmed missing agent. Never infer task success from Herdr idle
 
 ## Resolve this computer's paths
 
-Home paths in these documents are defaults, not proof of actual checkout locations. The local
-regular file `~/.config/dotfiles/workspace.toml` may override dotfiles, idea, workspace, DAGs,
-identity, private host records, and state directories; explicit `WORKSPACE_*`/`DOTFILES_DIR`
-environment overrides take precedence. Use the selected checkout's `lib/workspace-paths.py`
-or `workspace-orchestrator paths`, and verify existing Work symlink targets before host actions.
-Do not move a checkout, create a second clone, or copy another computer's paths to match defaults.
+Home paths are defaults. `HERDR_COMPUTER_HOME` selects the existing Computer management
+root (unset: `~/Work`); routing uses `<Computer home>/projects.yaml` or explicit `--config` YAML.
+Relative project paths resolve from Computer home, even when the config is linked from private idea.
+Use `herdr-dispatch paths`, `check` and `projects list`; configured locations for dotfiles, idea,
+identity and DAGs are in YAML `binding`. Bound mode must match local identity and Work rules links.
+The old workspace.toml/Python resolver is for initial workspace provisioning only; it does not
+select the active dispatch root. Preserve existing checkouts instead of moving them to match defaults.
 Read the resolved dotfiles `config/workspace/orchestration-rules/identity.md`, then the selected
 private rules. Private host manifests and workflow definitions belong in idea; common lifecycle
 code and policy belong in dotfiles. DAG deployment links and runtime state remain local.
@@ -74,3 +75,13 @@ infer these from idle/done. Service startup belongs to the host's service manage
 AGENTS.md. Presence maintains the role. Registered business events use the separate durable broker queue,
 explicit instruction readiness and a real Herdr callback shell; see the resolved dotfiles
 `docs/workspace-orchestrator.md`. Keep the model permission policy and project launchers unchanged.
+
+## Registered project routing
+
+Dagu always submits to Computer-Orchestrator at Computer home. Computer forwards to the registered
+Project-Orchestrator `project-orchestrator-<key>` at that checkout's exact Git root. One enabled
+project owns one primary Herdr workspace; workers and episode worktrees remain project-owned.
+Discover tasks and scope from `herdr-dispatch projects list`, and usage from `herdr-dispatch --skills`.
+Only registered argv may execute. Each hop has its own acknowledgment and native generation check;
+Project results return through Computer before Dagu verifies artifacts. Retrying preserves event ID
+and frozen inputs. Never clear an execution claim or invent a new run ID to replay uncertain work.

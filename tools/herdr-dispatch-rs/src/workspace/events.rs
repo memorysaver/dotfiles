@@ -11,6 +11,8 @@ pub struct EventArgs {
     pub project: Option<String>,
     #[arg(long)]
     pub task: Option<String>,
+    #[arg(long, conflicts_with_all=["project","task"],value_parser=["read-only-probe"])]
+    pub diagnostic: Option<String>,
     #[arg(long)]
     pub event_id: Option<String>,
     #[arg(long)]
@@ -19,7 +21,7 @@ pub struct EventArgs {
     pub dagu: bool,
     #[arg(long)]
     pub wait: bool,
-    #[arg(long, default_value_t = 7200)]
+    #[arg(long, default_value_t = 21600)]
     pub timeout: u64,
     #[arg(long)]
     pub result_file: Option<PathBuf>,
@@ -34,8 +36,21 @@ pub struct EventArgs {
     #[arg(long,value_parser=["ready","consume","project-consume","computer-complete"])]
     pub callback: Option<String>,
 }
-fn taipei() -> chrono::DateTime<chrono::FixedOffset> {
-    chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(28800).unwrap())
+fn definitions_equal(a: &Value, b: &Value) -> bool {
+    fn normalize(v: &Value) -> Value {
+        let mut v = v.clone();
+        if let Some(m) = v.as_object_mut() {
+            for (key, default) in [
+                ("timeout_seconds", json!(7200)),
+                ("same_day", json!(false)),
+                ("input_env", json!([])),
+            ] {
+                m.entry(key).or_insert(default);
+            }
+        }
+        v
+    }
+    normalize(a) == normalize(b)
 }
 fn execution_nonce(event: &Value) -> Result<&str> {
     text(
@@ -106,27 +121,30 @@ impl Host {
         Ok(event)
     }
     pub fn pump(&self) -> Result<Value> {
-        let profile = fs::read_to_string(self.rules.join("profile"))?;
         let mut inputs = vec![
             self.paths.get("workspace").join("AGENTS.md"),
             self.paths.get("workspace").join("README.md"),
-            self.rules.join("README.md"),
-            self.rules.join("agents.md"),
-            self.rules.join("profile"),
-            self.rules.join("orchestrator.toml"),
-            self.paths
-                .get("dotfiles")
-                .join("config/workspace/orchestration-rules/orchestrator.md"),
-            self.paths
-                .get("dotfiles")
-                .join("config/workspace/orchestration-rules/external-dispatch.md"),
-            self.paths
-                .get("dotfiles")
-                .join("config/workspace/orchestration-rules/profiles")
-                .join(format!("{}.md", profile.trim())),
         ];
-        if self.rules.join("projects.toml").exists() {
-            inputs.push(self.rules.join("projects.toml"));
+        if let Some(config) = &self.config {
+            inputs.push(config.clone());
+            if self.yaml()?["computer"]["mode"] == "bound" {
+                let profile = fs::read_to_string(self.rules.join("profile"))?;
+                inputs.extend([
+                    self.rules.join("README.md"),
+                    self.rules.join("agents.md"),
+                    self.rules.join("profile"),
+                    self.paths
+                        .get("dotfiles")
+                        .join("config/workspace/orchestration-rules/orchestrator.md"),
+                    self.paths
+                        .get("dotfiles")
+                        .join("config/workspace/orchestration-rules/external-dispatch.md"),
+                    self.paths
+                        .get("dotfiles")
+                        .join("config/workspace/orchestration-rules/profiles")
+                        .join(format!("{}.md", profile.trim())),
+                ]);
+            }
         }
         let mut digest = Sha256::new();
         for input in inputs {
@@ -164,7 +182,11 @@ impl Host {
             text(&payload["task"], "task")?,
         )?;
         for (key, value) in current.as_object().unwrap() {
-            if &payload[key] != value {
+            if !(if key == "definition" {
+                definitions_equal(&payload[key], value)
+            } else {
+                &payload[key] == value
+            }) {
                 return fail("Registered task changed after enqueue; reconcile before running");
             }
         }
@@ -185,7 +207,16 @@ impl Host {
         }
         let nonce = execution_nonce(&event)?;
         if current["definition"]["same_day"] == true
-            && payload["trigger_date"] != taipei().date_naive().to_string()
+            && payload["trigger_date"]
+                != chrono::Utc::now()
+                    .with_timezone(
+                        &payload["trigger_timezone"]
+                            .as_str()
+                            .unwrap_or("Asia/Taipei")
+                            .parse::<chrono_tz::Tz>()?,
+                    )
+                    .date_naive()
+                    .to_string()
         {
             return self.call("complete",json!({"event_id":event["event_id"],"nonce":nonce,"status":"failed","result":{"reason":"Trigger day expired; no project execution"}}));
         }
@@ -295,7 +326,7 @@ impl Host {
                 ["route"]
                 .clone()
         } else {
-            json!({"name":"orchestrator","kind":self.kind,"cwd":self.paths.get("workspace")})
+            json!({"name":"computer-orchestrator","kind":self.kind,"cwd":self.paths.get("workspace")})
         };
         let live =
             herdr(&["agent", "get", text(&route["name"], "role name")?]).await?["agent"].clone();
@@ -309,6 +340,16 @@ impl Host {
         {
             return fail("Fixed agent identity differs");
         }
+        let broker_live = if callback == "project-consume" {
+            self.call("resolve_project", json!({"route":route}))?
+        } else {
+            self.call("resolve", json!({}))?
+        };
+        if broker_live["terminal_id"] != live["terminal_id"]
+            || broker_live["pane_id"] != live["pane_id"]
+        {
+            return fail("Native caller and configured broker refer to different Herdr roles");
+        }
         if env::var("HERDR_PANE_ID").ok().as_deref() != live["pane_id"].as_str() {
             let caller = herdr(&["pane", "current", "--current"]).await.ok();
             if caller.as_ref().map(|v| &v["pane"]["pane_id"]) != Some(&live["pane_id"]) {
@@ -319,13 +360,7 @@ impl Host {
                     &live,
                     project,
                     nonce,
-                    &read_json(
-                        &self
-                            .socket
-                            .parent()
-                            .ok_or_else(|| error("Invalid broker socket"))?
-                            .join("orchestrator-events.json"),
-                    )?,
+                    &read_json(&self.broker_state_dir()?.join("orchestrator-events.json"))?,
                 )?;
             }
         }
@@ -365,19 +400,35 @@ impl Host {
         )
     }
     pub async fn event(&self, mut args: EventArgs) -> Result<Value> {
+        if let Some(diagnostic) = &args.diagnostic {
+            args.project = Some("workspace-check".into());
+            args.task = Some(diagnostic.clone());
+        }
         if args.dagu {
             let workflow = env::var("DAG_NAME").map_err(|_| error("Dagu must supply DAG_NAME"))?;
             let run = env::var("DAG_RUN_ID").map_err(|_| error("Dagu must supply DAG_RUN_ID"))?;
             if workflow.is_empty() || run.is_empty() {
                 return fail("Dagu identity cannot be empty");
             }
-            args.event_id = Some(format!(
-                "{}:{workflow}:{run}:{}",
-                self.computer,
-                args.task
-                    .as_deref()
-                    .ok_or_else(|| error("Dagu identity requires task"))?
-            ));
+            let project = args
+                .project
+                .as_deref()
+                .ok_or_else(|| error("Dagu identity requires project"))?;
+            let task = args
+                .task
+                .as_deref()
+                .ok_or_else(|| error("Dagu identity requires task"))?;
+            let old_id = format!("{}:{workflow}:{run}:{task}", self.computer);
+            let events = self.call("list", json!({}))?;
+            args.event_id = Some(
+                if events["events"].get(&old_id).is_some_and(|e| {
+                    e["payload"]["project"] == project && e["payload"]["task"] == task
+                }) {
+                    old_id
+                } else {
+                    format!("{}:{workflow}:{run}:{project}:{task}", self.computer)
+                },
+            );
         }
         let id = args.event_id.as_deref();
         let nonce = args.nonce.as_deref();
@@ -411,6 +462,25 @@ impl Host {
                 let id = id.ok_or_else(|| error("A stable event ID or --dagu is required"))?;
                 let events = self.call("list", json!({}))?;
                 if let Some(existing) = events["events"].get(id) {
+                    let mut saved = existing["payload"].clone();
+                    if matches!(existing["state"].as_str(), Some("completed" | "failed"))
+                        && events["legacy_names"]
+                            [saved["project_agent"]["name"].as_str().unwrap_or("")]
+                            == payload["project_agent"]["name"]
+                        && saved["project_agent"].is_object()
+                    {
+                        saved["project_agent"]["name"] = payload["project_agent"]["name"].clone();
+                    }
+                    for (key, value) in payload.as_object().unwrap() {
+                        if !(if key == "definition" {
+                            definitions_equal(&saved[key], value)
+                        } else {
+                            &saved[key] == value
+                        }) {
+                            return fail("Retry differs from frozen project/task definition; historical events are never rerouted");
+                        }
+                    }
+                    payload = existing["payload"].clone();
                     for (key, value) in existing["payload"]
                         .as_object()
                         .ok_or_else(|| error("Invalid saved payload"))?
@@ -420,7 +490,11 @@ impl Host {
                         }
                     }
                 } else {
-                    let now = taipei();
+                    let zone: chrono_tz::Tz = self.yaml()?["computer"]["timezone"]
+                        .as_str()
+                        .unwrap_or("Asia/Taipei")
+                        .parse()?;
+                    let now = chrono::Utc::now().with_timezone(&zone);
                     let mut inputs = serde_json::Map::new();
                     if let Some(input) = payload["definition"].get("input_env") {
                         let input_pattern = Regex::new(r"^[A-Z][A-Z0-9_]{0,63}$")?;
@@ -428,10 +502,38 @@ impl Host {
                             if !input_pattern.is_match(&key) {
                                 return fail("Invalid environment allowlist");
                             }
-                            inputs.insert(key.clone(), json!(env::var(&key).unwrap_or_default()));
+                            let value = env::var(&key).unwrap_or_default();
+                            if value.contains('\0') || value.len() > 8192 {
+                                return fail("Environment input exceeds limit or contains NUL");
+                            }
+                            let marker = format!("${{env:{key}}}");
+                            let required =
+                                ["entrypoint", "verify_entrypoint"].iter().any(|field| {
+                                    payload["definition"][field].as_array().is_some_and(|a| {
+                                        a.iter().any(|v| {
+                                            v.as_str().is_some_and(|s| s.contains(&marker))
+                                        })
+                                    })
+                                });
+                            if required && value.is_empty() {
+                                return fail(format!("Required input {key} is empty"));
+                            }
+                            inputs.insert(key.clone(), json!(value));
                         }
                     }
+                    if inputs
+                        .values()
+                        .map(|v| v.as_str().unwrap().len())
+                        .sum::<usize>()
+                        > 32768
+                    {
+                        return fail("Environment inputs exceed 32 KiB");
+                    }
                     payload["trigger_env"] = json!(inputs);
+                    payload["trigger_computer_id"] = json!(self.computer);
+                    payload["trigger_computer_home"] = json!(self.paths.get("workspace"));
+                    payload["trigger_timezone"] = json!(zone.to_string());
+                    payload["trigger_config_digest"] = self.role_binding()?["digest"].clone();
                     payload["trigger_date"] = json!(now.date_naive().to_string());
                     payload["trigger_slot"] = json!(if now.hour() < 15 {
                         "morning"
@@ -502,7 +604,8 @@ impl Host {
             "verify"=> {
                 if event["state"]!="completed" {return fail("Verify only after event completed");}
                 let payload=&event["payload"];let task=self.task(text(&payload["project"],"project")?,text(&payload["task"],"task")?)?;
-                if task["definition"]!=payload["definition"]{return fail("Task changed; inspect before verification");}
+                if !definitions_equal(&task["definition"],&payload["definition"]){return fail("Task changed; inspect before verification");}
+                if task["definition"].get("verify_entrypoint").is_none() {return Ok(json!({"event_id":event["event_id"],"verification":"registered task has no extra verifier"}));}
                 let args=expand_argv(&task["definition"]["verify_entrypoint"],payload)?;
                 let status=Command::new(&args[0]).args(&args[1..]).current_dir(text(&task["project_cwd"],"project cwd")?).status()?;
                 if !status.success(){return fail("Project verifier failed");}
@@ -593,4 +696,19 @@ pub(super) async fn herdr(args: &[&str]) -> Result<Value> {
         return Ok(json!({}));
     }
     Ok(serde_json::from_slice::<Value>(&output.stdout)?["result"].clone())
+}
+
+#[cfg(test)]
+mod compatibility_tests {
+    use super::*;
+    #[test]
+    fn historical_defaults_are_compared_without_rewriting() {
+        let old = json!({"entrypoint":["git","status"],"scope":"readonly"});
+        let new = json!({"entrypoint":["git","status"],"scope":"readonly","same_day":false,"timeout_seconds":7200,"input_env":[]});
+        assert!(definitions_equal(&old, &new));
+        let mut changed = new.clone();
+        changed["timeout_seconds"] = json!(30);
+        assert!(!definitions_equal(&old, &changed));
+        assert!(old.get("timeout_seconds").is_none());
+    }
 }

@@ -60,7 +60,7 @@ installed without upgrading system packages.
 │   │   └── orchestration-rules/ # Common profiles (mac/Omarchy/Grok Bot), orchestration, adapter
 │   └── hypr/                 # Additive Omarchy/Moonlight module
 ├── tools/                     # Small machine-local helper programs
-│   └── herdr-dispatch-rs/     # Single Rust workspace-orchestrator CLI and broker
+│   └── herdr-dispatch-rs/     # Single Rust herdr-dispatch CLI and broker
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
 │   ├── claude/
 │   ├── codex/

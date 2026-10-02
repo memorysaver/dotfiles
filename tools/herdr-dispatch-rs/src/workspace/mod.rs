@@ -15,6 +15,7 @@ use uuid::Uuid;
 mod config;
 mod events;
 mod install;
+mod manifest;
 mod monitor;
 #[cfg(test)]
 mod tests;
@@ -94,11 +95,17 @@ fn atomic_json(path: &Path, value: &Value) -> Result<()> {
 }
 #[derive(Parser)]
 #[command(
-    name = "workspace-orchestrator",
+    name = "herdr-dispatch",
     version,
     about = "Local Computer -> Project orchestration, broker and supervision"
 )]
 struct Cli {
+    #[arg(
+        long,
+        global = true,
+        help = "Print the embedded agent skill without accessing configuration"
+    )]
+    skills: bool,
     #[arg(long, global = true)]
     config: Option<PathBuf>,
     #[command(subcommand)]
@@ -112,7 +119,10 @@ enum Command {
         #[arg(long,value_parser=["dotfiles","idea","workspace","dags","hosts","identity","state"])]
         get: Option<String>,
     },
-    Check,
+    Check {
+        #[arg(long)]
+        live: bool,
+    },
     Ensure,
     Watch,
     Pump,
@@ -133,6 +143,7 @@ enum Command {
         args: Vec<std::ffi::OsString>,
     },
     #[command(disable_help_flag = true)]
+    #[command(name = "broker", alias = "dispatch")]
     Dispatch {
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<std::ffi::OsString>,
@@ -144,7 +155,7 @@ pub async fn run(args: impl IntoIterator<Item = std::ffi::OsString>) -> Result<(
     let cli = Cli::parse_from(args);
     let result = match cli.command {
         Command::Paths { shell, get } => {
-            let paths = Paths::resolve(cli.config.as_deref())?;
+            let paths = Host::load(cli.config.as_deref())?.paths;
             if shell {
                 println!("{}", paths.shell());
                 return Ok(());
@@ -165,7 +176,15 @@ pub async fn run(args: impl IntoIterator<Item = std::ffi::OsString>) -> Result<(
         command => {
             let host = Host::load(cli.config.as_deref())?;
             match command {
-                Command::Check => host.check(),
+                Command::Check { live } => {
+                    if live {
+                        host.call("resolve", json!({}))?;
+                        for p in host.projects()? {
+                            host.call("resolve_project", json!({"route":p["route"]}))?;
+                        }
+                    }
+                    host.check()
+                }
                 Command::Ensure => host.ensure()?,
                 Command::Pump => host.pump()?,
                 Command::Install => host.install()?,

@@ -56,8 +56,8 @@ DOTFILES_PLATFORM="${DOTFILES_PLATFORM:-${DOTFILES_OS:-$(detect_platform)}}"
 DOTFILES_OS="$DOTFILES_PLATFORM"
 # Path settings are local to this computer. The resolver emits shell-quoted values.
 workspace_resolver="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/workspace-paths.py"
-if command -v workspace-orchestrator >/dev/null 2>&1; then
-  workspace_values="$(workspace-orchestrator paths --shell)"
+if [[ -f "${HERDR_COMPUTER_HOME:-$HOME/Work}/projects.yaml" && -z "${WORKSPACE_PATHS_FILE:-}${WORKSPACE_ROOT:-}${WORKSPACE_IDEA_ROOT:-}${WORKSPACE_DAGU_DAGS_DIR:-}${WORKSPACE_HOSTS_DIR:-}${WORKSPACE_ID_FILE:-}${WORKSPACE_ORCHESTRATOR_STATE_DIR:-}" ]] && command -v herdr-dispatch >/dev/null 2>&1; then
+  workspace_values="$(herdr-dispatch paths --shell)"
   eval "$workspace_values"
 elif command -v python3 >/dev/null 2>&1 && python3 -c 'import tomllib' >/dev/null 2>&1; then
   workspace_values="$(python3 "$workspace_resolver" --shell)"
