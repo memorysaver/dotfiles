@@ -139,6 +139,7 @@ def execute(host, config, event):
 def bridge(host,config,nonce,callback):
     # The read-only model uses only its explicitly allowed Herdr socket. The new
     # shell receives real Herdr context and runs the registered callback itself.
+    if callback not in ('ready','consume'): raise ValueError('Bridge requires --callback ready or consume')
     if os.environ.get('HERDR_ENV')!='1': raise ValueError('Bridge requires a genuine Herdr caller')
     if not nonce or not re.fullmatch(r'[0-9a-f-]{36}',nonce): raise ValueError('Invalid callback nonce')
     paths,rules,computer,kind,*rest=host.configuration(config)
@@ -156,6 +157,9 @@ def bridge(host,config,nonce,callback):
     prefix=[str(Path.home()/'.local/bin/workspace-orchestrator')]
     if config: prefix += ['--config',str(Path(config).expanduser().resolve())]
     command=shlex.join(prefix+['event',callback,'--nonce',nonce])
+    # Only this newly created callback pane is closed, after a successful durable receipt.
+    # Failures retain the shell for inspection. Project workers run in their own panes.
+    command += ' && '+shlex.join(['herdr','pane','close',pane])
     herdr('pane','run',pane,command)
     return dict(callback=callback,pane_id=pane,submission='shell command submitted; inspect correlated broker receipt')
 

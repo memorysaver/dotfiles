@@ -86,6 +86,9 @@ its fixed-agent caller identity, and creates a shell without stealing focus. Tha
 real Herdr context, calls the broker, and executes the registered task. No HERDR_ENV fabrication
 or native agent permission override is used. Runtime callback panes are not routing identity.
 Callbacks run independently of a model tool's lifetime; inspect durable receipts for completion.
+Successful callbacks close only their freshly created shell pane after persisting their receipt.
+Failed callbacks retain the pane for inspection. The model may read private receipts or retained
+pane output; direct broker status calls remain outside its sandbox.
 
 Use a stable idempotency key combining computer, workflow, run/event and logical step identity.
 Retries of the same event reuse that key; a different payload for the same key is a conflict.
