@@ -14,7 +14,7 @@ pub(super) fn unit_quote(value: &str) -> String {
 }
 fn command_unit(args: &[String]) -> String {
     args.iter()
-        .map(|v| unit_quote(v))
+        .map(|v| unit_quote(&v.replace('$', "$$")))
         .collect::<Vec<_>>()
         .join(" ")
 }

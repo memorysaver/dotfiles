@@ -416,10 +416,11 @@ fn service_units_call_only_native_binary_and_preserve_adopted_server() {
     let (unit, server) = install::linux_units(
         Path::new("/path with spaces/workspace-orchestrator"),
         Path::new("/usr/bin/herdr"),
-        Some(Path::new("/config 100%/paths.toml")),
-        "/a%path:/bin",
+        Some(Path::new("/config $data 100%/paths.toml")),
+        "/a$path%:/bin",
     );
-    assert!(unit.contains("\"/path with spaces/workspace-orchestrator\" \"watch\" \"--config\" \"/config 100%%/paths.toml\""));
+    assert!(unit.contains("\"/path with spaces/workspace-orchestrator\" \"watch\" \"--config\" \"/config $$data 100%%/paths.toml\""));
+    assert!(unit.contains("Environment=\"PATH=/a$path%%:/bin\""));
     assert!(server.contains("\"server-watch\""));
     assert!(server.contains("KillMode=process"));
     assert!(!unit.contains("python"));
