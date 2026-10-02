@@ -1,5 +1,9 @@
 # Fixed local Herdr Orchestrator
 
+The proposed `herdr-dispatch` interface, YAML registry and explicit Computer/Project names are
+specified in [the next-interface design](herdr-dispatch-design.md). That proposal is not deployed;
+this guide describes the current installed runtime.
+
 Every managed computer keeps one agent named `orchestrator` in its canonical Work management
 workspace. A user supervisor calls the local allowlisted dispatch broker every 30 seconds;
 the host Dagu presence workflow checks again every five minutes. Existing workers, active

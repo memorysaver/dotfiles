@@ -1,0 +1,39 @@
+# Proposed v1 format; example only, not an installed host inventory.
+version: 1
+computer:
+  id: local-machine
+  mode: standalone
+  timezone: Asia/Taipei
+  orchestrator:
+    kind: codex
+    args: []
+transport:
+  broker_socket: ~/.config/herdr-dispatchd/dispatch.sock
+runtime:
+  poll_seconds: 30
+  broker_state_dir: ~/.config/herdr-dispatchd
+  execution_state_dir: ~/.local/state/workspace-orchestrator
+projects:
+  indiehackin-media:
+    enabled: true
+    description: Computer routes to this project editor; topic and release gates remain project-owned.
+    path: github/indiehackin-media
+    workspace:
+      label: indiehackin-media
+    orchestrator:
+      key: ih-media
+      kind: codex
+      launcher: [bash, scripts/codexyolo.sh]
+      args: []
+    tasks:
+      transport-probe:
+        entrypoint: [git, status, --short, --branch]
+        timeout_seconds: 30
+        scope: Read-only transport acceptance; no production or publication.
+      editorial-discovery:
+        entrypoint: [bash, scripts/editorial-discovery.sh, --slot, '${slot}']
+        verify_entrypoint: [python3, scripts/editorial_pool.py, verify, --date, '${date}', --slot, '${slot}']
+        timeout_seconds: 300
+        same_day: true
+        input_env: []
+        scope: Research dispatch only; project editor retains topic and release approval.
