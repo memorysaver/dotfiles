@@ -26,7 +26,9 @@ link_managed() {
     return 0
   fi
   if [[ -L "$target_path" && -n "$legacy_path" && "$(readlink -f "$target_path")" == "$legacy_path" ]]; then
-    rm "$target_path"
+    ln -s "$source_path" "$target_path.next"
+    mv -Tf "$target_path.next" "$target_path"
+    return 0
   fi
   if [[ -e "$target_path" || -L "$target_path" ]]; then
     printf 'Refusing to replace existing path: %s\n' "$target_path" >&2
@@ -36,11 +38,21 @@ link_managed() {
 }
 
 link_managed \
-  "$release_dir/herdr-dispatch" \
-  "$bin_dir/herdr-dispatch"
+  "$release_dir/workspace-orchestrator" \
+  "$bin_dir/herdr-dispatch" "$release_dir/herdr-dispatch"
 link_managed \
-  "$release_dir/herdr-dispatchd" \
-  "$bin_dir/herdr-dispatchd"
+  "$release_dir/workspace-orchestrator" \
+  "$bin_dir/herdr-dispatchd" "$release_dir/herdr-dispatchd"
+# Preserve the previous managed Python launcher locally during migration.
+if [[ -f "$bin_dir/workspace-orchestrator" && ! -L "$bin_dir/workspace-orchestrator" ]] && \
+    rg -q '^# Managed by workspace-orchestrator$' "$bin_dir/workspace-orchestrator"; then
+  install -d -m 0700 "$home_dir/.local/state/workspace-orchestrator/migration"
+  cp -p "$bin_dir/workspace-orchestrator" \
+    "$home_dir/.local/state/workspace-orchestrator/migration/launcher-$(date +%Y%m%d-%H%M%S)"
+  ln -s "$release_dir/workspace-orchestrator" "$bin_dir/workspace-orchestrator.next"
+  mv -Tf "$bin_dir/workspace-orchestrator.next" "$bin_dir/workspace-orchestrator"
+fi
+link_managed "$release_dir/workspace-orchestrator" "$bin_dir/workspace-orchestrator"
 link_managed "$dotfiles_dir/config/systemd/user/herdr-dispatchd.service" "$unit_dir/herdr-dispatchd.service"
 
 systemctl --user daemon-reload

@@ -8,7 +8,7 @@ execute business tasks or imply their success.
 
 ## Locations and ownership
 
-Python 3.11+ resolves `~/.config/dotfiles/workspace.toml` without sourcing shell code. See
+The Rust CLI resolves `~/.config/dotfiles/workspace.toml` without sourcing shell code. See
 `config/workspace/workspace.toml.example`. Paths are absolute or begin with `~/`; spaces and
 shell metacharacters are quoted as data. Environment overrides take precedence, then the
 local path file, then home defaults. `WORKSPACE_HOSTS_DIR` defaults beneath resolved idea.
@@ -24,7 +24,8 @@ Herdr server, configure the broker's Herdr socket and the host manifest's broker
 ## Installation and availability
 
 Read Work and selected private rules; verify local computer identity, Git state and actual OS.
-Build/deploy the updated `herdr-dispatch` broker before enabling the supervisor. Broker deployment
+`just workspace-orchestrator` builds and deploys the single Rust executable, broker and supervisors.
+Rust 1.85+ is required to build it; Python is not needed by the orchestrator runtime. Broker deployment
 must preserve all current Herdr workers. A matching Work workspace is reused. A known inventory without Work permits its creation;
 ambiguous or unsupported snapshots fail closed rather than duplicating management workspaces.
 From the chosen dotfiles checkout run `just workspace`, `just workspace-orchestrator`, then
@@ -65,9 +66,24 @@ A completed role restored as a shell is reused only after a 30-second native-res
 matching cwd, absent agent/session and process evidence that the shell alone is foreground.
 Detected agents, pending restore, active commands, uncertain startup and transport errors are preserved.
 
-Run `python3 tests/workspace-smoke.py`, `python3 tests/workspace-orchestrator-smoke.py`, and
+Run `python3 tests/workspace-smoke.py` for workspace provisioning, and
 `cargo test --locked` / `cargo clippy --all-targets --locked -- -D warnings` in the broker crate.
 These isolated checks do not prove live agent startup, authentication or reboot recovery.
+
+## Single Rust executable
+
+The implementation lives in `tools/herdr-dispatch-rs/src/workspace/` and the existing broker
+modules in the same crate. Cargo builds one executable, `workspace-orchestrator`:
+
+- `paths`, `check`, `ensure`, `watch`, `pump`, `projects` manage this computer and its roles.
+- `event` submits, acknowledges, bridges, executes and verifies durable two-hop events.
+- `daemon` runs the local Unix-socket broker; `dispatch` exposes its original client commands.
+- `server-watch` monitors the native Herdr server; `install` registers local supervisors.
+
+`herdr-dispatch` and `herdr-dispatchd` are compatibility symlinks to this same executable.
+Their existing argument syntax is retained; `daemon` and `dispatch` options follow their subcommand.
+Existing private TOML, frozen events, execution claims and result receipts keep their format.
+The generic Python workspace provisioning helper remains separate from the orchestration runtime.
 
 ## Dagu event delivery
 

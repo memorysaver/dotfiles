@@ -8,8 +8,10 @@ the same-user Rust `herdr-dispatchd` broker:
 Discord → external orchestrator → herdr-dispatch → herdr-dispatchd → Herdr socket API
 ```
 
-The Rust broker source and the two compatible binaries live in
-`tools/herdr-dispatch-rs/`. Build and deploy them with:
+The Rust broker source lives in `tools/herdr-dispatch-rs/`. It is built into the single
+`workspace-orchestrator` executable; `herdr-dispatch` and `herdr-dispatchd` are compatible
+symlinks to it. The equivalent native commands are `workspace-orchestrator dispatch` and
+`workspace-orchestrator daemon`. Build and deploy the broker with:
 
 ```bash
 just herdr-dispatch

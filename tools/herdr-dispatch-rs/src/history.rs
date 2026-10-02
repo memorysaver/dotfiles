@@ -159,7 +159,7 @@ impl TaskStore {
                         .get("at")
                         .and_then(Value::as_str)
                         .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
-                        .map_or(true, |at| at >= before)
+                        .is_none_or(|at| at >= before)
                     {
                         continue;
                     }

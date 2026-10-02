@@ -244,8 +244,10 @@ fn command_request(command: Command) -> Result<(&'static str, Value, Duration), 
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let cli = Cli::parse();
+pub fn run(
+    args: impl IntoIterator<Item = std::ffi::OsString>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let cli = Cli::parse_from(args);
     let socket = expand_user(cli.socket.unwrap_or_else(default_socket));
     let (operation, params, timeout) = command_request(cli.command)?;
     let result = broker_call(&socket, operation, params, timeout)?;

@@ -25,6 +25,7 @@ mod history;
 mod orchestrator;
 mod orchestrator_events;
 mod project_orchestrator;
+pub mod workspace;
 
 pub const MAX_TIMEOUT_MS: u64 = 3_600_000;
 pub const MAX_READ_LINES: i64 = 200;

@@ -521,7 +521,7 @@ adopt-agents:
 
 # Maintain the fixed local Herdr Orchestrator and register this host's Dagu workflow.
 workspace-orchestrator:
-    @python3 "{{ dotfiles }}"/tools/workspace-orchestrator.py install
+    @bash "{{ dotfiles }}"/install/workspace-orchestrator.sh
 
 workspace-paths:
     @python3 "{{ dotfiles }}"/lib/workspace-paths.py

@@ -17,7 +17,7 @@ fn workspaces_at(value: &Value, cwd: &Path, found: &mut Vec<String>) {
                 // require its Work label AND a pane at the canonical Work root.
                 let compatible = direct.is_none()
                     && workspace.get("label").and_then(Value::as_str) == Some("Work")
-                    && workspace.get("worktree").map_or(true, Value::is_null)
+                    && workspace.get("worktree").is_none_or(Value::is_null)
                     && (contains_cwd(workspace, cwd)
                         || object
                             .get("panes")

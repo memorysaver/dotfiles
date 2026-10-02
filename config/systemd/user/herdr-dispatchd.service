@@ -4,7 +4,7 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/herdr-dispatchd --socket %h/.config/herdr-dispatchd/dispatch.sock --herdr-socket %h/.config/herdr/herdr.sock --state-dir %h/.config/herdr-dispatchd --allowed-root %h/Work
+ExecStart=%h/.local/bin/workspace-orchestrator daemon --socket %h/.config/herdr-dispatchd/dispatch.sock --herdr-socket %h/.config/herdr/herdr.sock --state-dir %h/.config/herdr-dispatchd --allowed-root %h/Work
 WorkingDirectory=%h/Work
 Environment=HOME=%h
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin

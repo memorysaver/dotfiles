@@ -60,7 +60,7 @@ installed without upgrading system packages.
 │   │   └── orchestration-rules/ # Common profiles (mac/Omarchy/Grok Bot), orchestration, adapter
 │   └── hypr/                 # Additive Omarchy/Moonlight module
 ├── tools/                     # Small machine-local helper programs
-│   └── herdr-dispatch-rs/     # Rust OpenAB-to-Herdr broker and CLI
+│   └── herdr-dispatch-rs/     # Single Rust workspace-orchestrator CLI and broker
 ├── agents/               # AI tool config templates (copied to ~, never symlinked)
 │   ├── claude/
 │   ├── codex/
@@ -92,6 +92,7 @@ just setup-grok-bot    # Require Grok Bot sandbox; Debian tools + link + doctor
 just grok-bot          # Write the Grok Bot recipe stamp (no desktop/mail)
 just workspace         # Create ~/Work categories and link its entry docs and rule directories
 just herdr-dispatch    # Install the local OpenAB-to-Herdr dispatch broker
+just workspace-orchestrator # Deploy the Rust CLI, broker and local role supervisors
 just link              # Create all config symlinks (idempotent)
 just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
