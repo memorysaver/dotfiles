@@ -454,7 +454,7 @@ impl HerdrClient {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Layout {
     workspace_id: String,
     tab_id: String,

@@ -209,7 +209,12 @@ impl Broker {
                     "Acknowledgment nonce differs for this delivery stage",
                 ));
             }
-            let agent = if project_receipt {
+            let claimed_completion = project_receipt
+                && action == "complete"
+                && record["execution_claim"]["nonce"] == nonce;
+            let agent = if claimed_completion {
+                json!({"terminal_id":record["project_delivery"]["terminal_id"]})
+            } else if project_receipt {
                 self.resolve_project(&record["payload"]["project_agent"])
                     .await?
             } else {
@@ -291,7 +296,7 @@ impl Broker {
                                 "Execution is not accepted or was already claimed",
                             ));
                         }
-                        current["execution_claim"] = json!({"nonce":nonce,"at":now_iso()});
+                        current["execution_claim"] = json!({"nonce":nonce,"terminal_id":agent["terminal_id"],"at":now_iso()});
                     }
                     "complete" => {
                         let result = params
@@ -424,10 +429,12 @@ impl Broker {
         let routes = self.event_store(false, |s| {
             let mut routes = std::collections::BTreeMap::new();
             for e in s["events"].as_object().unwrap().values() {
-                if matches!(
-                    e["project_delivery"]["state"].as_str(),
-                    Some("sending" | "submitted" | "accepted")
-                ) {
+                if e["execution_claim"].is_null()
+                    && matches!(
+                        e["project_delivery"]["state"].as_str(),
+                        Some("sending" | "submitted" | "accepted")
+                    )
+                {
                     routes.insert(
                         e["payload"]["project"].as_str().unwrap_or("").to_string(),
                         e["payload"]["project_agent"].clone(),
@@ -456,7 +463,7 @@ impl Broker {
         let candidate=self.event_store(true, |s| {
             for e in s["events"].as_object_mut().unwrap().values_mut() {
                 if (e["project_delivery"]["state"]=="sending" && e["project_delivery"]["broker_instance"]!=self.broker_instance)
-                    || (matches!(e["project_delivery"]["state"].as_str(),Some("sending"|"submitted"|"accepted")) && project_generations.get(e["payload"]["project"].as_str().unwrap_or("")).is_some_and(|g| g != &e["project_delivery"]["terminal_id"])) {
+                    || (e["execution_claim"].is_null() && matches!(e["project_delivery"]["state"].as_str(),Some("sending"|"submitted"|"accepted")) && project_generations.get(e["payload"]["project"].as_str().unwrap_or("")).is_some_and(|g| g != &e["project_delivery"]["terminal_id"])) {
                     e["project_delivery"]["state"]=json!("delivery_unknown");
                 }
                 if (e["computer_return"]["state"]=="sending" && e["computer_return"]["broker_instance"]!=self.broker_instance)
@@ -860,7 +867,6 @@ mod tests {
                 ("agent.get", agent(cwd, "idle")),
                 ("agent.get", project_agent(cwd, "idle")),
                 ("agent.prompt", json!({"result":{}})),
-                ("agent.get", project_agent(cwd, "idle")),
                 ("agent.get", project_agent(cwd, "idle")),
                 ("agent.get", project_agent(cwd, "idle")),
                 ("agent.get", agent(cwd, "idle")),

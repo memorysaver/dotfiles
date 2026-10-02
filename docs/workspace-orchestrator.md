@@ -61,7 +61,9 @@ untouched. A successful new agent receives the role bootstrap once. Presence doe
 readiness when the native generation or rules version changes. Startup/prompt uncertainty is persisted as recovery-required; inspect the lifecycle
 record before resolving it. Computer startup may retry at most three times only when the fixed name
 is absent and fresh inventory proves its recorded pane closed; prior intents are archived privately.
-A present/pending-restore pane, missing inventory or transport error never authorizes another startup.
+A completed role restored as a shell is reused only after a 30-second native-restore grace period,
+matching cwd, absent agent/session and process evidence that the shell alone is foreground.
+Detected agents, pending restore, active commands, uncertain startup and transport errors are preserved.
 
 Run `python3 tests/workspace-smoke.py`, `python3 tests/workspace-orchestrator-smoke.py`, and
 `cargo test --locked` / `cargo clippy --all-targets --locked -- -D warnings` in the broker crate.
@@ -98,9 +100,14 @@ Models retain their existing permission policy. `event bridge --callback ready|c
 project-consume|computer-complete --nonce <stage-nonce>` checks the genuine fixed-agent caller and
 creates its own callback shell without focus. Only the Project callback runs business entrypoints;
 Computer consume acknowledges and forwards. Each hop uses a distinct nonce and pins the native
-terminal generation. Project results leave the top-level event accepted until Computer acknowledges
+terminal generation through acknowledgment and execution claim. Once claimed, its callback owns
+completion: the claim capability can report its durable result even if the Project TUI exits.
+An unclaimed replaced Project is marked uncertain and never automatically replayed. Project results leave the top-level event accepted until Computer acknowledges
 its result. This is cooperative role separation within the same local user, not isolation from a
-malicious same-user process. No fabricated HERDR_ENV or permission overrides are used.
+malicious same-user process. Existing Codex tool daemons can retain a closed caller ID. For Project callbacks only, a stale
+caller fallback requires the private second-hop capability, frozen role route and current terminal
+generation. Other callers fail closed. This fallback reads the default local broker store; custom
+state placements must supply a working native caller context. No fabricated HERDR_ENV or permission overrides are used.
 
 Callback panes are runtime implementation details; successful callbacks close only their own shell
 after durable receipt. Failures preserve the shell/log. A model can use Herdr pane reads for retained

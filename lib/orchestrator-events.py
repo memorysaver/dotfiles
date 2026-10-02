@@ -234,7 +234,22 @@ def bridge(host,config,nonce,callback,project=None):
     if live['agent']!=route['kind'] or Path(live['cwd']).resolve()!=Path(route['cwd']):
         raise ValueError('Fixed agent identity differs')
     if os.environ.get('HERDR_PANE_ID')!=live['pane_id']:
-        raise ValueError('Only the fixed Orchestrator may create its callback shell')
+        try: current=herdr('pane','current','--current')['pane']
+        except subprocess.CalledProcessError: current={}
+        if current.get('pane_id')!=live['pane_id']:
+            # Existing Codex tool daemons can retain a closed caller context.
+            # A Project-only fallback uses the private second-hop capability,
+            # still pinned to the live named role and native generation.
+            if callback!='project-consume': raise ValueError('Only the fixed Orchestrator may create its callback shell')
+            broker_socket=host.configuration(config)[-1]
+            store=json.loads((broker_socket.parent/'orchestrator-events.json').read_text())
+            matches=[e for e in store['events'].values() if e.get('project_delivery',{}).get('nonce')==nonce]
+            if len(matches)!=1: raise ValueError('No correlated Project callback capability')
+            event=matches[0]
+            if (event['payload'].get('project')!=project or event['payload'].get('project_agent')!=route
+                    or event['project_delivery'].get('terminal_id')!=live['terminal_id']
+                    or event['state']!='accepted' or event['project_delivery'].get('state') not in ('sending','submitted','accepted')):
+                raise ValueError('Project callback capability does not match the live role')
     pane=herdr('pane','split','--pane',live['pane_id'],'--direction','down',
                '--cwd',route['cwd'],'--no-focus')['pane']['pane_id']
     prefix=[str(Path.home()/'.local/bin/workspace-orchestrator')]

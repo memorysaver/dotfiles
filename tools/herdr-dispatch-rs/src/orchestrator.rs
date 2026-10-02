@@ -114,6 +114,88 @@ fn validate_role_args(args: &[String]) -> Result<(), BrokerError> {
     Ok(())
 }
 impl Broker {
+    /// Reuse only a completed role's restored shell after a grace period. Never take
+    /// over a detected agent, restore session, command or uncertain startup pane.
+    pub(super) async fn restored_role_layout(
+        &self,
+        previous: &Value,
+        panes: &[Value],
+        cwd: &Path,
+        name: &str,
+    ) -> Result<Option<Layout>, BrokerError> {
+        let id = previous["agent"]["pane_id"]
+            .as_str()
+            .or_else(|| previous["pane_id"].as_str());
+        let Some(pane) = id.and_then(|id| panes.iter().find(|p| p["pane_id"] == id)) else {
+            return Ok(None);
+        };
+        if !matches!(previous["phase"].as_str(), Some("bootstrapped" | "ready"))
+            || !pane["agent"].is_null()
+            || !pane["agent_session"].is_null()
+            || pane["cwd"]
+                .as_str()
+                .and_then(|p| Path::new(p).canonicalize().ok())
+                .as_deref()
+                != Some(cwd)
+        {
+            return Err(BrokerError::new(
+                "orchestrator_recovery_required",
+                "Recorded pane contains active or uncertain work; preserve it",
+            ));
+        }
+        let terminal = safe_text(pane.get("terminal_id"), "terminal_id", 256)?;
+        let now = chrono::Utc::now().timestamp();
+        let settled = self.event_store(true, |s| {
+            if !s["restore_candidates"].is_object() {
+                s["restore_candidates"] = json!({});
+            }
+            let candidate = &mut s["restore_candidates"][name];
+            if candidate["terminal_id"] != terminal {
+                *candidate = json!({"terminal_id":terminal,"first_seen":now});
+            }
+            Ok(now - candidate["first_seen"].as_i64().unwrap_or(now) >= 30)
+        })?;
+        if !settled {
+            return Err(BrokerError::new(
+                "orchestrator_restore_pending",
+                "Waiting for native restore before inspecting the recorded shell",
+            ));
+        }
+        let result = self
+            .herdr
+            .call(
+                "pane.process_info",
+                json!({"pane_id":pane["pane_id"]}),
+                Duration::from_secs(15),
+            )
+            .await?;
+        let info = &result["process_info"];
+        let shell = info["shell_pid"].as_u64();
+        let foreground = info["foreground_processes"].as_array();
+        if shell.is_none()
+            || !foreground.is_some_and(|p| p.len() == 1 && p[0]["pid"].as_u64() == shell)
+            || pane["foreground_cwd"]
+                .as_str()
+                .and_then(|p| Path::new(p).canonicalize().ok())
+                .as_deref()
+                != Some(cwd)
+        {
+            return Err(BrokerError::new(
+                "orchestrator_recovery_required",
+                "Recorded pane is not an available foreground shell",
+            ));
+        }
+        self.event_store(true, |s| {
+            s["restore_candidates"][name] = Value::Null;
+            Ok(())
+        })?;
+        Ok(Some(Layout {
+            workspace_id: safe_text(pane.get("workspace_id"), "workspace_id", 256)?,
+            tab_id: safe_text(pane.get("tab_id"), "tab_id", 256)?,
+            pane_id: pane["pane_id"].as_str().unwrap().to_owned(),
+            label: name.to_owned(),
+        }))
+    }
     pub(super) async fn ensure_orchestrator(&self, params: Value) -> Result<Value, BrokerError> {
         if params.get("confirmed") != Some(&Value::Bool(true)) {
             return Err(BrokerError::new(
@@ -193,18 +275,18 @@ impl Broker {
         let mut workspaces = Vec::new();
         workspaces_at(&snapshot, &cwd, &mut workspaces);
         let inventory = snapshot.get("snapshot").unwrap_or(&snapshot);
-        let mut recovery_attempts = 0;
-        if let Some(record) = previous.as_ref() {
-            let recorded_pane = record["pane_id"].as_str();
+        let restored = if let Some(record) = previous.as_ref() {
             let panes = inventory["panes"]
                 .as_array()
                 .ok_or_else(|| BrokerError::internal("Unknown pane inventory"))?;
-            if recorded_pane.is_some_and(|id| panes.iter().any(|pane| pane["pane_id"] == id)) {
-                return Err(BrokerError::new(
-                    "orchestrator_recovery_required",
-                    "Recorded Computer pane still exists; inspect its occupant before replacement",
-                ));
-            }
+            self.restored_role_layout(record, panes, &cwd, &name)
+                .await?
+        } else {
+            None
+        };
+        let mut recovery_attempts = 0;
+        if let Some(record) = previous.as_ref() {
+            let recorded_pane = record["pane_id"].as_str();
             if record["phase"] != "bootstrapped" {
                 recovery_attempts = record["recovery_attempts"].as_u64().unwrap_or(0) + 1;
                 if recorded_pane.is_none() || recovery_attempts > 3 {
@@ -264,7 +346,11 @@ impl Broker {
         } else {
             json!({"layout":"tab", "workspace_id":workspaces[0], "label":"Orchestrator"})
         };
-        let layout = self.layout(&route, &cwd, "orchestrator").await?;
+        let layout = if let Some(layout) = restored {
+            layout
+        } else {
+            self.layout(&route, &cwd, "orchestrator").await?
+        };
         save(
             &json!({"phase":"starting", "recovery_attempts":recovery_attempts, "name":name, "cwd":cwd, "kind":kind,
             "workspace_id":layout.workspace_id, "pane_id":layout.pane_id}),
@@ -511,7 +597,7 @@ mod tests {
             ("agent.get", missing),
             (
                 "session.snapshot",
-                json!({"result":{"snapshot":{"workspaces":[{"workspace_id":"w1","label":"Work"}],"panes":[{"workspace_id":"w1","pane_id":"w1:p2","cwd":fixture}]}}}),
+                json!({"result":{"snapshot":{"workspaces":[{"workspace_id":"w1","label":"Work"}],"panes":[{"workspace_id":"w1","pane_id":"w1:p2","cwd":fixture,"agent":"codex"}]}}}),
             ),
         ]);
         let broker = Broker::new(
@@ -540,6 +626,49 @@ mod tests {
                 .code,
             "orchestrator_recovery_required"
         );
+        thread.join().unwrap();
+        fs::remove_dir_all(temp).unwrap();
+        fs::remove_dir_all(fixture).unwrap();
+    }
+    #[tokio::test]
+    async fn restored_shell_requires_grace_and_foreground_shell_then_reuses_layout() {
+        let fixture = std::env::temp_dir().join(format!("role-restore-{}", Uuid::new_v4()));
+        fs::create_dir_all(&fixture).unwrap();
+        let (initial, temp, thread) = mock_broker(vec![(
+            "pane.process_info",
+            json!({"result":{"process_info":{"shell_pid":123,"foreground_processes":[{"pid":123,"name":"bash"}]}}}),
+        )]);
+        let broker = Broker::new(
+            initial.herdr.socket_path.clone(),
+            temp.join("state-2"),
+            fixture.clone(),
+        )
+        .unwrap();
+        let previous = json!({"phase":"bootstrapped","pane_id":"w1:p2"});
+        let panes = vec![
+            json!({"pane_id":"w1:p2","tab_id":"w1:t2","workspace_id":"w1","cwd":fixture,"foreground_cwd":fixture,"terminal_id":"restored-shell"}),
+        ];
+        assert_eq!(
+            broker
+                .restored_role_layout(&previous, &panes, &fixture, "orchestrator")
+                .await
+                .unwrap_err()
+                .code,
+            "orchestrator_restore_pending"
+        );
+        broker
+            .event_store(true, |s| {
+                s["restore_candidates"]["orchestrator"]["first_seen"] =
+                    json!(chrono::Utc::now().timestamp() - 31);
+                Ok(())
+            })
+            .unwrap();
+        let layout = broker
+            .restored_role_layout(&previous, &panes, &fixture, "orchestrator")
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(layout.pane_id, "w1:p2");
         thread.join().unwrap();
         fs::remove_dir_all(temp).unwrap();
         fs::remove_dir_all(fixture).unwrap();

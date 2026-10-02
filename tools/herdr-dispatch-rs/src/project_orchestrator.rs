@@ -94,12 +94,9 @@ impl Broker {
         let recorded_pane = previous["agent"]["pane_id"]
             .as_str()
             .or_else(|| previous["pane_id"].as_str());
-        if recorded_pane.is_some_and(|id| panes.iter().any(|p| p["pane_id"] == id)) {
-            return Err(BrokerError::new(
-                "orchestrator_recovery_required",
-                "Recorded project pane still exists; inspect its occupant before replacement",
-            ));
-        }
+        let restored = self
+            .restored_role_layout(&previous, panes, &cwd, &name)
+            .await?;
         let recovery_attempts = if previous.is_object() && previous["phase"] != "ready" {
             let attempts = previous["recovery_attempts"].as_u64().unwrap_or(0) + 1;
             if recorded_pane.is_none() || attempts > 3 {
@@ -160,7 +157,11 @@ impl Broker {
         } else {
             json!({"layout":"workspace","label":params["workspace_label"]})
         };
-        let layout = self.layout(&layout_route, &cwd, &project).await?;
+        let layout = if let Some(layout) = restored {
+            layout
+        } else {
+            self.layout(&layout_route, &cwd, &project).await?
+        };
         self.event_store(true, |s| {
             s["projects"][&project]["pane_id"] = json!(layout.pane_id);
             Ok(())

@@ -173,6 +173,25 @@ class HostTests(unittest.TestCase):
                 module.events.main(module,self.config,['reconcile','--event-id','event','--decision','resend','--reason','inspect','--confirmed'])
             call.assert_not_called()
 
+    def test_legacy_project_tool_context_requires_stage_capability_and_live_generation(self):
+        from types import SimpleNamespace
+        self.project_fixture()
+        route=module.events.registered_project(module,self.config,'media')['route']
+        nonce='11111111-1111-1111-1111-111111111111'
+        socket=module.configuration(self.config)[-1];socket.parent.mkdir(parents=True,exist_ok=True)
+        event={'state':'accepted','payload':{'project':'media','project_agent':route},'project_delivery':{'state':'submitted','nonce':nonce,'terminal_id':'generation'}}
+        store=socket.parent/'orchestrator-events.json';store.write_text(json.dumps({'events':{'event':event}}))
+        replies=[SimpleNamespace(stdout=json.dumps({'result':{'agent':{'agent':'codex','cwd':route['cwd'],'pane_id':'fixed-project','terminal_id':'generation'}}})),
+                 SimpleNamespace(stdout=json.dumps({'result':{'pane':{'pane_id':'stale-context'}}})),
+                 SimpleNamespace(stdout=json.dumps({'result':{'pane':{'pane_id':'callback'}}})),SimpleNamespace(stdout='')]
+        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'stale-context'}),patch.object(module.events,'registered_project',return_value={'route':route}),patch.object(module.events.subprocess,'run',side_effect=replies):
+            self.assertEqual(module.events.bridge(module,self.config,nonce,'project-consume','media')['pane_id'],'callback')
+        event['project_delivery']['terminal_id']='replaced-generation';store.write_text(json.dumps({'events':{'event':event}}))
+        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'stale-context'}),patch.object(module.events,'registered_project',return_value={'route':route}),patch.object(module.events.subprocess,'run',side_effect=replies[:2]) as transport:
+            with self.assertRaisesRegex(ValueError,'does not match'):
+                module.events.bridge(module,self.config,nonce,'project-consume','media')
+            self.assertEqual(transport.call_count,2)
+
     def test_missing_work_instruction_link_stops_before_broker(self):
         (self.work/'AGENTS.md').unlink()
         with patch.object(module.subprocess,'run') as run:
