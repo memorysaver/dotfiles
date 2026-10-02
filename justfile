@@ -3,18 +3,18 @@
 # Run `just --list` to see all available recipes
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
-dotfiles := env("HOME") / ".dotfiles"
+dotfiles := env("DOTFILES_DIR", justfile_directory())
 
 # Detect the platform and run its explicit setup recipe.
 setup:
-    @platform="$$(bash -c 'source {{ dotfiles }}/lib/helpers.sh; printf %s "$$DOTFILES_PLATFORM"')"; just "setup-$$platform"
+    @platform="$$(bash -c 'source "{{ dotfiles }}"/lib/helpers.sh; printf %s "$$DOTFILES_PLATFORM"')"; just "setup-$$platform"
 
 setup-macos:
-    @bash {{ dotfiles }}/install/platform-check.sh macos
+    @bash "{{ dotfiles }}"/install/platform-check.sh macos
     @just _setup
 
 setup-omarchy:
-    @bash {{ dotfiles }}/install/platform-check.sh omarchy
+    @bash "{{ dotfiles }}"/install/platform-check.sh omarchy
     @echo "Omarchy package installation needs sudo; authenticate once to begin."
     @sudo -v
     @just _setup
@@ -24,17 +24,17 @@ setup-omarchy:
     @just doctor
 
 setup-arch:
-    @bash {{ dotfiles }}/install/platform-check.sh arch
+    @bash "{{ dotfiles }}"/install/platform-check.sh arch
     @just _setup
 
 setup-debian:
-    @bash {{ dotfiles }}/install/platform-check.sh debian
+    @bash "{{ dotfiles }}"/install/platform-check.sh debian
     @just _setup
 
 # Grok Bot Debian agent sandbox: same shared tools as Debian, then link + doctor
 # like Omarchy — without Hypr/Moonlight/mail/desktop overlays.
 setup-grok-bot:
-    @bash {{ dotfiles }}/install/platform-check.sh grok-bot
+    @bash "{{ dotfiles }}"/install/platform-check.sh grok-bot
     @echo "Grok Bot sandbox package installs may need sudo; authenticate once to begin."
     @sudo -v
     @just _setup
@@ -44,7 +44,7 @@ setup-grok-bot:
 
 # Record the Grok Bot recipe stamp (no desktop or mail pieces).
 grok-bot:
-    @bash {{ dotfiles }}/install/grok-bot.sh
+    @bash "{{ dotfiles }}"/install/grok-bot.sh
 
 # Shared orchestration. The portable workspace policy is installed everywhere;
 # application-config linking remains a separate, conflict-aware step.
@@ -54,41 +54,41 @@ _setup: workspace core runtimes agents tools seed-agents
 
 # Install the platform shell plus tmux, starship, nvim, lazygit, git, and direnv
 core:
-    @bash {{ dotfiles }}/install/core.sh
+    @bash "{{ dotfiles }}"/install/core.sh
 
 # Install language runtimes: pyenv, uv, nvm, Node.js, Bun, Rust
 runtimes:
-    @bash {{ dotfiles }}/install/runtimes.sh
+    @bash "{{ dotfiles }}"/install/runtimes.sh
 
 # Install Herdr + AI coding agents. On Omarchy, Claude/Codex/Pi/Grok are Mise wrappers.
 agents:
-    @bash {{ dotfiles }}/install/agents.sh
+    @bash "{{ dotfiles }}"/install/agents.sh
 
 # Build and start the Rust same-user Herdr dispatch broker used by openab-omarchy.
 herdr-dispatch:
-    @bash {{ dotfiles }}/install/herdr-dispatch.sh
+    @bash "{{ dotfiles }}"/install/herdr-dispatch.sh
 
 # Refresh global default skills for all agents without upgrading agent CLIs
 agent-skills:
-    @bash {{ dotfiles }}/install/agent-skills.sh
+    @bash "{{ dotfiles }}"/install/agent-skills.sh
 
 # Upgrade AI coding agents. On Omarchy this is `omarchy update mise` for
 # Claude/Codex/Pi/Grok, not each vendor's self-updater.
 update-agents:
-    @bash {{ dotfiles }}/install/agents.sh --upgrade
+    @bash "{{ dotfiles }}"/install/agents.sh --upgrade
 
 # Validate shared skills for Claude Code, Codex, Pi, and Antigravity CLI portability
 validate-skills:
-    @bash {{ dotfiles }}/tools/validate-agent-skills.sh
+    @bash "{{ dotfiles }}"/tools/validate-agent-skills.sh
 
 # Audit the Tailscale SSH + Herdr remote-access security baseline (read-only; uses sudo)
 audit-remote-access:
-    @bash {{ dotfiles }}/tools/audit-remote-access.sh
+    @bash "{{ dotfiles }}"/tools/audit-remote-access.sh
 
 # Install CLI tools: gh, glab, jq, yq, just, agent-browser, portless;
 # macOS-only additions: cliamp, lazydocker, mole
 tools:
-    @bash {{ dotfiles }}/install/tools.sh
+    @bash "{{ dotfiles }}"/install/tools.sh
 
 # Start the personal Gmail OAuth flow without blocking Ortie's callback server.
 mail-auth:
@@ -96,40 +96,40 @@ mail-auth:
 
 # Install the desktop apps expected on the personal Omarchy workstation
 omarchy-apps:
-    @bash {{ dotfiles }}/install/omarchy-apps.sh
+    @bash "{{ dotfiles }}"/install/omarchy-apps.sh
 
 # Configure Moonlight capture without replacing its host list or pairing data.
 omarchy-moonlight:
-    @bash {{ dotfiles }}/install/omarchy-moonlight.sh
+    @bash "{{ dotfiles }}"/install/omarchy-moonlight.sh
 
 # Opt in to a persistent 16:10 virtual display for a headless Sunshine host.
 omarchy-sunshine-headless:
-    @bash {{ dotfiles }}/install/omarchy-sunshine-headless.sh
+    @bash "{{ dotfiles }}"/install/omarchy-sunshine-headless.sh
 
 # Opt in to a persistent macOS caffeinate assertion for a closed-lid headless host.
 macos-headless-caffeinate:
-    @bash {{ dotfiles }}/install/macos-headless-caffeinate.sh enable
+    @bash "{{ dotfiles }}"/install/macos-headless-caffeinate.sh enable
 
 # Disable the managed macOS headless caffeinate LaunchAgent and remove its copy.
 macos-headless-caffeinate-off:
-    @bash {{ dotfiles }}/install/macos-headless-caffeinate.sh disable
+    @bash "{{ dotfiles }}"/install/macos-headless-caffeinate.sh disable
 
 # Install infrastructure tools: Terraform, Pulumi, SST (opt-in)
 infra:
-    @bash {{ dotfiles }}/install/infra.sh
+    @bash "{{ dotfiles }}"/install/infra.sh
 
 # Create ~/Work/{github,cowork,tries}, AGENTS.md, and the unified orchestration rules.
 workspace:
-    @bash {{ dotfiles }}/install/workspace.sh
+    @bash "{{ dotfiles }}"/install/workspace.sh
 
 # Select this computer's private rules once; the ID stays local.
 workspace-computer computer_id:
-    @bash {{ dotfiles }}/install/workspace-computer.sh {{ quote(computer_id) }}
+    @bash "{{ dotfiles }}"/install/workspace-computer.sh {{ quote(computer_id) }}
 
 # Create all config symlinks (idempotent)
 link:
     #!/usr/bin/env bash
-    source {{ dotfiles }}/lib/helpers.sh
+    source "{{ dotfiles }}"/lib/helpers.sh
     source "{{ dotfiles }}/lib/workspace.sh"
     rule_source="$(workspace_rule_source)"
 
@@ -154,9 +154,9 @@ link:
       fi
     }
 
-    preflight_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
-    preflight_symlink "$rule_source" "$HOME/Work/orchestration-rules"
-    preflight_symlink "{{ dotfiles }}/config/workspace/README.md" "$HOME/Work/README.md"
+    preflight_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$WORKSPACE_ROOT/AGENTS.md"
+    preflight_symlink "$rule_source" "$WORKSPACE_ROOT/orchestration-rules"
+    preflight_symlink "{{ dotfiles }}/config/workspace/README.md" "$WORKSPACE_ROOT/README.md"
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       preflight_symlink "{{ dotfiles }}/config/ortie/config.toml" "$HOME/.config/ortie/config.toml"
       preflight_symlink "{{ dotfiles }}/config/himalaya/config.toml" "$HOME/.config/himalaya/config.toml"
@@ -186,10 +186,10 @@ link:
 
     # Workspace navigation policy: portable, human-authored, and never rewritten
     # by an application, so it remains safe to manage as a symlink.
-    ensure_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$HOME/Work/AGENTS.md"
-    ensure_symlink "$rule_source" "$HOME/Work/orchestration-rules"
-    ensure_symlink "{{ dotfiles }}/config/workspace/README.md" "$HOME/Work/README.md"
-    workspace_remove_legacy_rules "$HOME/Work" "$rule_source"
+    ensure_symlink "{{ dotfiles }}/config/workspace/AGENTS.md" "$WORKSPACE_ROOT/AGENTS.md"
+    ensure_symlink "$rule_source" "$WORKSPACE_ROOT/orchestration-rules"
+    ensure_symlink "{{ dotfiles }}/config/workspace/README.md" "$WORKSPACE_ROOT/README.md"
+    workspace_remove_legacy_rules "$WORKSPACE_ROOT" "$rule_source"
 
     # Shell: macOS owns Zsh; Omarchy keeps its stock Bash rc and sources one
     # additive personal fragment from the repository.
@@ -277,15 +277,15 @@ link:
 # Show exactly which managed targets already exist; never writes anything.
 link-dry-run:
     #!/usr/bin/env bash
-    source {{ dotfiles }}/lib/helpers.sh
+    source "{{ dotfiles }}"/lib/helpers.sh
     source "{{ dotfiles }}/lib/workspace.sh"
     rule_source="$(workspace_rule_source)"
     sources=("{{ dotfiles }}/config/workspace/AGENTS.md")
-    targets=("$HOME/Work/AGENTS.md")
+    targets=("$WORKSPACE_ROOT/AGENTS.md")
     sources+=("$rule_source")
-    targets+=("$HOME/Work/orchestration-rules")
+    targets+=("$WORKSPACE_ROOT/orchestration-rules")
     sources+=("{{ dotfiles }}/config/workspace/README.md")
-    targets+=("$HOME/Work/README.md")
+    targets+=("$WORKSPACE_ROOT/README.md")
     if [ "$DOTFILES_PLATFORM" = "omarchy" ]; then
       sources+=(
         "{{ dotfiles }}/config/ortie/config.toml"
@@ -368,7 +368,7 @@ link-dry-run:
 # Copy agent config templates to a fresh machine (never overwrites an existing file)
 seed-agents:
     #!/usr/bin/env bash
-    source {{ dotfiles }}/lib/helpers.sh
+    source "{{ dotfiles }}"/lib/helpers.sh
     info "Seeding agent configs (existing files are left untouched)..."
 
     seed() {
@@ -407,12 +407,12 @@ seed-agents:
 # Unlink all symlinks (for clean removal)
 unlink:
     #!/usr/bin/env bash
-    source {{ dotfiles }}/lib/helpers.sh
+    source "{{ dotfiles }}"/lib/helpers.sh
     source "{{ dotfiles }}/lib/workspace.sh"
     rule_source="$(workspace_rule_source)"
     # Remove only workspace links pointing to this checkout; preserve foreign links and real files.
     for name in AGENTS.md README.md orchestration-rules; do
-      target="$HOME/Work/$name"
+      target="$WORKSPACE_ROOT/$name"
       expected="{{ dotfiles }}/config/workspace/$name"
       [ "$name" != orchestration-rules ] || expected="$rule_source"
       if [ -L "$target" ] && [ "$(readlink "$target")" = "$expected" ]; then
@@ -420,7 +420,7 @@ unlink:
         ok "Removed $target"
       fi
     done
-    workspace_remove_legacy_rules "$HOME/Work" "$rule_source"
+    workspace_remove_legacy_rules "$WORKSPACE_ROOT" "$rule_source"
     links=()
     if [ "$DOTFILES_PLATFORM" != omarchy ]; then
       links+=(
@@ -489,32 +489,39 @@ unlink:
 
 # Health-check this machine: symlinks, commands, global skills, brew taps (read-only)
 doctor:
-    @bash {{ dotfiles }}/tools/doctor.sh
+    @bash "{{ dotfiles }}"/tools/doctor.sh
 
 # Install Omarchy 4 from the official ISO into a local VM -- macOS, emulated, opt-in
 omarchy-vm:
-    @bash {{ dotfiles }}/tools/omarchy-vm.sh up
+    @bash "{{ dotfiles }}"/tools/omarchy-vm.sh up
 
 # Print how to reach the Omarchy VM and what to expect on first boot
 omarchy-vm-info:
-    @bash {{ dotfiles }}/tools/omarchy-vm.sh info
+    @bash "{{ dotfiles }}"/tools/omarchy-vm.sh info
 
 # Report whether the Omarchy VM is running, and its ISO/disk sizes
 omarchy-vm-status:
-    @bash {{ dotfiles }}/tools/omarchy-vm.sh status
+    @bash "{{ dotfiles }}"/tools/omarchy-vm.sh status
 
 # Shut the Omarchy VM down, leaving its disk intact
 omarchy-vm-stop:
-    @bash {{ dotfiles }}/tools/omarchy-vm.sh stop
+    @bash "{{ dotfiles }}"/tools/omarchy-vm.sh stop
 
 # Delete the Omarchy VM's disk and UEFI variables (the cached ISO is kept)
 omarchy-vm-destroy:
-    @bash {{ dotfiles }}/tools/omarchy-vm.sh destroy
+    @bash "{{ dotfiles }}"/tools/omarchy-vm.sh destroy
 
 # Report any symlink still pointing into this repo from an agent config directory
 check-agent-links:
-    @bash {{ dotfiles }}/tools/agent-links.sh check
+    @bash "{{ dotfiles }}"/tools/agent-links.sh check
 
 # Turn agent config symlinks into real machine-local files (run once per old machine)
 adopt-agents:
-    @bash {{ dotfiles }}/tools/agent-links.sh adopt
+    @bash "{{ dotfiles }}"/tools/agent-links.sh adopt
+
+# Maintain the fixed local Herdr Orchestrator and register this host's Dagu workflow.
+workspace-orchestrator:
+    @python3 "{{ dotfiles }}"/tools/workspace-orchestrator.py install
+
+workspace-paths:
+    @python3 "{{ dotfiles }}"/lib/workspace-paths.py

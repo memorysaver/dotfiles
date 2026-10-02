@@ -73,3 +73,18 @@ Before direct Herdr control from an agent inside a pane, verify `HERDR_ENV=1` an
 CLI syntax. An external service runs outside a Herdr pane: it must not fake that variable
 or call the full Herdr CLI. Within the authorized scope, it uses the allowlisted client and local broker. If
 the broker is unavailable, report that external dispatch is blocked.
+
+## Fixed Orchestrator supervisor
+
+`workspace-orchestrator ensure` uses the broker's allowlisted `ensure-orchestrator` operation.
+Configured host lifecycle authorization permits its `--confirmed` flag. This only maintains
+one named agent and submits its initial role bootstrap; it does not execute arbitrary commands,
+answer approval dialogs, rename existing agents, or stop the Herdr server. Dagu and the user
+supervisor use this external surface without setting `HERDR_ENV`. Existing project dispatch
+and its task/result history remain unchanged. Recurring business-task delivery to the persistent
+agent is not implemented by the presence workflow and must not be inferred from health success.
+
+Native server startup is a separate infrastructure exception: the registered server supervisor
+uses only health `ping` and the fixed native `herdr server` startup command. It never addresses
+agents or panes, retargets a remote server, answers approval dialogs, or fabricates caller context.
+All agent lifecycle operations from Dagu and the agent supervisor still go through the broker.

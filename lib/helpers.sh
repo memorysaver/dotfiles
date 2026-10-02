@@ -54,7 +54,27 @@ detect_platform() {
 DOTFILES_PLATFORM="${DOTFILES_PLATFORM:-${DOTFILES_OS:-$(detect_platform)}}"
 # Compatibility for older scripts while they migrate to DOTFILES_PLATFORM.
 DOTFILES_OS="$DOTFILES_PLATFORM"
-DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+# Path settings are local to this computer. The resolver emits shell-quoted values.
+workspace_resolver="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/workspace-paths.py"
+if command -v python3 >/dev/null 2>&1 && python3 -c 'import tomllib' >/dev/null 2>&1; then
+  workspace_values="$(python3 "$workspace_resolver" --shell)"
+  eval "$workspace_values"
+else
+  # Fresh installers may not have Python yet. Preserve legacy defaults until runtimes install it.
+  workspace_paths_file="${WORKSPACE_PATHS_FILE:-$HOME/.config/dotfiles/workspace.toml}"
+  if [ -e "$workspace_paths_file" ] || [ -L "$workspace_paths_file" ]; then
+    printf 'Python 3.11+ is required to read workspace.toml; refusing to ignore configured paths\n' >&2
+    return 1
+  fi
+  export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+  export WORKSPACE_IDEA_ROOT="${WORKSPACE_IDEA_ROOT:-$HOME/idea}"
+  export WORKSPACE_ROOT="${WORKSPACE_ROOT:-$HOME/Work}"
+  export WORKSPACE_DAGU_DAGS_DIR="${WORKSPACE_DAGU_DAGS_DIR:-$HOME/.config/dagu/dags}"
+  export WORKSPACE_HOSTS_DIR="${WORKSPACE_HOSTS_DIR:-$WORKSPACE_IDEA_ROOT/private-config/computers}"
+  export WORKSPACE_ID_FILE="${WORKSPACE_ID_FILE:-$HOME/.config/dotfiles/computer-id}"
+  export WORKSPACE_ORCHESTRATOR_STATE_DIR="${WORKSPACE_ORCHESTRATOR_STATE_DIR:-$HOME/.local/state/workspace-orchestrator}"
+fi
+unset workspace_resolver workspace_values workspace_paths_file
 
 # --- Logging ---
 info()  { printf '  \033[34m→\033[0m %s\n' "$*"; }

@@ -56,3 +56,18 @@ private repositories automatically. Generic public templates do not declare whic
 
 Already-bound computers receive rule-content updates by pulling both source repositories; existing
 symlinks expose the updated files. Existing sessions must reread the entrypoints or start a new session.
+
+## Fixed Orchestrator and configured locations
+
+Every managed computer keeps a fixed `orchestrator` agent whose cwd is its configured Work root.
+The local server, agent name, kind and canonical cwd identify it; tab/pane positions do not.
+The user supervisor maintains presence; the host's Dagu presence workflow provides a separate
+scheduled check. Busy or blocked agents are preserved, and task completion requires verified
+artifacts. This requirement supersedes older optional-agent deployment notes, without granting
+new business permissions or changing host project restrictions.
+
+The directory map above uses default locations. Resolve actual local locations with
+`workspace-orchestrator paths` or dotfiles `lib/workspace-paths.py`. Host overrides live in the
+local regular file `~/.config/dotfiles/workspace.toml`. The configured idea checkout owns
+`private-config/computers/<id>/orchestration-rules/{orchestrator.toml,workflows/}`; only that
+computer's workflows are linked into the configured Dagu DAGs directory. See `docs/workspace-orchestrator.md` in the resolved dotfiles checkout for deployment.

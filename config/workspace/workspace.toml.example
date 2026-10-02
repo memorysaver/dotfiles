@@ -1,0 +1,10 @@
+# Copy to ~/.config/dotfiles/workspace.toml. Keep actual locations local.
+# Paths default to these values; override only what differs on this computer.
+[paths]
+dotfiles = "~/.dotfiles"
+idea = "~/idea"
+workspace = "~/Work"
+dags = "~/.config/dagu/dags"
+# hosts defaults to <idea>/private-config/computers.
+# identity = "~/.config/dotfiles/computer-id"
+# state = "~/.local/state/workspace-orchestrator"

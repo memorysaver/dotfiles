@@ -22,6 +22,8 @@ use tokio::net::{UnixListener, UnixStream};
 use uuid::Uuid;
 
 mod history;
+mod orchestrator;
+mod orchestrator_events;
 
 pub const MAX_TIMEOUT_MS: u64 = 3_600_000;
 pub const MAX_READ_LINES: i64 = 200;
@@ -490,6 +492,9 @@ pub struct Broker {
     store: Arc<Mutex<TaskStore>>,
     allowed_roots: Vec<PathBuf>,
     reservations: Arc<Mutex<Reservations>>,
+    orchestrator_lock: Arc<tokio::sync::Mutex<()>>,
+    orchestrator_events_lock: Arc<Mutex<()>>,
+    broker_instance: String,
 }
 
 impl Broker {
@@ -536,6 +541,9 @@ impl Broker {
             store: Arc::new(Mutex::new(store)),
             allowed_roots,
             reservations: Arc::new(Mutex::new(Reservations::new())),
+            orchestrator_lock: Arc::new(tokio::sync::Mutex::new(())),
+            orchestrator_events_lock: Arc::new(Mutex::new(())),
+            broker_instance: Uuid::new_v4().to_string(),
         })
     }
 
@@ -851,7 +859,13 @@ impl Broker {
                 Ok(result) => {
                     if let Some(agent) = result.get("agent") {
                         if agent.get("name").and_then(Value::as_str) == Some(agent_name)
-                            && agent.get("interactive_ready") == Some(&Value::Bool(true))
+                            && (agent.get("interactive_ready") == Some(&Value::Bool(true))
+                                || (agent.get("interactive_ready").is_none()
+                                    && agent.get("launch_pending") != Some(&Value::Bool(true))
+                                    && matches!(
+                                        agent.get("agent_status").and_then(Value::as_str),
+                                        Some("idle" | "done")
+                                    )))
                         {
                             return Ok(agent.clone());
                         }
@@ -867,7 +881,12 @@ impl Broker {
                             "agent is visible but interactive_ready is not true".to_owned();
                     }
                 }
-                Err(error) if matches!(error.code.as_str(), "not_found" | "agent_not_ready") => {
+                Err(error)
+                    if matches!(
+                        error.code.as_str(),
+                        "not_found" | "agent_not_found" | "agent_not_ready"
+                    ) =>
+                {
                     last_error = error.message;
                 }
                 Err(error) => return Err(error),
@@ -1264,6 +1283,8 @@ impl Broker {
                 Ok(json!({"type": "tasks", "tasks": store.list()}))
             }
             "dispatch" => self.dispatch(params).await,
+            "ensure_orchestrator" => self.ensure_orchestrator(params).await,
+            "orchestrator_event" => self.orchestrator_event(params).await,
             "status" => self.task_status(&params).await,
             "read" => self.task_read(&params).await,
             "wait" => self.task_wait(&params).await,

@@ -70,3 +70,15 @@ It creates the unified `orchestration-rules` link, then removes only the exact o
 `computer-rule` and `workspace-rules` symlinks. Custom directories and foreign links are preserved
 with a warning. Do not copy both old rule trees into the new one: private machine contents reference
 the public profiles and shared dispatch procedures. Existing agent sessions must reread the new entry.
+
+## Host path overrides and mandatory Orchestrator
+
+Home-directory paths in this guide are defaults. Use the local
+`~/.config/dotfiles/workspace.toml` (example in `config/workspace/workspace.toml.example`) to
+select existing dotfiles, idea, workspace and Dagu locations. Explicit environment overrides
+remain supported. The shared resolver is `lib/workspace-paths.py`; installers, supervisor and
+agent rules use the same values. A non-default checkout is not a migration request.
+
+Every managed host must maintain the fixed Herdr Orchestrator. Deploy its private manifest,
+updated broker, user supervisor and presence workflow using [the deployment guide](workspace-orchestrator.md).
+Update policy and configuration separately from claiming live or reboot acceptance.

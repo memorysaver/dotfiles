@@ -623,3 +623,12 @@ MIT
 Run `just agent-skills` after pulling to refresh `herdr`, `show-me`, and `agent-browser`
 for all supported agents and remove the retired `i-have-adhd` skill. This does not upgrade
 agent CLIs or replace their live configuration. Existing sessions must reload skills.
+
+### Fixed local Herdr Orchestrator
+
+Every managed host maintains one `orchestrator` in its canonical Work management workspace.
+The shared broker lifecycle, user supervisor, and private per-host Dagu presence workflow are
+covered by [the deployment guide](docs/workspace-orchestrator.md). Home locations are defaults;
+a host-local `~/.config/dotfiles/workspace.toml` selects different existing dotfiles, idea, Work,
+and DAGs locations. `just workspace-paths` shows the resolved locations. Host manifests and actual
+deployment receipts belong in private idea; credentials and runtime state remain local.

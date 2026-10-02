@@ -1,0 +1,123 @@
+"""Host paths, lifecycle boundary, and local service rendering without live sockets."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+import tempfile
+import unittest
+from unittest.mock import patch
+
+repo=Path(__file__).resolve().parents[1]
+spec=importlib.util.spec_from_file_location('orchestrator',repo/'tools/workspace-orchestrator.py')
+module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+
+class HostTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory(prefix='orchestrator spaces ')
+        self.root=Path(self.temp.name);self.home=self.root/'home';self.home.mkdir()
+        self.idea=self.root/'private idea';self.work=self.root/'Work';self.work.mkdir()
+        self.rules=self.idea/'private-config/computers/test-host/orchestration-rules'
+        self.rules.mkdir(parents=True)
+        (self.rules/'README.md').write_text('Computer ID: test-host\n')
+        (self.rules/'profile').write_text('omarchy-server\n')
+        (self.rules/'orchestrator.toml').write_text('computer_id="test-host"\nenabled=true\n[agent]\nkind="codex"\n[transport]\nbroker_socket='+json.dumps(str(self.home/'.config/herdr-dispatchd/dispatch.sock'))+'\n')
+        (self.work/'orchestration-rules').symlink_to(self.rules)
+        (self.work/'AGENTS.md').symlink_to(repo/'config/workspace/AGENTS.md')
+        (self.work/'README.md').symlink_to(repo/'config/workspace/README.md')
+        self.identity=self.root/'id';self.identity.write_text('test-host\n')
+        self.dags=self.root/'custom dags';self.dags.mkdir()
+        self.state=self.root/'state'
+        self.config=self.root/'local locations.toml'
+        paths={'dotfiles':str(repo),'idea':str(self.idea),'workspace':str(self.work),
+               'dags':str(self.dags),'identity':str(self.identity),'state':str(self.state)}
+        self.config.write_text('[paths]\n'+'\n'.join(k+'='+json.dumps(v) for k,v in paths.items()))
+        environment={k:v for k,v in os.environ.items() if k not in module.resolver.VARIABLES.values()
+                     and k!='WORKSPACE_PATHS_FILE'}
+        self.env=patch.dict(os.environ,environment,clear=True);self.env.start()
+        self.mockhome=patch.object(Path,'home',return_value=self.home);self.mockhome.start()
+        self.os=patch.object(module.platform,'system',return_value='Linux');self.os.start()
+    def tearDown(self):
+        self.os.stop();self.mockhome.stop();self.env.stop();self.temp.cleanup()
+    def test_custom_locations_and_override_priority(self):
+        paths=module.resolver.resolve(self.config)
+        self.assertEqual(paths['hosts'],self.idea/'private-config/computers')
+        special=self.root/'idea $literal; $(touch nope)';special.mkdir()
+        with patch.dict(os.environ,{'WORKSPACE_IDEA_ROOT':str(special)}):
+            paths=module.resolver.resolve(self.config)
+            self.assertEqual(paths['idea'],special)
+            self.assertEqual(paths['hosts'],special/'private-config/computers')
+    def test_reject_relative_config_and_symlinked_config(self):
+        self.config.write_text('[paths]\nidea="relative"\n')
+        with self.assertRaises(ValueError): module.resolver.resolve(self.config)
+        alias=self.root/'alias';alias.symlink_to(self.config)
+        with self.assertRaises(ValueError): module.resolver.resolve(alias)
+    def test_identity_conflict_stops_before_delivery(self):
+        self.identity.write_text('other-host\n')
+        with patch.object(module.subprocess,'run') as run:
+            with self.assertRaises(ValueError): module.ensure(self.config)
+            run.assert_not_called()
+    def test_bootstrap_external_boundary_and_temporary_prompt_cleanup(self):
+        def run(command,**kwargs):
+            self.assertIn('ensure-orchestrator',command)
+            self.assertNotIn('herdr',command)
+            prompt=Path(command[command.index('--prompt-file')+1]).read_text()
+            self.assertIn(str(self.idea),prompt)
+            self.assertIn('Do not perform business work',prompt)
+            class Result:
+                returncode=0;stdout='{"created":false,"agent":{"agent_status":"blocked"}}';stderr=''
+            return Result()
+        with patch.object(module.shutil,'which',return_value='/bin/herdr-dispatch'),patch.object(module.subprocess,'run',side_effect=run):
+            self.assertFalse(module.ensure(self.config)['created'])
+        self.assertEqual(list(self.state.glob('bootstrap-*')),[])
+        self.assertTrue((self.state/'lifecycle.json').exists())
+    def test_unmanaged_launchers_are_preserved(self):
+        workflow=self.rules/'workflows/orchestrator-presence.yaml'
+        workflow.parent.mkdir();workflow.write_text('name: test\nsteps: []\n')
+        binary=self.home/'.local/bin/workspace-orchestrator';binary.parent.mkdir(parents=True)
+        binary.write_text('user executable')
+        from types import SimpleNamespace
+        with patch.object(module.subprocess,'run',return_value=SimpleNamespace(
+                returncode=0,stdout='DAGs directory: '+str(self.dags)+'\n',stderr='')) as run:
+            with self.assertRaises(ValueError): module.install(self.config)
+            self.assertTrue(all('systemctl' not in c.args[0] for c in run.call_args_list))
+        self.assertEqual(binary.read_text(),'user executable')
+    def test_service_and_dagu_link_follow_custom_locations(self):
+        workflow=self.rules/'workflows/orchestrator-presence.yaml'
+        workflow.parent.mkdir();workflow.write_text('name: test\nsteps: []\n')
+        from types import SimpleNamespace
+        def successful(command,**kwargs):
+            return SimpleNamespace(returncode=0,stdout='DAGs directory: '+str(self.dags)+'\n',stderr='')
+        with patch.object(module.subprocess,'run',side_effect=successful) as run:
+            module.install(self.config)
+            self.assertEqual(run.call_count,6)
+        unit=self.home/'.config/systemd/user/workspace-orchestrator.service'
+        self.assertIn(str(repo),unit.read_text())
+        self.assertIn(str(self.config),unit.read_text())
+        self.assertEqual((self.dags/'orchestrator/orchestrator-presence.yaml').resolve(),workflow)
+        launcher=(self.home/'.local/bin/workspace-orchestrator').read_text()
+        self.assertIn(str(self.config),launcher)
+        compile(launcher,'launcher','exec')
+
+    def test_execution_claim_prevents_duplicate_effects(self):
+        registry=self.rules/'projects.toml'
+        registry.write_text('[projects.probe]\nrepo="."\n[projects.probe.tasks.once]\nentrypoint=["python3","-c","from pathlib import Path; Path(\\\"effect\\\").write_text(\\\"once\\\")"]\n')
+        payload=module.events.registered_task(module,self.config,'probe','once')
+        event=dict(event_id='probe:run',nonce='nonce',state='accepted',terminal_id='generation',payload=payload)
+        def broker(host,config,action,**kwargs):
+            if action=='resolve': return {'terminal_id':'generation'}
+            if action=='claim': return {'state':'accepted'}
+            return {'state':kwargs['status'],'result':kwargs['result']}
+        with patch.object(module.events,'call',side_effect=broker):
+            result=module.events.execute(module,self.config,event)
+            self.assertEqual(result['state'],'completed')
+            with self.assertRaisesRegex(ValueError,'already claimed'):
+                module.events.execute(module,self.config,event)
+        self.assertEqual((self.work/'effect').read_text(),'once')
+        self.assertEqual(len(list((self.state/'execution-claims').glob('*.result.json'))),1)
+    def test_missing_work_instruction_link_stops_before_broker(self):
+        (self.work/'AGENTS.md').unlink()
+        with patch.object(module.subprocess,'run') as run:
+            with self.assertRaises(ValueError): module.ensure(self.config)
+            run.assert_not_called()
+
+if __name__=='__main__': unittest.main()

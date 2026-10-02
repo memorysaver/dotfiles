@@ -2,9 +2,12 @@
 
 Before machine-specific changes, local agent management or dispatch, check the destination itself:
 
-1. Read `~/.config/dotfiles/computer-id` as a local regular file, not a symlink.
-2. Resolve `~/Work/orchestration-rules` and confirm it equals the canonical directory
-   `~/idea/private-config/computers/<computer-id>/orchestration-rules` for that exact ID.
+0. Resolve local paths with `workspace-orchestrator paths` or the selected dotfiles
+   `lib/workspace-paths.py`. Defaults may be overridden in the local regular
+   `~/.config/dotfiles/workspace.toml`; never infer identity from a path or hostname.
+1. Read the resolved identity file (default `~/.config/dotfiles/computer-id`) as a local regular file, not a symlink.
+2. Resolve `<resolved workspace>/orchestration-rules` and confirm it equals the canonical directory
+   `<resolved hosts>/<computer-id>/orchestration-rules` for that exact ID.
 3. Check that the selected README declares that ID and its `profile` file agrees with the
    declared profile. Compare with the actual OS (`uname -s`; on Linux inspect `/etc/os-release`
    and Omarchy installation evidence). `mac` requires macOS; Omarchy profiles require Omarchy.

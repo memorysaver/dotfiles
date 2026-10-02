@@ -66,3 +66,22 @@ If private rules or inventory are unavailable, report the missing context instea
 deployed agents from public templates. Actual agent rosters, deployment choices, and downstream
 relationships stay in private idea. Public dotfiles contains only this common mechanism; active
 tasks and session IDs remain machine-local runtime data.
+
+## Fixed agent lifecycle
+
+Each managed host maintains the unique live name `orchestrator` in the selected local Herdr
+server with canonical Work cwd. Agent name, configured kind and actual cwd identify the role;
+workspace labels, tab order and pane positions do not. Read the resolved host `orchestrator.toml` and its workflow
+index. The supervisor calls the allowlisted broker's `ensure-orchestrator`; it reuses an existing
+agent only when kind/name/canonical cwd match, preserves working/blocked/unknown states, and
+starts a missing agent without stealing focus. A management tab is initial placement, not a routing
+requirement. Existing-agent lookup precedes layout discovery; the durable event contract is in `docs/workspace-orchestrator.md` in the resolved
+dotfiles checkout. Name/path conflicts fail closed.
+The selected broker socket identifies the local server; pane IDs are discovered at runtime,
+not copied between computers. Do not create another Orchestrator in a second session.
+
+Availability means supervised recovery while the host is awake and the user service, Herdr,
+broker, authentication and CLI are available. Offline, sleeping and blocked conditions are
+reported; they do not justify bypassing approvals or silently replaying work. Health checks only
+maintain the role; they do not grant authority to execute unspecified business work. Concrete
+scheduled tasks require their own objectives, limits and artifact-based verification.

@@ -19,7 +19,7 @@ workspace_rule_source() {
   case "$id" in
     *[!a-z0-9-]*|-*|*-|'') fail "Invalid computer ID"; return 1 ;;
   esac
-  hosts="${WORKSPACE_HOSTS_DIR:-$HOME/idea/private-config/computers}"
+  hosts="${WORKSPACE_HOSTS_DIR:-${WORKSPACE_IDEA_ROOT:-$HOME/idea}/private-config/computers}"
   [ -f "$hosts/$id/orchestration-rules/README.md" ] && [ -f "$hosts/$id/orchestration-rules/profile" ] || {
     fail "Selected computer rules unavailable; sync the private host records first"; return 1;
   }
