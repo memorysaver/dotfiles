@@ -76,8 +76,9 @@ the public profiles and shared dispatch procedures. Existing agent sessions must
 Home-directory paths in this guide are defaults. Use the local
 `~/.config/dotfiles/workspace.toml` (example in `config/workspace/workspace.toml.example`) to
 select existing dotfiles, idea, workspace and Dagu locations. Explicit environment overrides
-remain supported. The shared resolver is `lib/workspace-paths.py`; installers, supervisor and
-agent rules use the same values. A non-default checkout is not a migration request.
+remain supported. `workspace-orchestrator paths` is the Rust resolver used by the supervisor
+and installed setup scripts. Before the CLI is installed, provisioning falls back to the compatible
+`lib/workspace-paths.py`. A non-default checkout is not a migration request.
 
 Every managed host must maintain the fixed Herdr Orchestrator. Deploy its private manifest,
 updated broker, user supervisor and presence workflow using [the deployment guide](workspace-orchestrator.md).
