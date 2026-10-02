@@ -114,6 +114,19 @@ class HostTests(unittest.TestCase):
                 module.events.execute(module,self.config,event)
         self.assertEqual((self.work/'effect').read_text(),'once')
         self.assertEqual(len(list((self.state/'execution-claims').glob('*.result.json'))),1)
+    def test_readonly_bridge_accepts_silent_pane_run_without_broker_access(self):
+        from types import SimpleNamespace
+        replies=[SimpleNamespace(stdout=json.dumps({'result':{'agent':{'agent':'codex','cwd':str(self.work),'pane_id':'fixed-pane'}}})),
+                 SimpleNamespace(stdout=json.dumps({'result':{'pane':{'pane_id':'callback-pane'}}})),
+                 SimpleNamespace(stdout='')]
+        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'fixed-pane'}),patch.object(module.events.subprocess,'run',side_effect=replies) as run:
+            result=module.events.bridge(module,self.config,'11111111-1111-1111-1111-111111111111','consume')
+            self.assertEqual(result['pane_id'],'callback-pane')
+            self.assertTrue(all(c.args[0][0]=='herdr' for c in run.call_args_list))
+            self.assertIn('--no-focus',run.call_args_list[1].args[0])
+            self.assertIn('event consume --nonce',run.call_args_list[2].args[0][-1])
+            self.assertFalse(self.state.exists())
+
     def test_missing_work_instruction_link_stops_before_broker(self):
         (self.work/'AGENTS.md').unlink()
         with patch.object(module.subprocess,'run') as run:
