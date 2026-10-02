@@ -139,7 +139,7 @@ Dagu event with durable acknowledgment/result. Existing presence tests do not co
 ## Operations
 
 Submit from Dagu with `workspace-orchestrator event submit --project <id> --task <task>
---dagu --wait --timeout 10800`; then use `event verify` with the same project/task/--dagu identity.
+--dagu --wait --timeout 21600`; then use `event verify` with the same project/task/--dagu identity.
 Manual submissions require a stable `--event-id`. Submission freezes trigger date/slot and
 registered argv; changed registration requires reconciliation. Same-day tasks expire without
 execution after their trigger day. Computer deliveries and each project delivery are serialized separately; delegated work releases
