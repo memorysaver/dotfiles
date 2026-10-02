@@ -108,11 +108,17 @@ impl Broker {
             .call("session.snapshot", json!({}), Duration::from_secs(15))
             .await?["snapshot"]
             .clone();
-        let roles = managed_layout::plan(&snapshot, &candidate["binding"], true)?;
+        let mut roles = managed_layout::plan(&snapshot, &candidate["binding"], true)?;
+        if params["audit_launch"] == true {
+            self.audit_role_launches(&mut roles, &candidate["binding"], !dry_run)
+                .await?;
+        }
         if changed && !dry_run {
             self.apply_role_policy(candidate)?;
         }
-        Ok(json!({"dry_run":dry_run,"changed":changed,"applied":changed && !dry_run,"roles":roles}))
+        Ok(
+            json!({"dry_run":dry_run,"changed":changed,"applied":changed && !dry_run,"roles":roles,"launch_audited":params["audit_launch"] == true}),
+        )
     }
 }
 

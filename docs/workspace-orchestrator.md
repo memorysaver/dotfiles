@@ -23,7 +23,15 @@ at its exact Git root with readable AGENTS.md/README.md. The explicit short key 
 no truncation or hashing. Project labels place a primary workspace; name/kind/cwd/native terminal
 generation bind the route. Relative escapes, duplicate checkouts/keys and wrong occupants fail.
 Each role's permission policy belongs to its registered launcher; role args configure
-models/effort/service tier. Explicit launcher settings apply to newly started sessions.
+models/effort/service tier. `start` verifies foreground executable argv against those
+settings before reusing roles and after cold startup. A mismatch returns
+`launch_settings_mismatch`, preserving conversations and pending receipts; arrange an
+explicit handoff/relaunch rather than treating the role as configured successfully.
+`start --dry-run` reports configured settings, observed argv and launch status without
+applying changes. This verifies launch settings, not later interactive permission changes.
+Custom wrapper launches need a broker-issued receipt bound to settings, terminal ID,
+foreground PID and argv. Existing wrapper sessions without that evidence are unverified;
+they are preserved and cannot silently satisfy `start`. Receipts are local runtime state.
 
 ## Delivery and acceptance
 
@@ -60,6 +68,10 @@ status reads can succeed while pending.
 
 `start` automatically validates and reloads the broker's pinned YAML in place, then starts/reuses
 roles and arranges workspaces. `start --dry-run` does not apply settings or move/start agents.
+Launch auditing precedes configuration adoption, bootstrap prompts and layout moves. The
+CLI requires a matching broker with launch-audit support instead of accepting an older
+broker that ignores verification options. `ensure`/supervision continue maintaining role
+presence without interrupting existing working, blocked or unknown conversations.
 Wait for unfinished events before changing YAML. Owner/root/socket/state changes require explicit
 migration/deployment; existing sessions and runtime receipts survive ordinary configuration updates.
 Default total wait is 21600 seconds, separate from each

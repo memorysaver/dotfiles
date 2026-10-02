@@ -525,7 +525,7 @@ impl Broker {
             format!("Project Orchestrator returned event {} with status {}. Inspect its durable result/log: {}. Read current Work rules. Accept this correlated result by running {reply} event bridge --callback computer-complete --nonce {nonce}. This records the Project result back through Computer to Dagu; do not rerun the project entrypoint. Project artifact verification remains in Dagu. Entrypoint completion is not finished production.",record["event_id"],record["project_delivery"]["state"],record["project_result"])
         } else {
             // JSON-quoted identifiers are data in the prompt, never executed by the broker.
-            format!("Authorized local Dagu event: {}\nRead Work AGENTS.md and selected host rules, then this project's instructions. Preserve active workers and dirty trees.\nPayload: {}\nAfter reading these instructions, run {reply} event bridge --callback consume --nonce {nonce}\nThe bridge acknowledges this nonce and forwards it to the registered fixed Project Orchestrator. It never bypasses that role to run a project task. Only internal Work acceptance probes execute locally. Your model stays read-only. Do not directly call event ack/execute from the model sandbox\nThe execute helper preserves project cwd/launcher and records its exit/result. Do not replay if execution or completion is uncertain. If blocked, explain the blocker and leave the event pending. Do not broaden publishing or financial permissions.",record["event_id"],record["payload"])
+            format!("Authorized local Dagu event: {}\nRead Work AGENTS.md and selected host rules, then this project's instructions. Preserve active workers and dirty trees.\nPayload: {}\nAfter reading these instructions, run {reply} event bridge --callback consume --nonce {nonce}\nThe bridge acknowledges this nonce and forwards it to the registered fixed Project Orchestrator. It never bypasses that role to run a project task. Only internal Work acceptance probes execute locally. Model permissions follow the registered launcher. Execute this event only through the supplied bridge; do not directly call event ack/execute from model tools\nThe execute helper preserves project cwd/launcher and records its exit/result. Do not replay if execution or completion is uncertain. If blocked, explain the blocker and leave the event pending. Do not broaden publishing or financial permissions.",record["event_id"],record["payload"])
         };
         let response = self
             .herdr
@@ -1020,6 +1020,10 @@ mod tests {
                 ("agent.get", unnamed),
                 ("agent.rename", json!({"result":{}})),
                 ("agent.get", project_agent(cwd, "idle")),
+                (
+                    "pane.process_info",
+                    json!({"result":{"process_info":{"foreground_processes":[{"pid":123,"argv":["codex","--yolo"]}]}}}),
+                ),
                 ("agent.prompt", json!({"result":{}})),
             ]
         });

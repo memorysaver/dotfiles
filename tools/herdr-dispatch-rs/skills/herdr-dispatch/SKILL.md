@@ -150,8 +150,15 @@ in place, without restarting services. `start --dry-run` previews pending settin
 them. Changed settings are refused while events are unfinished; retain the original YAML until
 events finish. Computer/established Project owner changes and root/socket/state location changes
 require explicit migration/deployment. Invalid settings leave the active policy and receipts intact.
-Repeated starts reuse matching sessions and preserve terminal generations; they do not send
-business tasks, restart agents or change existing sessions' model/permission settings.
+Repeated starts reuse sessions only after verifying their launch settings and preserve
+terminal generations; they do not send business tasks, restart agents or change existing
+sessions' model/permission settings. `start --dry-run` reports configured launch settings,
+observed foreground argv and launch status. A real start fails with
+`launch_settings_mismatch` before adopting YAML or sending bootstrap prompts when a live
+role differs or cannot be verified. Preserve that session and arrange explicit handoff/relaunch.
+Custom wrappers require this broker's launch receipt for the same settings, terminal and
+foreground process; a legacy wrapper without a receipt is unverified. Launch checks do not
+prove permissions after interactive changes. Deploy a matching broker if audit support is missing.
 
 Both roles accept an optional `launcher` executable argv plus `args` for model/effort/service tier.
 An explicitly authorized Codex YOLO launch can use `launcher: [codex, --yolo]` with

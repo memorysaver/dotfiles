@@ -380,6 +380,13 @@ impl Broker {
         };
         let agent = self.wait_for_agent_ready(&name, timeout).await?;
         verify_agent(&agent, &name, &kind, &cwd)?;
+        if params["launcher"].is_array() {
+            self.record_role_launch(
+                &agent,
+                &json!({"kind":kind,"launcher":params["launcher"],"args":args}),
+            )
+            .await?;
+        }
         let prompted = self
             .herdr
             .call(
@@ -399,7 +406,7 @@ impl Broker {
     }
 }
 #[cfg(test)]
-mod tests {
+pub(super) mod tests {
     use super::*;
     #[test]
     fn canonical_workspace_evidence_and_conflicting_agents() {
@@ -432,7 +439,7 @@ mod tests {
         assert!(verify_agent(&agent, "computer-orchestrator", "claude", &cwd).is_err());
         assert!(verify_agent(&agent, "other", "codex", &cwd).is_err());
     }
-    pub(super) fn mock_broker(
+    pub(crate) fn mock_broker(
         replies: Vec<(&'static str, Value)>,
     ) -> (Broker, PathBuf, std::thread::JoinHandle<()>) {
         use std::os::unix::net::UnixListener;
@@ -467,7 +474,7 @@ mod tests {
     }
     fn live_agent(cwd: &Path, status: &str) -> Value {
         json!({"result":{"agent":{"name":"computer-orchestrator","agent":"codex",
-            "cwd":cwd,"workspace_id":"w1","pane_id":"w1:p2","agent_status":status}}})
+            "cwd":cwd,"workspace_id":"w1","pane_id":"w1:p2","terminal_id":"test-generation","agent_status":status}}})
     }
     fn ensure_params(cwd: &Path) -> Value {
         json!({"confirmed":true,"cwd":cwd,"agent_name":"computer-orchestrator","kind":"codex",
@@ -494,6 +501,10 @@ mod tests {
             ("agent.get", live_agent(&fixture, "idle")),
             ("agent.rename", json!({"result":{}})),
             ("agent.get", live_agent(&fixture, "idle")),
+            (
+                "pane.process_info",
+                json!({"result":{"process_info":{"foreground_processes":[{"pid":123,"argv":["codex","--yolo","--model","gpt-6.1-sol","-c","model_reasoning_effort=medium","-c","service_tier=fast"]}]}}}),
+            ),
             ("agent.prompt", json!({"result":{}})),
         ]);
         let broker = Broker::new(

@@ -94,9 +94,15 @@ impl Broker {
             .call("session.snapshot", json!({}), Duration::from_secs(15))
             .await?["snapshot"]
             .clone();
-        let roles = plan(&snapshot, &params["role_binding"], dry_run)?;
+        let mut roles = plan(&snapshot, &params["role_binding"], dry_run)?;
+        if params["enforce_launch"] == true {
+            self.audit_role_launches(&mut roles, &params["role_binding"], true)
+                .await?;
+        }
         if dry_run {
-            return Ok(json!({"dry_run":true,"roles":roles}));
+            return Ok(
+                json!({"dry_run":true,"roles":roles,"launch_audited":params["enforce_launch"] == true}),
+            );
         }
         let ids: Vec<_> = roles.iter().map(|r| r["workspace_id"].clone()).collect();
         let current: Vec<_> = snapshot["workspaces"]
@@ -144,7 +150,8 @@ impl Broker {
             .iter()
             .map(|w| w["workspace_id"].clone())
             .collect();
-        if roles != verified
+        let layout_roles = plan(&snapshot, &params["role_binding"], dry_run)?;
+        if layout_roles != verified
             || !order.starts_with(&ids)
             || roles.iter().any(|r| {
                 after["tabs"]
@@ -157,7 +164,9 @@ impl Broker {
         {
             return Err(BrokerError::new("layout_changed", "Managed layout verification failed; preserve current panes and inspect before retry"));
         }
-        Ok(json!({"dry_run":false,"verified":true,"roles":verified}))
+        Ok(
+            json!({"dry_run":false,"verified":true,"roles":roles,"launch_audited":params["enforce_launch"] == true}),
+        )
     }
 }
 

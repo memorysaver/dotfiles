@@ -318,22 +318,28 @@ impl Host {
         let configuration = crate::broker_call(
             &self.socket,
             "reload_config",
-            json!({"role_binding":binding,"dry_run":dry_run}),
+            json!({"role_binding":binding,"dry_run":dry_run,"audit_launch":true}),
             Duration::from_secs(60),
         )?;
+        if configuration["launch_audited"] != true {
+            return fail("Broker does not support launch verification; deploy the matching broker before start");
+        }
         if dry_run {
             return Ok(configuration);
         }
         let params = |preview| {
             json!({"cwd":self.paths.get("workspace"),"kind":self.kind,
-            "role_binding":binding,"dry_run":preview})
+            "role_binding":binding,"dry_run":preview,"enforce_launch":true})
         };
-        crate::broker_call(
+        let preflight = crate::broker_call(
             &self.socket,
             "managed_layout",
             params(true),
             Duration::from_secs(60),
         )?;
+        if preflight["launch_audited"] != true {
+            return fail("Broker did not verify existing launch settings; sessions preserved");
+        }
         let computer = self.ensure()?;
         let mut projects = Vec::new();
         for p in self.projects()? {
@@ -346,9 +352,12 @@ impl Host {
             params(false),
             Duration::from_secs(120),
         )?;
+        if layout["launch_audited"] != true {
+            return fail("Broker did not verify managed launch settings after startup");
+        }
         Ok(
             json!({"configuration":configuration,"computer":computer,"projects":projects,"layout":layout,
-            "launch_policy":"Existing sessions are reused; configured launchers and args apply to newly started agents."}),
+            "launch_policy":"Configured launchers and args are verified before existing sessions are reused; mismatches require an explicit handoff/relaunch."}),
         )
     }
     pub fn ensure_project(&self, id: &str, adopt: Option<&str>) -> Result<Value> {

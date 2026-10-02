@@ -274,6 +274,9 @@ impl Broker {
             self.herdr.call("agent.start",json!({"name":name,"kind":kind,"pane_id":layout.pane_id,"args":args,"timeout_ms":30000}),Duration::from_secs(45)).await?;
         }
         let agent = self.resolve_project(route).await?;
+        if route["launcher"].is_array() {
+            self.record_role_launch(&agent, route).await?;
+        }
         let prompt = safe_text(params.get("bootstrap"), "bootstrap", MAX_PROMPT_BYTES)?;
         self.herdr
             .call(

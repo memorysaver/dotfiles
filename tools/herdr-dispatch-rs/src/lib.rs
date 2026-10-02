@@ -23,6 +23,7 @@ use uuid::Uuid;
 
 mod config_reload;
 mod history;
+mod launch_policy;
 mod managed_layout;
 mod orchestrator;
 mod orchestrator_events;
