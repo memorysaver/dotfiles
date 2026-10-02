@@ -467,3 +467,16 @@ fn cli_keeps_existing_dagu_callback_and_global_config_positions() {
     ])
     .is_err());
 }
+
+#[tokio::test]
+async fn herdr_cli_timeout_returns_uncertainty_without_waiting_for_child() {
+    let mut command = tokio::process::Command::new("/bin/sleep");
+    command.arg("10");
+    let started = Instant::now();
+    assert!(events::bounded_output(command, Duration::from_millis(20))
+        .await
+        .unwrap_err()
+        .to_string()
+        .contains("inspect delivery before retrying"));
+    assert!(started.elapsed() < Duration::from_secs(1));
+}

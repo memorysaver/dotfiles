@@ -272,7 +272,12 @@ impl Host {
         }
         self.call("complete",json!({"event_id":event["event_id"],"nonce":nonce,"status":if receipt["exit_code"]==0{"completed"}else{"failed"},"result":receipt}))
     }
-    pub fn bridge(&self, nonce: &str, callback: &str, project: Option<&str>) -> Result<Value> {
+    pub async fn bridge(
+        &self,
+        nonce: &str,
+        callback: &str,
+        project: Option<&str>,
+    ) -> Result<Value> {
         if !matches!(
             callback,
             "ready" | "consume" | "project-consume" | "computer-complete"
@@ -292,7 +297,8 @@ impl Host {
         } else {
             json!({"name":"orchestrator","kind":self.kind,"cwd":self.paths.get("workspace")})
         };
-        let live = herdr(&["agent", "get", text(&route["name"], "role name")?])?["agent"].clone();
+        let live =
+            herdr(&["agent", "get", text(&route["name"], "role name")?]).await?["agent"].clone();
         if live["agent"] != route["kind"]
             || weak_canonical(Path::new(text(&live["cwd"], "live cwd")?))?
                 != Path::new(text(&route["cwd"], "role cwd")?)
@@ -304,7 +310,7 @@ impl Host {
             return fail("Fixed agent identity differs");
         }
         if env::var("HERDR_PANE_ID").ok().as_deref() != live["pane_id"].as_str() {
-            let caller = herdr(&["pane", "current", "--current"]).ok();
+            let caller = herdr(&["pane", "current", "--current"]).await.ok();
             if caller.as_ref().map(|v| &v["pane"]["pane_id"]) != Some(&live["pane_id"]) {
                 validate_stale_context(
                     callback,
@@ -333,7 +339,8 @@ impl Host {
             "--cwd",
             text(&route["cwd"], "role cwd")?,
             "--no-focus",
-        ])?["pane"]["pane_id"]
+        ])
+        .await?["pane"]["pane_id"]
             .as_str()
             .ok_or_else(|| error("Missing callback pane"))?
             .to_string();
@@ -352,7 +359,7 @@ impl Host {
             shell_join(&parts),
             quote(&pane)
         );
-        herdr(&["pane", "run", &pane, &command])?;
+        herdr(&["pane", "run", &pane, &command]).await?;
         Ok(
             json!({"callback":callback,"pane_id":pane,"submission":"shell command submitted; inspect correlated broker receipt"}),
         )
@@ -376,13 +383,15 @@ impl Host {
         let nonce = args.nonce.as_deref();
         match args.action.as_str() {
             "bridge" => {
-                return self.bridge(
-                    nonce.ok_or_else(|| error("Bridge requires nonce"))?,
-                    args.callback
-                        .as_deref()
-                        .ok_or_else(|| error("Bridge requires --callback"))?,
-                    args.project.as_deref(),
-                )
+                return self
+                    .bridge(
+                        nonce.ok_or_else(|| error("Bridge requires nonce"))?,
+                        args.callback
+                            .as_deref()
+                            .ok_or_else(|| error("Bridge requires --callback"))?,
+                        args.project.as_deref(),
+                    )
+                    .await
             }
             "list" => return self.call("list", json!({})),
             "ready" => return self.call("ready", json!({"nonce":nonce})),
@@ -563,8 +572,20 @@ pub(super) fn validate_stale_context(
     }
     Ok(())
 }
-pub(super) fn herdr(args: &[&str]) -> Result<Value> {
-    let output = Command::new("herdr").args(args).output()?;
+pub(super) async fn bounded_output(
+    mut command: tokio::process::Command,
+    timeout: Duration,
+) -> Result<std::process::Output> {
+    command.kill_on_drop(true);
+    tokio::time::timeout(timeout, command.output())
+        .await
+        .map_err(|_| error("Herdr command timed out; inspect delivery before retrying"))?
+        .map_err(Into::into)
+}
+pub(super) async fn herdr(args: &[&str]) -> Result<Value> {
+    let mut command = tokio::process::Command::new("herdr");
+    command.args(args);
+    let output = bounded_output(command, Duration::from_secs(40)).await?;
     if !output.status.success() {
         return fail(String::from_utf8_lossy(&output.stderr).to_string());
     }

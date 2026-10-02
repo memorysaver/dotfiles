@@ -524,4 +524,4 @@ workspace-orchestrator:
     @bash "{{ dotfiles }}"/install/workspace-orchestrator.sh
 
 workspace-paths:
-    @python3 "{{ dotfiles }}"/lib/workspace-paths.py
+    @if command -v workspace-orchestrator >/dev/null 2>&1; then workspace-orchestrator paths; else python3 "{{ dotfiles }}"/lib/workspace-paths.py; fi

@@ -8,6 +8,8 @@ unit_dir="$home_dir/.config/systemd/user"
 state_dir="$home_dir/.config/herdr-dispatchd"
 crate_dir="$dotfiles_dir/tools/herdr-dispatch-rs"
 release_dir="$crate_dir/target/release"
+libexec_dir="$home_dir/.local/libexec/workspace-orchestrator"
+current_binary="$libexec_dir/current"
 
 install -d -m 0700 "$bin_dir" "$unit_dir" "$state_dir"
 
@@ -18,14 +20,36 @@ fi
 
 cargo build --release --locked --manifest-path "$crate_dir/Cargo.toml"
 
+install -d -m 0700 "$libexec_dir/releases"
+staging_dir="$(mktemp -d "$libexec_dir/.install.XXXXXX")"
+trap 'rm -rf "$staging_dir"' EXIT
+install -m 0755 "$release_dir/workspace-orchestrator" "$staging_dir/workspace-orchestrator"
+binary_hash="$(sha256sum "$staging_dir/workspace-orchestrator")"
+binary_hash="${binary_hash%% *}"
+version_dir="$libexec_dir/releases/$binary_hash"
+if [[ -e "$version_dir" ]]; then
+  cmp "$staging_dir/workspace-orchestrator" "$version_dir/workspace-orchestrator"
+else
+  mv "$staging_dir" "$version_dir"
+fi
+if [[ ! -e "$current_binary" && ! -L "$current_binary" ]]; then
+  ln -s "$version_dir/workspace-orchestrator" "$current_binary"
+elif [[ ! -L "$current_binary" || "$(readlink "$current_binary")" != "$libexec_dir/releases/"*/workspace-orchestrator ]]; then
+  printf 'Refusing to replace unmanaged runtime: %s\n' "$current_binary" >&2
+  exit 1
+fi
+
 link_managed() {
   local source_path="$1"
   local target_path="$2"
   local legacy_path="${3:-}"
-  if [[ -L "$target_path" && "$(readlink -f "$target_path")" == "$source_path" ]]; then
+  if [[ -L "$target_path" && "$(readlink "$target_path")" == "$source_path" ]]; then
     return 0
   fi
-  if [[ -L "$target_path" && -n "$legacy_path" && "$(readlink -f "$target_path")" == "$legacy_path" ]]; then
+  if [[ -L "$target_path" ]] && {
+    [[ -n "$legacy_path" && "$(readlink -f "$target_path")" == "$legacy_path" ]] ||
+    [[ "$source_path" == "$current_binary" && "$(readlink -f "$target_path")" == "$release_dir/workspace-orchestrator" ]];
+  }; then
     ln -s "$source_path" "$target_path.next"
     mv -Tf "$target_path.next" "$target_path"
     return 0
@@ -38,10 +62,10 @@ link_managed() {
 }
 
 link_managed \
-  "$release_dir/workspace-orchestrator" \
+  "$current_binary" \
   "$bin_dir/herdr-dispatch" "$release_dir/herdr-dispatch"
 link_managed \
-  "$release_dir/workspace-orchestrator" \
+  "$current_binary" \
   "$bin_dir/herdr-dispatchd" "$release_dir/herdr-dispatchd"
 # Preserve the previous managed Python launcher locally during migration.
 if [[ -f "$bin_dir/workspace-orchestrator" && ! -L "$bin_dir/workspace-orchestrator" ]] && \
@@ -49,11 +73,14 @@ if [[ -f "$bin_dir/workspace-orchestrator" && ! -L "$bin_dir/workspace-orchestra
   install -d -m 0700 "$home_dir/.local/state/workspace-orchestrator/migration"
   cp -p "$bin_dir/workspace-orchestrator" \
     "$home_dir/.local/state/workspace-orchestrator/migration/launcher-$(date +%Y%m%d-%H%M%S)"
-  ln -s "$release_dir/workspace-orchestrator" "$bin_dir/workspace-orchestrator.next"
+  ln -s "$current_binary" "$bin_dir/workspace-orchestrator.next"
   mv -Tf "$bin_dir/workspace-orchestrator.next" "$bin_dir/workspace-orchestrator"
 fi
-link_managed "$release_dir/workspace-orchestrator" "$bin_dir/workspace-orchestrator"
+link_managed "$current_binary" "$bin_dir/workspace-orchestrator" "$release_dir/workspace-orchestrator"
 link_managed "$dotfiles_dir/config/systemd/user/herdr-dispatchd.service" "$unit_dir/herdr-dispatchd.service"
+
+ln -s "$version_dir/workspace-orchestrator" "$current_binary.next"
+mv -Tf "$current_binary.next" "$current_binary"
 
 systemctl --user daemon-reload
 systemctl --user enable herdr-dispatchd.service

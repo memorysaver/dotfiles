@@ -83,7 +83,10 @@ modules in the same crate. Cargo builds one executable, `workspace-orchestrator`
 `herdr-dispatch` and `herdr-dispatchd` are compatibility symlinks to this same executable.
 Their existing argument syntax is retained; `daemon` and `dispatch` options follow their subcommand.
 Existing private TOML, frozen events, execution claims and result receipts keep their format.
-The generic Python workspace provisioning helper remains separate from the orchestration runtime.
+Installation copies the binary under `~/.local/libexec/workspace-orchestrator/releases/<sha256>/`
+and atomically switches `current` before restarting the broker and supervisors. Build directories
+can be cleaned without removing the deployed runtime. Previous installed versions are retained.
+Workspace provisioning prefers the Rust path resolver; its Python helper is a first-install fallback.
 
 ## Dagu event delivery
 

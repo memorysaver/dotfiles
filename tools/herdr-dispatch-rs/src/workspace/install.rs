@@ -92,14 +92,19 @@ impl Host {
     pub fn install(&self) -> Result<Value> {
         let home = home()?;
         let binary = home.join(".local/bin/workspace-orchestrator");
-        let source = self
-            .paths
-            .get("dotfiles")
-            .join("tools/herdr-dispatch-rs/target/release/workspace-orchestrator");
-        if source.canonicalize()? != env::current_exe()?.canonicalize()?
-            || binary.canonicalize()? != source.canonicalize()?
+        let source = binary.canonicalize()?;
+        let releases = home
+            .join(".local/libexec/workspace-orchestrator/releases")
+            .canonicalize()?;
+        if source != env::current_exe()?.canonicalize()?
+            || source.parent().and_then(Path::parent) != Some(releases.as_path())
+            || source
+                .parent()
+                .and_then(Path::file_name)
+                .and_then(|s| s.to_str())
+                != Some(sha256(&fs::read(&source)?).as_str())
         {
-            return fail("Install the Rust binary from the configured dotfiles checkout first");
+            return fail("Install a versioned Rust binary with just workspace-orchestrator first");
         }
         let herdr = find_executable("herdr")?;
         if self.socket != home.join(".config/herdr-dispatchd/dispatch.sock") {

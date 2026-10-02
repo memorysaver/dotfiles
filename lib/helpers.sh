@@ -56,7 +56,10 @@ DOTFILES_PLATFORM="${DOTFILES_PLATFORM:-${DOTFILES_OS:-$(detect_platform)}}"
 DOTFILES_OS="$DOTFILES_PLATFORM"
 # Path settings are local to this computer. The resolver emits shell-quoted values.
 workspace_resolver="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/workspace-paths.py"
-if command -v python3 >/dev/null 2>&1 && python3 -c 'import tomllib' >/dev/null 2>&1; then
+if command -v workspace-orchestrator >/dev/null 2>&1; then
+  workspace_values="$(workspace-orchestrator paths --shell)"
+  eval "$workspace_values"
+elif command -v python3 >/dev/null 2>&1 && python3 -c 'import tomllib' >/dev/null 2>&1; then
   workspace_values="$(python3 "$workspace_resolver" --shell)"
   eval "$workspace_values"
 else
