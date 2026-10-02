@@ -163,6 +163,16 @@ class HostTests(unittest.TestCase):
             module.events.execute(module,self.config,event)
         self.assertFalse((self.state/'execution-claims').exists())
 
+    def test_project_local_claim_blocks_resend_even_before_broker_claim(self):
+        import hashlib
+        previous={'event_id':'event','nonce':'computer-nonce','project_delivery':{'nonce':'project-nonce'}}
+        claims=self.state/'execution-claims';claims.mkdir(parents=True)
+        claim=claims/(hashlib.sha256(b'event:project-nonce').hexdigest()+'.json');claim.write_text('{}')
+        with patch.object(module.events,'find_event',return_value=previous),patch.object(module.events,'call') as call:
+            with self.assertRaisesRegex(ValueError,'Execution claim exists'):
+                module.events.main(module,self.config,['reconcile','--event-id','event','--decision','resend','--reason','inspect','--confirmed'])
+            call.assert_not_called()
+
     def test_missing_work_instruction_link_stops_before_broker(self):
         (self.work/'AGENTS.md').unlink()
         with patch.object(module.subprocess,'run') as run:

@@ -297,7 +297,8 @@ def main(host, config, arguments):
         if args.decision=='resend':
             previous=find_event(host,config,args.event_id)
             state=host.configuration(config)[0]['state']
-            claim=state/'execution-claims'/(hashlib.sha256((previous['event_id']+':'+previous['nonce']).encode()).hexdigest()+'.json')
+            execution_nonce=previous.get('project_delivery',{}).get('nonce',previous['nonce'])
+            claim=state/'execution-claims'/(hashlib.sha256((previous['event_id']+':'+execution_nonce).encode()).hexdigest()+'.json')
             if claim.exists(): raise ValueError('Execution claim exists; reconcile with its result instead of resend')
         return call(host,config,'reconcile',event_id=args.event_id,confirmed=args.confirmed,decision=args.decision,reason=args.reason,
                     result=json.loads(Path(args.result_file).read_text()) if args.result_file else None)
