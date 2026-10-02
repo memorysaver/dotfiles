@@ -186,12 +186,6 @@ impl Broker {
             Err(error) if matches!(error.code.as_str(), "not_found" | "agent_not_found") => {}
             Err(error) => return Err(error),
         }
-        if let Some(record) = previous.as_ref() {
-            if record.get("phase").and_then(Value::as_str) != Some("bootstrapped") {
-                return Err(BrokerError::new("orchestrator_recovery_required",
-                    "Previous startup or bootstrap was uncertain; inspect lifecycle record before retry"));
-            }
-        }
         let snapshot = self
             .herdr
             .call("session.snapshot", json!({}), Duration::from_secs(30))
@@ -199,6 +193,33 @@ impl Broker {
         let mut workspaces = Vec::new();
         workspaces_at(&snapshot, &cwd, &mut workspaces);
         let inventory = snapshot.get("snapshot").unwrap_or(&snapshot);
+        let mut recovery_attempts = 0;
+        if let Some(record) = previous.as_ref() {
+            let recorded_pane = record["pane_id"].as_str();
+            let panes = inventory["panes"]
+                .as_array()
+                .ok_or_else(|| BrokerError::internal("Unknown pane inventory"))?;
+            if recorded_pane.is_some_and(|id| panes.iter().any(|pane| pane["pane_id"] == id)) {
+                return Err(BrokerError::new(
+                    "orchestrator_recovery_required",
+                    "Recorded Computer pane still exists; inspect its occupant before replacement",
+                ));
+            }
+            if record["phase"] != "bootstrapped" {
+                recovery_attempts = record["recovery_attempts"].as_u64().unwrap_or(0) + 1;
+                if recorded_pane.is_none() || recovery_attempts > 3 {
+                    return Err(BrokerError::new(
+                        "orchestrator_recovery_required",
+                        "Startup uncertain or bounded recovery exhausted; inspect lifecycle record",
+                    ));
+                }
+                let archive = record_path.with_file_name(format!(
+                    "orchestrator-lifecycle-recovered-{}.json",
+                    Uuid::new_v4()
+                ));
+                fs::copy(&record_path, &archive).map_err(|e| state_error(&archive, e))?;
+            }
+        }
         let can_create_work = workspaces.is_empty()
             && inventory
                 .get("workspaces")
@@ -235,7 +256,9 @@ impl Broker {
             fs::rename(&temp, &record_path).map_err(|error| state_error(&record_path, error))?;
             Ok(())
         };
-        save(&json!({"phase":"starting", "name":name, "cwd":cwd, "kind":kind}))?;
+        save(
+            &json!({"phase":"starting", "recovery_attempts":recovery_attempts, "name":name, "cwd":cwd, "kind":kind}),
+        )?;
         let route = if can_create_work {
             json!({"layout":"workspace", "label":"Work"})
         } else {
@@ -243,7 +266,7 @@ impl Broker {
         };
         let layout = self.layout(&route, &cwd, "orchestrator").await?;
         save(
-            &json!({"phase":"starting", "name":name, "cwd":cwd, "kind":kind,
+            &json!({"phase":"starting", "recovery_attempts":recovery_attempts, "name":name, "cwd":cwd, "kind":kind,
             "workspace_id":layout.workspace_id, "pane_id":layout.pane_id}),
         )?;
         let start = self
@@ -465,6 +488,57 @@ mod tests {
         assert_eq!(
             broker.ensure_orchestrator(params).await.unwrap()["created"],
             false
+        );
+        thread.join().unwrap();
+        fs::remove_dir_all(temp).unwrap();
+        fs::remove_dir_all(fixture).unwrap();
+    }
+    #[tokio::test]
+    async fn uncertain_closed_startup_recovers_but_present_pane_is_preserved() {
+        let fixture = std::env::temp_dir().join(format!("orchestrator-fixture-{}", Uuid::new_v4()));
+        fs::create_dir_all(&fixture).unwrap();
+        let missing = json!({"error":{"code":"agent_not_found","message":"absent"}});
+        let (initial, temp, thread) = mock_broker(vec![
+            ("agent.get", missing.clone()),
+            ("session.snapshot", live_snapshot(&fixture)),
+            (
+                "tab.create",
+                json!({"result":{"workspace":{"workspace_id":"w1"},"tab":{"tab_id":"w1:t2"},"root_pane":{"pane_id":"w1:p2"}}}),
+            ),
+            ("agent.start", json!({"result":{}})),
+            ("agent.get", live_agent(&fixture, "idle")),
+            ("agent.prompt", json!({"result":{}})),
+            ("agent.get", missing),
+            (
+                "session.snapshot",
+                json!({"result":{"snapshot":{"workspaces":[{"workspace_id":"w1","label":"Work"}],"panes":[{"workspace_id":"w1","pane_id":"w1:p2","cwd":fixture}]}}}),
+            ),
+        ]);
+        let broker = Broker::new(
+            initial.herdr.socket_path.clone(),
+            temp.join("state-2"),
+            fixture.clone(),
+        )
+        .unwrap();
+        fs::write(
+            temp.join("state-2/orchestrator-lifecycle.json"),
+            serde_json::to_vec(&json!({"phase":"starting","pane_id":"closed-old-pane"})).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            broker
+                .ensure_orchestrator(ensure_params(&fixture))
+                .await
+                .unwrap()["created"],
+            true
+        );
+        assert_eq!(
+            broker
+                .ensure_orchestrator(ensure_params(&fixture))
+                .await
+                .unwrap_err()
+                .code,
+            "orchestrator_recovery_required"
         );
         thread.join().unwrap();
         fs::remove_dir_all(temp).unwrap();

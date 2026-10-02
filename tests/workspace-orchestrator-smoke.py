@@ -100,7 +100,7 @@ class HostTests(unittest.TestCase):
 
     def test_execution_claim_prevents_duplicate_effects(self):
         registry=self.rules/'projects.toml'
-        registry.write_text('[projects.probe]\nrepo="."\n[projects.probe.tasks.once]\nentrypoint=["python3","-c","from pathlib import Path; Path(\\\"effect\\\").write_text(\\\"once\\\")"]\n')
+        registry.write_text('[projects.probe]\ninternal=true\nrepo="."\n[projects.probe.tasks.once]\nentrypoint=["python3","-c","from pathlib import Path; Path(\\\"effect\\\").write_text(\\\"once\\\")"]\n')
         payload=module.events.registered_task(module,self.config,'probe','once')
         event=dict(event_id='probe:run',nonce='nonce',state='accepted',terminal_id='generation',payload=payload)
         def broker(host,config,action,**kwargs):
@@ -126,6 +126,42 @@ class HostTests(unittest.TestCase):
             self.assertIn('--no-focus',run.call_args_list[1].args[0])
             self.assertIn('event consume --nonce',run.call_args_list[2].args[0][-1])
             self.assertFalse(self.state.exists())
+
+    def project_fixture(self):
+        import subprocess
+        project=self.work/'repo';project.mkdir()
+        (project/'AGENTS.md').write_text('Project rules')
+        (project/'README.md').write_text('Project readme')
+        subprocess.run(['git','init','-q',str(project)],check=True)
+        (self.rules/'projects.toml').write_text('[projects.media]\nenabled=true\nrepo="repo"\n[projects.media.orchestrator]\nname="project-media"\nkind="codex"\n[projects.media.tasks.probe]\nentrypoint=["python3","-c","print(123)"]\n[projects.internal]\ninternal=true\nrepo="."\n')
+        return project
+
+    def test_managed_project_inventory_excludes_internal_probes(self):
+        project=self.project_fixture()
+        result=module.events.projects_main(module,self.config,['list'])
+        self.assertEqual(result['managed_count'],1)
+        self.assertEqual(result['projects'][0]['repo'],str(project))
+        self.assertEqual(result['projects'][0]['route']['name'],'project-media')
+        with self.assertRaises(ValueError): module.events.registered_project(module,self.config,'unknown')
+
+    def test_computer_consumption_forwards_without_executing_project_entrypoint(self):
+        project=self.project_fixture()
+        payload=module.events.registered_task(module,self.config,'media','probe')
+        event=dict(event_id='event',nonce='nonce',state='submitted',payload=payload)
+        def broker(host,config,action,**kwargs):
+            return dict(event,state='accepted')
+        with patch.dict(os.environ,{'HERDR_ENV':'1'}),patch.object(module.events,'find_event',return_value=event),patch.object(module.events,'call',side_effect=broker) as call,patch.object(module.events,'execute') as execute:
+            module.events.main(module,self.config,['consume','--nonce','nonce'])
+            self.assertEqual([c.args[2] for c in call.call_args_list],['ack','forward'])
+            execute.assert_not_called()
+
+    def test_project_execution_requires_its_own_acknowledgment(self):
+        self.project_fixture()
+        payload=module.events.registered_task(module,self.config,'media','probe')
+        event=dict(event_id='event',nonce='nonce',state='accepted',payload=payload,project_delivery={'state':'submitted'})
+        with self.assertRaisesRegex(ValueError,'Project has not acknowledged'):
+            module.events.execute(module,self.config,event)
+        self.assertFalse((self.state/'execution-claims').exists())
 
     def test_missing_work_instruction_link_stops_before_broker(self):
         (self.work/'AGENTS.md').unlink()

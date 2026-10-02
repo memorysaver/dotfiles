@@ -81,8 +81,10 @@ Configured host lifecycle authorization permits its `--confirmed` flag. This onl
 one named agent and submits its initial role bootstrap; it does not execute arbitrary commands,
 answer approval dialogs, rename existing agents, or stop the Herdr server. Dagu and the user
 supervisor use this external surface without setting `HERDR_ENV`. Existing project dispatch
-and its task/result history remain unchanged. Recurring business-task delivery to the persistent
-agent is not implemented by the presence workflow and must not be inferred from health success.
+and its task/result history remain separate. Presence is health only. Registered Dagu business
+events use `workspace-orchestrator event submit`: Computer → fixed Project → project handler
+→ Computer result acceptance → Dagu. Consult `docs/workspace-orchestrator.md` for receipts,
+recovery and the private enabled-project registry. The supervisor also maintains registered Project roles.
 
 Native server startup is a separate infrastructure exception: the registered server supervisor
 uses only health `ping` and the fixed native `herdr server` startup command. It never addresses

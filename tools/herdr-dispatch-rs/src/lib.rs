@@ -24,6 +24,7 @@ use uuid::Uuid;
 mod history;
 mod orchestrator;
 mod orchestrator_events;
+mod project_orchestrator;
 
 pub const MAX_TIMEOUT_MS: u64 = 3_600_000;
 pub const MAX_READ_LINES: i64 = 200;
@@ -1284,6 +1285,7 @@ impl Broker {
             }
             "dispatch" => self.dispatch(params).await,
             "ensure_orchestrator" => self.ensure_orchestrator(params).await,
+            "ensure_project_orchestrator" => self.ensure_project(params).await,
             "orchestrator_event" => self.orchestrator_event(params).await,
             "status" => self.task_status(&params).await,
             "read" => self.task_read(&params).await,

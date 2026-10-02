@@ -230,9 +230,11 @@ def install(config_file=None):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('command',choices=['paths','check','ensure','watch','install','pump','event'])
+    parser.add_argument('command',choices=['paths','check','ensure','watch','install','pump','event','projects'])
     parser.add_argument('--config')
     args, remaining=parser.parse_known_args()
+    if args.command=='projects':
+        print(json.dumps(events.projects_main(sys.modules[__name__],args.config,remaining)));return
     if args.command=='event':
         print(json.dumps(events.main(sys.modules[__name__],args.config,remaining)));return
     if remaining: parser.error('Unexpected arguments')
@@ -250,11 +252,16 @@ def main():
     while True:
         try:
             response=ensure(args.config);agent=response.get('agent',{})
+            projects=events.projects_main(sys.modules[__name__],args.config,['list'])['projects']
+            project_errors={}
+            for project in projects:
+                try: events.project_ensure(sys.modules[__name__],args.config,project['project'])
+                except Exception as error: project_errors[project['project']]=str(error)
             delivery=events.pump(sys.modules[__name__],args.config)
             summary={'name':agent.get('name'),'pane':agent.get('pane_id'),
                      'status':agent.get('agent_status'),'created':response.get('created'),
                      'delivery':delivery.get('state'),'event_id':delivery.get('event_id'),
-                     'event_state':delivery.get('event_state'),'since':delivery.get('since')}
+                     'event_state':delivery.get('event_state'),'since':delivery.get('since'),'managed_projects':[p['project'] for p in projects],'project_errors':project_errors}
             if summary != previous: print(json.dumps(summary),flush=True)
             previous=summary
         except Exception as error:

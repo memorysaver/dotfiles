@@ -26,6 +26,10 @@ enum Command {
     Result(ReadArgs),
     Dispatch(Box<DispatchArgs>),
     EnsureOrchestrator(Box<EnsureArgs>),
+    EnsureProjectOrchestrator {
+        #[arg(long)]
+        request_file: PathBuf,
+    },
     OrchestratorEvent {
         #[arg(long)]
         request_file: PathBuf,
@@ -167,6 +171,17 @@ fn command_request(command: Command) -> Result<(&'static str, Value, Duration), 
                 "prompt": prompt}),
                 Duration::from_millis(args.start_timeout_ms)
                     .saturating_add(Duration::from_secs(150)),
+            ))
+        }
+        Command::EnsureProjectOrchestrator { request_file } => {
+            let request = std::fs::read_to_string(request_file)
+                .map_err(|e| BrokerError::new("invalid_request", e.to_string()))?;
+            let params: Value = serde_json::from_str(&request)
+                .map_err(|e| BrokerError::new("invalid_request", e.to_string()))?;
+            Ok((
+                "ensure_project_orchestrator",
+                params,
+                Duration::from_secs(120),
             ))
         }
         Command::OrchestratorEvent { request_file } => {

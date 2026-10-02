@@ -59,7 +59,9 @@ It resolves a management workspace only when the agent is confirmed missing. It 
 wrong-cwd occupant. Ambiguous workspace identity stops recovery. Herdr socket failures leave layout
 untouched. A successful new agent receives the role bootstrap once. Presence does not prompt existing agents. The event consumer separately requests instruction
 readiness when the native generation or rules version changes. Startup/prompt uncertainty is persisted as recovery-required; inspect the lifecycle
-record before resolving it, rather than creating repeated tabs or replaying a possibly delivered prompt.
+record before resolving it. Computer startup may retry at most three times only when the fixed name
+is absent and fresh inventory proves its recorded pane closed; prior intents are archived privately.
+A present/pending-restore pane, missing inventory or transport error never authorizes another startup.
 
 Run `python3 tests/workspace-smoke.py`, `python3 tests/workspace-orchestrator-smoke.py`, and
 `cargo test --locked` / `cargo clippy --all-targets --locked -- -D warnings` in the broker crate.
@@ -73,22 +75,36 @@ The broker's allowlisted `orchestrator_event` operation owns durable delivery; o
 `dispatch` still creates project workers and does not target this fixed agent.
 
 ```text
-Dagu event submit -> durable broker queue -> identity and instruction readiness
- -> Herdr agent.prompt -> model reads rules -> real Herdr callback shell
- -> event ack -> exclusive execution claim -> registered project entrypoint
- -> correlated result -> Dagu project artifact verifier
+Dagu → broker queue → Computer orchestrator (Work rules + ack)
+ → fixed Project Orchestrator (repo rules + project ack)
+ → execution claim → registered project handler → Project result
+ → Computer result acceptance → Dagu completion → project artifact verifier
 ```
 
-The host's private `projects.toml` owns project paths relative to Work and argv entrypoints.
-Only registered tasks may be submitted. The model remains on its existing permission policy:
-`event bridge --callback ready|consume --nonce <nonce>` uses its allowed Herdr socket, checks
-its fixed-agent caller identity, and creates a shell without stealing focus. That shell inherits
-real Herdr context, calls the broker, and executes the registered task. No HERDR_ENV fabrication
-or native agent permission override is used. Runtime callback panes are not routing identity.
-Callbacks run independently of a model tool's lifetime; inspect durable receipts for completion.
-Successful callbacks close only their freshly created shell pane after persisting their receipt.
-Failed callbacks retain the pane for inspection. The model may read private receipts or retained
-pane output; direct broker status calls remain outside its sandbox.
+Private `projects.toml` enables each managed repo and fixes its `project-*` name, kind, canonical
+repo-root cwd, optional launcher argv and registered tasks. `projects list` reports the actual enabled
+count; internal Work probes are excluded. `projects ensure` maintains these roles, reusing their named
+agents independent of layout. A missing role uses the matching primary project workspace, or creates
+one when no match exists. Worktrees/episode tabs remain project-owned. Absolute/home paths as well
+as paths relative to configured Work are supported. Initial labels never determine event routing.
+
+For deliberate migration of an existing unnamed idle editor, use `projects ensure --project <id>
+--adopt-pane <fresh-id>` after verifying cwd/kind and project ownership. Normal supervision never
+adopts arbitrary panes. A recorded pane still present or uncertain startup requires inspection;
+project errors are reported individually while other project events continue. The configured project
+launcher is preserved. Enabling a project authorizes supervision of its fixed role, not business work.
+
+Models retain their existing permission policy. `event bridge --callback ready|consume|
+project-consume|computer-complete --nonce <stage-nonce>` checks the genuine fixed-agent caller and
+creates its own callback shell without focus. Only the Project callback runs business entrypoints;
+Computer consume acknowledges and forwards. Each hop uses a distinct nonce and pins the native
+terminal generation. Project results leave the top-level event accepted until Computer acknowledges
+its result. This is cooperative role separation within the same local user, not isolation from a
+malicious same-user process. No fabricated HERDR_ENV or permission overrides are used.
+
+Callback panes are runtime implementation details; successful callbacks close only their own shell
+after durable receipt. Failures preserve the shell/log. A model can use Herdr pane reads for retained
+output; broker requests require host-owned temporary writes and cannot run in the read-only sandbox.
 
 Use a stable idempotency key combining computer, workflow, run/event and logical step identity.
 Retries of the same event reuse that key; a different payload for the same key is a conflict.
@@ -123,10 +139,13 @@ Dagu event with durable acknowledgment/result. Existing presence tests do not co
 ## Operations
 
 Submit from Dagu with `workspace-orchestrator event submit --project <id> --task <task>
---dagu --wait --timeout 900`; then use `event verify` with the same project/task/--dagu identity.
+--dagu --wait --timeout 10800`; then use `event verify` with the same project/task/--dagu identity.
 Manual submissions require a stable `--event-id`. Submission freezes trigger date/slot and
 registered argv; changed registration requires reconciliation. Same-day tasks expire without
-execution after their trigger day. Events are serialized; busy/blocked/unknown agents retain queues.
+execution after their trigger day. Computer deliveries and each project delivery are serialized separately; delegated work releases
+the Computer input slot. Busy/blocked/unknown projects retain their queues. Size Dagu waits for
+queue time plus handler timeout. A wait timeout leaves the durable event pending: inspect/reuse
+that event ID; a new run ID creates another event and is not a safe retry.
 
 Inspect `event list` or `event status --event-id <id>`. `reconcile --confirmed --event-id <id>
 --decision drop --reason <reason>` can cancel queued work. Inspected uncertain work can be
@@ -141,5 +160,5 @@ artifact reconciliation. Entrypoint completion may mean dispatch only; project v
 producer topic/release approval remain separate. State/receipts/nonces/pane IDs do not enter Git.
 
 Deploy in this order: commit reviewed sources; build/test; restart only the broker; restart the
-orchestrator supervisor; run a read-only end-to-end probe; then trigger business work. Preserve the
+orchestrator supervisor (adopt verified editors first); run a read-only end-to-end probe; then trigger business work. Preserve the
 Herdr server and existing workers throughout. Unit tests do not replace live acceptance.

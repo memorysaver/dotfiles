@@ -20,6 +20,10 @@ Keep changes, commits, and releases scoped to their owning repository.
   [orchestration-rules/README.md](./orchestration-rules/README.md), then load the relevant machine,
   agent or dispatch reference. This is the only rules directory deployed under Work.
   Direct project development follows the project rules; it does not require creating a worker.
+- Scheduled project events follow Dagu → Computer Orchestrator at Work → registered Project
+  Orchestrator at repo root → project handlers/workers → Computer result acceptance → Dagu.
+  Each enabled repo has one primary Herdr workspace; runtime tab/pane IDs are not routing identity.
+  The selected private `projects.toml` owns the managed list, paths and fixed project names.
 - Host agent inventory and downstream management: enter the selected
   `orchestration-rules/README.md`, verify local identity, then read its `agents.md`.
   Use `<resolved idea>/private-config/computers/README.md` only to maintain cross-computer records.

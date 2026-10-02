@@ -85,3 +85,26 @@ broker, authentication and CLI are available. Offline, sleeping and blocked cond
 reported; they do not justify bypassing approvals or silently replaying work. Health checks only
 maintain the role; they do not grant authority to execute unspecified business work. Concrete
 scheduled tasks require their own objectives, limits and artifact-based verification.
+
+## Computer → Project hierarchy
+
+Dagu business events always enter the local Computer role `orchestrator` at canonical Work cwd.
+It reads Work AGENTS.md and the selected host rules, acknowledges the event and delegates through
+the broker to the registered Project role. It does not execute project entrypoints directly.
+Each enabled repository has one fixed `project-*` role at its canonical Git root and one primary
+Herdr workspace. Project and workspace are related concepts: a project is the repository/ownership
+boundary; a Herdr workspace is its terminal container. Episode/feature worktrees may have linked
+workspaces or tabs without becoming additional managed projects.
+
+The Project role reads its AGENTS.md/README, checks Git state, and owns producers, workers,
+project entrypoints and acceptance evidence. Project completion returns to Computer for correlated
+acceptance before Dagu completes and runs the project verifier. Internal Work-only health/probes
+are the explicit exception. Preserve project launchers and topic/release gates.
+
+The private selected host `projects.toml` is the enabled-project inventory: canonical repo path,
+fixed role name/kind/launcher and registered task argv. Relative repo paths resolve under configured
+Work; absolute or home paths support other locations. Count enabled projects, not pane positions,
+worktrees or installed tools. Discover workspace/pane IDs at runtime. Reuse matching named roles
+before inspecting layout; initial workspace labels are presentation only. Existing unnamed editor
+adoption requires explicit migration selection, matching kind/cwd and idle status; normal supervision
+never renames unrelated conversations. Failed project recovery must not block other project routing.
