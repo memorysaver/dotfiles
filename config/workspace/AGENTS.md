@@ -23,7 +23,7 @@ Keep changes, commits, and releases scoped to their owning repository.
 - Scheduled project events follow Dagu → Computer Orchestrator at Work → registered Project
   Orchestrator at repo root → project handlers/workers → Computer result acceptance → Dagu.
   Each enabled repo has one primary Herdr workspace; runtime tab/pane IDs are not routing identity.
-  The selected private `projects.toml` owns the managed list, paths and fixed project names.
+  The selected private `projects.yaml`, linked at Computer home, owns the managed list, paths and project keys.
 - Host agent inventory and downstream management: enter the selected
   `orchestration-rules/README.md`, verify local identity, then read its `agents.md`.
   Use `<resolved idea>/private-config/computers/README.md` only to maintain cross-computer records.
@@ -75,6 +75,18 @@ infer these from idle/done. Service startup belongs to the host's service manage
 AGENTS.md. Presence maintains the role. Registered business events use the separate durable broker queue,
 explicit instruction readiness and a real Herdr callback shell; see the resolved dotfiles
 `docs/workspace-orchestrator.md`. Keep the model permission policy and project launchers unchanged.
+
+## Load the dispatch skill
+
+Before registered project dispatch, Dagu event inspection/delivery, or a supplied orchestrator
+callback, run `herdr-dispatch --skills` and read its complete stdout. This is the CLI's embedded
+agent skill; the command prints instructions without installing a global skill or submitting work.
+Do not assume `$herdr-dispatch` is registered with the current agent product.
+Then use `herdr-dispatch check` and `herdr-dispatch projects list` to resolve the destination and
+registered tasks. Follow the skill for submission, frozen-input retries, verification and callbacks.
+For a custom Computer home/config, explicitly supply `HERDR_COMPUTER_HOME` and `--config` on each
+invocation. Use broker-supplied callbacks verbatim, including project and nonce when supplied.
+Direct project development follows project rules; loading this file starts no service or task.
 
 ## Registered project routing
 
