@@ -163,6 +163,50 @@ else
   ok "Mole already installed ($(mole --version 2>/dev/null | awk '/^Mole version/{print $3; exit}'))"
 fi
 
+# --- qmd (Grok Bot markdown search) ---
+# `@tobilu/qmd`: local hybrid search (BM25 + vectors) over markdown notes for
+# agents on the grok-bot sandbox. Installed with Bun; build-essential covers the
+# native addons Bun may compile on Debian. Other machines keep qmd opt-in
+# (docs/removed-agent-clis.md). Bun's global bin is linked into ~/.local/bin so
+# agent shells that never add ~/.bun/bin to PATH still find `qmd`.
+if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
+  if dpkg -s build-essential >/dev/null 2>&1; then
+    ok "build-essential already installed"
+  else
+    info "Installing build-essential (qmd native deps)..."
+    pkg_install build-essential || warn "build-essential install failed"
+  fi
+
+  export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
+  case ":$PATH:" in
+    *":$BUN_INSTALL/bin:"*) ;;
+    *) export PATH="$BUN_INSTALL/bin:$PATH" ;;
+  esac
+  if has_working bun; then
+    ok "Bun already installed ($(bun --version 2>/dev/null))"
+  else
+    info "Installing Bun..."
+    curl -fsSL https://bun.sh/install | bash || warn "Bun install failed"
+  fi
+
+  if has_working qmd; then
+    ok "qmd already installed ($(qmd --version 2>/dev/null | head -1))"
+  elif ! has_working bun; then
+    warn "bun not found — skipping qmd"
+  else
+    info "Installing qmd..."
+    bun install -g @tobilu/qmd || warn "qmd install failed"
+  fi
+  if [ -x "$BUN_INSTALL/bin/qmd" ] && [ ! -e "$HOME/.local/bin/qmd" ]; then
+    mkdir -p "$HOME/.local/bin"
+    ln -sfn "$BUN_INSTALL/bin/qmd" "$HOME/.local/bin/qmd"
+    ok "Linked ~/.local/bin/qmd -> ${BUN_INSTALL/#$HOME/\~}/bin/qmd"
+  fi
+  if ! has_working qmd; then
+    warn "qmd not working after install — check: bun install -g @tobilu/qmd"
+  fi
+fi
+
 # --- Hyperframes (Grok Bot Short / video compositions) ---
 # npm package requires Node >= 22. Install only on grok-bot; James Cameron /
 # short-builder need `hyperframes` on PATH after Update Computer. Do not use
