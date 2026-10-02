@@ -218,7 +218,9 @@ def main(host, config, arguments):
     if args.action=='consume':
         if os.environ.get('HERDR_ENV')!='1': raise ValueError('Consumption requires real Herdr context')
         event=call(host,config,'ack',event_id=event['event_id'],nonce=args.nonce)
-        return execute(host,config,event)
+        result=execute(host,config,event)
+        if result['state']=='failed': raise RuntimeError('Project failed; durable receipt/log saved, callback pane retained')
+        return result
     if args.action=='execute': return execute(host,config,event)
     if args.action=='verify':
         if event['state']!='completed': raise ValueError('Verify only after this event completed')
