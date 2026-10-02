@@ -144,6 +144,7 @@ def bridge(host,config,nonce,callback):
     paths,rules,computer,kind,*rest=host.configuration(config)
     def herdr(*arguments):
         result=subprocess.run(['herdr',*arguments],capture_output=True,text=True,check=True,timeout=40)
+        if arguments[:2]==('pane','run') and not result.stdout.strip(): return {}
         return json.loads(result.stdout)['result']
     live=herdr('agent','get','orchestrator')['agent']
     if live['agent']!=kind or Path(live['cwd']).resolve()!=paths['workspace']:
