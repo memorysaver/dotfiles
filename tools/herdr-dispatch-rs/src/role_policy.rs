@@ -2,8 +2,14 @@
 //! cannot grant role ownership or inject an executable into a Dagu event.
 use super::*;
 impl Broker {
+    pub(super) fn role_policy(&self) -> Option<Value> {
+        self.role_policy
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .clone()
+    }
     pub(super) fn event_schema(&self) -> u64 {
-        if self.role_policy.is_some() {
+        if self.role_policy().is_some() {
             2
         } else {
             1
@@ -22,7 +28,7 @@ impl Broker {
             if name == "computer-orchestrator"
                 || name.starts_with("project-orchestrator-")
                 || name == "orchestrator"
-                || self.role_policy.as_ref().is_some_and(|p| {
+                || self.role_policy().as_ref().is_some_and(|p| {
                     p["retired_names"]
                         .as_array()
                         .is_some_and(|a| a.iter().any(|v| v == name))
@@ -48,7 +54,7 @@ impl Broker {
         ) {
             return Ok(());
         }
-        let Some(policy) = &self.role_policy else {
+        let Some(policy) = self.role_policy() else {
             #[cfg(test)]
             return Ok(());
             #[cfg(not(test))]
@@ -120,10 +126,10 @@ mod tests {
     fn exact_roles_do_not_inherit_worker_root_authority() {
         let root = std::env::temp_dir().join(format!("role-policy-{}", Uuid::new_v4()));
         fs::create_dir_all(root.join("repo")).unwrap();
-        let mut b = Broker::new(root.join("socket"), root.join("state"), root.clone()).unwrap();
+        let b = Broker::new(root.join("socket"), root.join("state"), root.clone()).unwrap();
         let route = json!({"name":"project-orchestrator-media","cwd":root.join("repo"),"kind":"codex","args":[]});
         let binding = json!({"protocol":2,"computer_home":root,"kind":"codex","projects":{"media":route},"digest":"frozen"});
-        b.role_policy = Some(
+        *b.role_policy.lock().unwrap() = Some(
             json!({"binding":binding,"tasks":{"media":{"probe":{"definition":{"entrypoint":["git","status"]},"project_cwd":root.join("repo"),"project_agent":route}}},"retired_names":["project-old"]}),
         );
         let mut p = json!({"role_binding":binding,"cwd":root,"kind":"codex","project":"media","route":route});

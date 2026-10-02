@@ -21,6 +21,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader as AsyncBufReader};
 use tokio::net::{UnixListener, UnixStream};
 use uuid::Uuid;
 
+mod config_reload;
 mod history;
 mod managed_layout;
 mod orchestrator;
@@ -525,7 +526,8 @@ pub struct Broker {
     orchestrator_lock: Arc<tokio::sync::Mutex<()>>,
     orchestrator_events_lock: Arc<Mutex<()>>,
     broker_instance: String,
-    role_policy: Option<Value>,
+    role_policy: Arc<Mutex<Option<Value>>>,
+    config_gate: Arc<tokio::sync::RwLock<()>>,
 }
 
 impl Broker {
@@ -575,7 +577,8 @@ impl Broker {
             orchestrator_lock: Arc::new(tokio::sync::Mutex::new(())),
             orchestrator_events_lock: Arc::new(Mutex::new(())),
             broker_instance: Uuid::new_v4().to_string(),
-            role_policy: None,
+            role_policy: Arc::new(Mutex::new(None)),
+            config_gate: Arc::new(tokio::sync::RwLock::new(())),
         })
     }
 
@@ -624,7 +627,7 @@ impl Broker {
         let resolved = path.canonicalize().map_err(|error| {
             BrokerError::new("path_not_found", format!("cwd is unavailable: {error}"))
         })?;
-        let exact_role = self.role_policy.as_ref().is_some_and(|p| {
+        let exact_role = self.role_policy().as_ref().is_some_and(|p| {
             p["binding"]["computer_home"] == json!(resolved)
                 || p["binding"]["projects"]
                     .as_object()
@@ -1301,6 +1304,22 @@ impl Broker {
                 "params must be an object",
             ));
         }
+        if operation == "reload_config" {
+            let _guard = self.config_gate.write().await;
+            return self.reload_config(&params).await;
+        }
+        let _config_guard = if matches!(
+            operation,
+            "dispatch"
+                | "ensure_orchestrator"
+                | "ensure_project_orchestrator"
+                | "orchestrator_event"
+                | "managed_layout"
+        ) {
+            Some(self.config_gate.read().await)
+        } else {
+            None
+        };
         self.validate_role_request(operation, &params)?;
         self.prune_history()?;
         match operation {
@@ -1450,67 +1469,9 @@ pub async fn run_daemon(
     role_policy: Value,
 ) -> Result<(), BrokerError> {
     let socket_path = expand_user(socket_path);
-    let mut broker = Broker::with_roots(herdr_socket, state_dir, allowed_roots)?;
-    broker.role_policy = Some(role_policy);
-    let previous = broker.event_store(false, |s| Ok(s.clone()))?;
-    let binding = &broker.role_policy.as_ref().unwrap()["binding"];
-    let old = &previous["role_binding"];
-    if old.is_object() && old != binding {
-        for key in ["computer_id", "computer_home", "kind", "computer_name"] {
-            if old[key] != binding[key] {
-                return Err(BrokerError::new(
-                    "role_owner_conflict",
-                    "Persisted Computer owner differs",
-                ));
-            }
-        }
-        for (id, route) in old["projects"].as_object().into_iter().flatten() {
-            if let Some(next) = binding["projects"].get(id) {
-                for key in ["name", "cwd", "kind"] {
-                    if route[key] != next[key] {
-                        return Err(BrokerError::new(
-                            "role_owner_conflict",
-                            "Existing Project owner differs; explicit migration required",
-                        ));
-                    }
-                }
-            }
-        }
-        if previous["events"]
-            .as_object()
-            .unwrap()
-            .values()
-            .any(|e| !matches!(e["state"].as_str(), Some("completed" | "failed")))
-        {
-            return Err(BrokerError::new(
-                "configuration_busy",
-                "Drain events before changing manifest bindings",
-            ));
-        }
-    }
-    let legacy = previous["legacy_names"]
-        .as_object()
-        .map(|m| m.keys().cloned().map(Value::String).collect::<Vec<_>>())
-        .unwrap_or_default();
-    broker.role_policy.as_mut().unwrap()["retired_names"]
-        .as_array_mut()
-        .unwrap()
-        .extend(legacy);
-    {
-        let mut store = broker
-            .store
-            .lock()
-            .map_err(|_| BrokerError::internal("task store lock poisoned"))?;
-        store.schema_two = true;
-        store.save()?;
-    }
-    broker.event_store(true, |state| {
-        if state["role_binding"] != broker.role_policy.as_ref().unwrap()["binding"] {
-            state["ready"] = Value::Null;
-        }
-        state["role_binding"] = broker.role_policy.as_ref().unwrap()["binding"].clone();
-        Ok(())
-    })?;
+    let broker = Broker::with_roots(herdr_socket, state_dir, allowed_roots)?;
+    *broker.role_policy.lock().unwrap() = Some(role_policy.clone());
+    broker.apply_role_policy(role_policy)?;
     prepare_socket(&socket_path)?;
     broker.prune_history()?;
     let listener = UnixListener::bind(&socket_path).map_err(|error| {

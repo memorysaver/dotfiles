@@ -449,7 +449,10 @@ impl Host {
             }
             tasks.insert(id.into(), json!(registered));
         }
-        Ok(json!({"binding":self.role_binding()?,"tasks":tasks,"retired_names":["orchestrator"]}))
+        Ok(
+            json!({"binding":self.role_binding()?,"tasks":tasks,"retired_names":["orchestrator"],
+            "source":self.config,"deployment":{"paths":self.paths.json(),"broker_socket":self.socket,"broker_state_dir":self.broker_state_dir()?}}),
+        )
     }
     pub fn role_binding(&self) -> Result<Value> {
         let projects = self

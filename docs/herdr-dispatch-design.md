@@ -111,8 +111,15 @@ Project workspaces; each role's tab is first within its workspace. Existing matc
 workers and terminal generations remain intact. `start --dry-run` previews roles without mutation.
 The broker/default native server must be running. A layout conflict fails rather than moving
 panes between workspaces. Startup may partially complete on an error; inspect before retrying.
-Repeated starts reuse agents and do not submit business work. Launcher/model updates apply only
-to newly started agents. For explicitly authorized YOLO startup, a role may configure
+Repeated starts reuse agents and do not submit business work. The broker reloads its pinned YAML
+source in place; `start` performs this adoption automatically.
+`start --dry-run` validates and previews without adopting. A write lock serializes adoption against
+role requests and worker creation; ordinary worker status/waits continue without blocking reload.
+Existing events/history/claims stay intact. Changed bindings are refused while events are nonterminal;
+retain the original YAML until they finish. Computer/established Project identity changes still
+require migration, and root/socket/state location changes require deployment. Invalid YAML or a
+caller selecting a different source cannot replace the active configuration. Model/launcher settings
+apply only to newly started agents. For explicitly authorized YOLO startup, a role may configure
 `launcher: [codex, --yolo]` and
 `args: [--model, gpt-6.1-sol, -c, model_reasoning_effort=medium, -c, service_tier=fast]`.
 

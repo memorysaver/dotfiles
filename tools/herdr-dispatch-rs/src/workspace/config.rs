@@ -315,19 +315,25 @@ impl Host {
     }
     pub fn start(&self, dry_run: bool) -> Result<Value> {
         let binding = self.role_binding()?;
+        let configuration = crate::broker_call(
+            &self.socket,
+            "reload_config",
+            json!({"role_binding":binding,"dry_run":dry_run}),
+            Duration::from_secs(60),
+        )?;
+        if dry_run {
+            return Ok(configuration);
+        }
         let params = |preview| {
             json!({"cwd":self.paths.get("workspace"),"kind":self.kind,
             "role_binding":binding,"dry_run":preview})
         };
-        let plan = crate::broker_call(
+        crate::broker_call(
             &self.socket,
             "managed_layout",
             params(true),
             Duration::from_secs(60),
         )?;
-        if dry_run {
-            return Ok(plan);
-        }
         let computer = self.ensure()?;
         let mut projects = Vec::new();
         for p in self.projects()? {
@@ -341,7 +347,7 @@ impl Host {
             Duration::from_secs(120),
         )?;
         Ok(
-            json!({"computer":computer,"projects":projects,"layout":layout,
+            json!({"configuration":configuration,"computer":computer,"projects":projects,"layout":layout,
             "launch_policy":"Existing sessions are reused; configured launchers and args apply to newly started agents."}),
         )
     }

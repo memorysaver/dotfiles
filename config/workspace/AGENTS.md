@@ -90,6 +90,9 @@ invocation. Use broker-supplied callbacks verbatim, including project and nonce 
 Direct project development follows project rules; loading this file starts no service or task.
 For an operator-requested startup, `herdr-dispatch start --dry-run` previews the layout and
 `herdr-dispatch start` starts/reuses configured orchestrators and orders their workspaces.
+`start` reloads valid YAML in the running broker automatically; no service restart is needed.
+Wait for unfinished events before editing settings; identity or deployment-root changes require
+explicit migration. Dry-run never applies settings.
 Computer home is first with its Computer-Orchestrator tab first; enabled projects follow YAML
 `project_order`. Existing sessions are reused; launcher/model changes apply on their next start.
 

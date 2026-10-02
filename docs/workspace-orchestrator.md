@@ -56,7 +56,13 @@ herdr-dispatch broker tasks
 ```
 
 `--skills`, help and version access no config/server. Config errors exit 2, operation failures 1;
-status reads can succeed while pending. Default total wait is 21600 seconds, separate from each
+status reads can succeed while pending.
+
+`start` automatically validates and reloads the broker's pinned YAML in place, then starts/reuses
+roles and arranges workspaces. `start --dry-run` does not apply settings or move/start agents.
+Wait for unfinished events before changing YAML. Owner/root/socket/state changes require explicit
+migration/deployment; existing sessions and runtime receipts survive ordinary configuration updates.
+Default total wait is 21600 seconds, separate from each
 registered task timeout. Optional env inputs may be absent; referenced placeholders require a
 nonempty input. Values are data, never approval or credentials. Reconciliation requires existing
 artifact/receipt inspection, explicit confirmation, decision and reason; never clear a claim.

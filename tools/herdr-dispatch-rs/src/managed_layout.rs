@@ -1,7 +1,11 @@
 //! Arrange configured roles with native move operations, preserving terminal IDs.
 use super::*;
 
-fn plan(snapshot: &Value, binding: &Value, allow_missing: bool) -> Result<Vec<Value>, BrokerError> {
+pub(super) fn plan(
+    snapshot: &Value,
+    binding: &Value,
+    allow_missing: bool,
+) -> Result<Vec<Value>, BrokerError> {
     if snapshot["protocol"].as_u64().is_none_or(|v| v < 22) {
         return Err(BrokerError::new(
             "unsupported_herdr",

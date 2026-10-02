@@ -145,6 +145,11 @@ enabled Project workspaces in YAML `project_order`. That optional list must cont
 project ID exactly once; without it, project IDs sort alphabetically. Project orchestrator tabs
 also move first within their workspaces. Unmanaged workspaces/tabs retain their relative order.
 The broker and default Herdr server must already be running (operator deployment uses `install`).
+Edit YAML and run `start`: the broker validates and adopts changes from its pinned YAML source
+in place, without restarting services. `start --dry-run` previews pending settings without applying
+them. Changed settings are refused while events are unfinished; retain the original YAML until
+events finish. Computer/established Project owner changes and root/socket/state location changes
+require explicit migration/deployment. Invalid settings leave the active policy and receipts intact.
 Repeated starts reuse matching sessions and preserve terminal generations; they do not send
 business tasks, restart agents or change existing sessions' model/permission settings.
 
