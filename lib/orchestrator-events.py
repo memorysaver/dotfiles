@@ -240,7 +240,8 @@ def bridge(host,config,nonce,callback,project=None):
             # Existing Codex tool daemons can retain a closed caller context.
             # A Project-only fallback uses the private second-hop capability,
             # still pinned to the live named role and native generation.
-            if callback!='project-consume': raise ValueError('Only the fixed Orchestrator may create its callback shell')
+            if callback!='project-consume' or Path.cwd().resolve()!=Path(route['cwd']):
+                raise ValueError('Only the fixed Project caller at its registered repo cwd may use stale-context recovery')
             broker_socket=host.configuration(config)[-1]
             store=json.loads((broker_socket.parent/'orchestrator-events.json').read_text())
             matches=[e for e in store['events'].values() if e.get('project_delivery',{}).get('nonce')==nonce]

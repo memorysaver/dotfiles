@@ -105,7 +105,8 @@ completion: the claim capability can report its durable result even if the Proje
 An unclaimed replaced Project is marked uncertain and never automatically replayed. Project results leave the top-level event accepted until Computer acknowledges
 its result. This is cooperative role separation within the same local user, not isolation from a
 malicious same-user process. Existing Codex tool daemons can retain a closed caller ID. For Project callbacks only, a stale
-caller fallback requires the private second-hop capability, frozen role route and current terminal
+caller fallback requires the caller cwd to equal the registered repo root, the private second-hop
+capability, frozen role route and current terminal
 generation. Other callers fail closed. This fallback reads the default local broker store; custom
 state placements must supply a working native caller context. No fabricated HERDR_ENV or permission overrides are used.
 

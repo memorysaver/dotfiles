@@ -184,11 +184,16 @@ class HostTests(unittest.TestCase):
         replies=[SimpleNamespace(stdout=json.dumps({'result':{'agent':{'agent':'codex','cwd':route['cwd'],'pane_id':'fixed-project','terminal_id':'generation'}}})),
                  SimpleNamespace(stdout=json.dumps({'result':{'pane':{'pane_id':'stale-context'}}})),
                  SimpleNamespace(stdout=json.dumps({'result':{'pane':{'pane_id':'callback'}}})),SimpleNamespace(stdout='')]
-        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'stale-context'}),patch.object(module.events,'registered_project',return_value={'route':route}),patch.object(module.events.subprocess,'run',side_effect=replies):
+        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'stale-context'}),patch.object(Path,'cwd',return_value=Path(route['cwd'])),patch.object(module.events,'registered_project',return_value={'route':route}),patch.object(module.events.subprocess,'run',side_effect=replies):
             self.assertEqual(module.events.bridge(module,self.config,nonce,'project-consume','media')['pane_id'],'callback')
         event['project_delivery']['terminal_id']='replaced-generation';store.write_text(json.dumps({'events':{'event':event}}))
-        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'stale-context'}),patch.object(module.events,'registered_project',return_value={'route':route}),patch.object(module.events.subprocess,'run',side_effect=replies[:2]) as transport:
+        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'stale-context'}),patch.object(Path,'cwd',return_value=Path(route['cwd'])),patch.object(module.events,'registered_project',return_value={'route':route}),patch.object(module.events.subprocess,'run',side_effect=replies[:2]) as transport:
             with self.assertRaisesRegex(ValueError,'does not match'):
+                module.events.bridge(module,self.config,nonce,'project-consume','media')
+            self.assertEqual(transport.call_count,2)
+
+        with patch.dict(os.environ,{'HERDR_ENV':'1','HERDR_PANE_ID':'stale-context'}),patch.object(Path,'cwd',return_value=self.work),patch.object(module.events,'registered_project',return_value={'route':route}),patch.object(module.events.subprocess,'run',side_effect=replies[:2]) as transport:
+            with self.assertRaisesRegex(ValueError,'registered repo cwd'):
                 module.events.bridge(module,self.config,nonce,'project-consume','media')
             self.assertEqual(transport.call_count,2)
 
