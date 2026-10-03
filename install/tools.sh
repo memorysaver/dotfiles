@@ -217,6 +217,66 @@ EOF
   fi
 fi
 
+# --- Tailscale (Grok Bot remote / Herdr path) ---
+# Omarchy owns Tailscale via omarchy-apps; grok-bot Debian sandbox must install
+# it here so Update Computer restores the CLI. Auth and `tailscale set --ssh`
+# remain machine-local (no secrets in git). This sandbox usually has no systemd:
+# after install, start `tailscaled` manually then `tailscale up`.
+if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
+  if has tailscale; then
+    ok "tailscale already installed ($(tailscale version 2>/dev/null | head -1))"
+  else
+    info "Installing Tailscale..."
+    if curl -fsSL https://tailscale.com/install.sh | sh; then
+      ok "tailscale installed ($(tailscale version 2>/dev/null | head -1))"
+    else
+      warn "Tailscale install failed"
+    fi
+  fi
+fi
+
+# --- Dagu (Grok Bot local workflow engine) ---
+# Single binary from dagucloud/dagu releases into ~/.local/bin. No background
+# service by default (sandbox often lacks systemd); start UI with `dagu start-all`
+# when needed.
+if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
+  if has dagu; then
+    ok "dagu already installed ($(dagu version 2>/dev/null | head -1))"
+  else
+    info "Installing Dagu..."
+    (
+      set -euo pipefail
+      mkdir -p "$HOME/.local/bin"
+      tmp="$(mktemp -d)"
+      trap 'rm -rf "$tmp"' EXIT
+      arch="$(uname -m)"
+      case "$arch" in
+        x86_64|amd64) arch=amd64 ;;
+        aarch64|arm64) arch=arm64 ;;
+        *) warn "Unsupported arch for Dagu: $arch"; exit 0 ;;
+      esac
+      tag=""
+      if has gh; then
+        tag="$(gh release view --repo dagucloud/dagu --json tagName -q .tagName 2>/dev/null || true)"
+      fi
+      if [ -z "$tag" ]; then
+        tag="$(curl -fsSIL https://github.com/dagucloud/dagu/releases/latest 2>/dev/null | tr -d '\r' | awk -F/ '/^location:/ {print $NF; exit}')"
+      fi
+      if [ -z "$tag" ]; then
+        warn "Could not resolve Dagu latest tag — skipping"
+        exit 0
+      fi
+      ver="${tag#v}"
+      asset="dagu_${ver}_linux_${arch}.tar.gz"
+      url="https://github.com/dagucloud/dagu/releases/download/${tag}/${asset}"
+      curl -fsSL "$url" -o "$tmp/$asset"
+      tar -xzf "$tmp/$asset" -C "$tmp"
+      install -m 755 "$tmp/dagu" "$HOME/.local/bin/dagu"
+      ok "dagu installed ($(dagu version 2>/dev/null | head -1))"
+    ) || warn "Dagu install failed"
+  fi
+fi
+
 # Skill-backing CLIs (opencli, podwise, wavespeed-cli, qmd, uipro-cli) are no longer
 # installed globally on every machine. Each existed only to make one skill in
 # agents/skills/ runnable, so they belong wherever that skill is actually used.
