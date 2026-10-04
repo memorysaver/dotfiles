@@ -49,6 +49,11 @@ Its install block was commented "memory backbone for the lesson-learned skill". 
 is not in `agents/skills/` and has not been for some time, so `qmd` was being installed on
 every machine to support something that no longer existed.
 
+**Exception — grok-bot (2026-10-04):** the Grok Bot sandbox uses `qmd` again, so
+`install/grok-bot.sh` installs it there only (`build-essential`, Bun,
+`bun install -g @tobilu/qmd`, then `~/.local/bin/qmd` → `~/.bun/bin/qmd`). It stays out of
+the shared `install/tools.sh` path; every other machine still does not get it.
+
 ### `wavespeed-cli` global link was already drifting
 
 `install/tools.sh` installed it from `$DOTFILES_DIR/tools/wavespeed-cli`, but the actual
