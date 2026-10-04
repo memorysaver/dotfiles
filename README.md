@@ -147,9 +147,9 @@ agent host: shared `_setup` (workspace, core, runtimes, agents, tools,
 seed-agents), a small overlay that stamps the recipe scope and adds the
 grok-bot-only packages (openssh-client, Tailscale, QMD), then `just link` and
 `just doctor`. It deliberately skips Hyprland, Moonlight, Himalaya/Ortie,
-Ghostty, and other desktop/mail pieces, and it does not install Dagu: grok-bot
-schedules through Grok Bot routines (server-side saved prompts on cron or
-events). Other machines keep Dagu.
+Ghostty, and other desktop/mail pieces. The recipe does not install Dagu (it
+may already exist on the host); grok-bot scheduling uses Grok Bot routines
+(server-side saved prompts on cron or events).
 
 簡短說明：這條 recipe 用來追蹤 Grok Bot sandbox 實際套用了哪些設定；底層套件路徑跟
 Debian 一樣走 apt / upstream installer，但 platform id 是 `grok-bot`，不會跟一般

@@ -42,7 +42,7 @@ setup-grok-bot:
     @just link
     @just doctor
 
-# Grok Bot overlay: recipe stamp plus grok-bot-only openssh-client, Tailscale, QMD (no Dagu).
+# Grok Bot overlay: recipe stamp plus grok-bot-only openssh-client, Tailscale, QMD.
 grok-bot:
     @bash "{{ dotfiles }}"/install/grok-bot.sh
 
