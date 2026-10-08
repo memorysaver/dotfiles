@@ -46,7 +46,7 @@ installed without upgrading system packages.
 │   ├── workspace.sh         # Cross-platform ~/Work bootstrap and legacy notice
 │   ├── omarchy-apps.sh
 │   ├── omarchy-moonlight.sh
-│   ├── grok-bot.sh           # Grok Bot recipe stamp + ssh/Tailscale/QMD
+│   ├── grok-bot.sh           # Grok Bot recipe stamp + ssh/Tailscale/QMD + Pi Bun wrapper
 │   └── infra.sh
 ├── config/               # App configs and host policy templates
 │   ├── zsh/
@@ -171,7 +171,7 @@ entry. Do not invent a private binding unless that record already exists.
 | --- | --- |
 | `platform-check.sh grok-bot` | Refuse to run on other platforms |
 | `just _setup` | workspace → core → runtimes → agents → tools → seed-agents |
-| `just grok-bot` | Write `~/.config/dotfiles/grok-bot-recipe` (includes/excludes); install openssh-client, Tailscale (apt repo), build-essential + Bun + QMD (`~/.local/bin/qmd` → `~/.bun/bin/qmd`) |
+| `just grok-bot` | Write `~/.config/dotfiles/grok-bot-recipe` (includes/excludes); install openssh-client, Tailscale (apt repo), build-essential + Bun + QMD (`~/.local/bin/qmd` → `~/.bun/bin/qmd`); on Node < 22.19 replace `~/.local/bin/pi` with a Bun wrapper (`install/grok-bot-pi-shim.sh`) |
 | `just link` | Non-Omarchy Linux links (zsh, tmux, git, nvim, starship, herdr, lazygit) |
 | `just doctor` | Read-only health gate |
 

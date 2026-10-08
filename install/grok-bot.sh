@@ -4,7 +4,8 @@
 # Shared tools come from `just _setup`. This script records the recipe scope so
 # we can tell what was intentionally applied on the Cursor/Grok agent host,
 # keeps desktop/mail/Omarchy-only pieces out of the path, and installs the few
-# grok-bot-only packages: openssh-client, Tailscale, and QMD.
+# grok-bot-only packages: openssh-client, Tailscale, and QMD, plus a Bun
+# wrapper for Pi (this box's Node is older than Pi needs).
 #
 # This recipe does not install Dagu (it may already exist on the host). grok-bot
 # scheduling uses Grok Bot routines (server-side saved prompts on cron/events).
@@ -17,7 +18,7 @@ fi
 
 info "Applying Grok Bot sandbox overlay..."
 info "Includes: workspace, core, runtimes, agents, tools (incl. hyperframes), seed-agents, link, doctor"
-info "Grok-bot only: openssh-client, tailscale, qmd"
+info "Grok-bot only: openssh-client, tailscale, qmd, pi Bun wrapper"
 info "Skips: omarchy-apps, Moonlight/Hypr, Himalaya/Ortie, Ghostty, macOS headless helpers"
 
 ensure_dir "$HOME/.config/dotfiles"
@@ -28,7 +29,7 @@ cat >"$stamp" <<'STAMP'
 platform=grok-bot
 base=debian
 includes=workspace,core,runtimes,agents,tools,seed-agents,link,doctor
-extras=openssh-client,tailscale,qmd
+extras=openssh-client,tailscale,qmd,pi-bun-shim
 excludes=omarchy-apps,omarchy-moonlight,hypr,himalaya,ortie,ghostty,macos-headless
 STAMP
 ok "Recipe stamp: $stamp"
@@ -90,5 +91,9 @@ fi
 if [ -x "$HOME/.bun/bin/qmd" ]; then
   ensure_symlink "$HOME/.bun/bin/qmd" "$HOME/.local/bin/qmd" || warn "qmd link not created"
 fi
+
+# --- Pi Bun wrapper (grok-bot only) ---
+# Pi needs Node >= 22.19; the sandbox has Node 20. See install/grok-bot-pi-shim.sh.
+bash "$(dirname "$0")/grok-bot-pi-shim.sh"
 
 ok "Grok Bot overlay complete"

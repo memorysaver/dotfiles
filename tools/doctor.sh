@@ -300,6 +300,13 @@ if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
   else
     soft "qmd missing — run: just grok-bot (grok-bot only; see docs/removed-agent-clis.md)"
   fi
+  if has pi; then
+    if pi --version >/dev/null 2>&1; then
+      pass "pi ($(pi --version 2>/dev/null | head -1))"
+    else
+      soft "pi installed but won't start (Node too old?) — run: just grok-bot (writes the Bun wrapper)"
+    fi
+  fi
 fi
 
 # --- Summary ---------------------------------------------------------------

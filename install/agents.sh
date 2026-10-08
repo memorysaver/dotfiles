@@ -180,6 +180,18 @@ fi
 # self-updater. Omarchy's release binary is owned and upgraded by Mise above.
 if [ "$DOTFILES_PLATFORM" = omarchy ]; then
   ok "Pi managed by Omarchy + Mise"
+elif [ "$DOTFILES_PLATFORM" = grok-bot ] && has npm; then
+  # grok-bot's Node is older than Pi needs, so `pi update` can't be trusted to
+  # run; upgrade through npm and let the shim re-wrap the bin in Bun.
+  pi_cli="$(npm root -g 2>/dev/null)/$PI_NPM_PACKAGE/dist/bundle/cli.js"
+  if [ ! -f "$pi_cli" ] || [ "$UPGRADE" = 1 ]; then
+    info "$VERB Pi coding agent (npm)..."
+    bash "$(dirname "$0")/grok-bot-pi-shim.sh" --remove
+    npm install -g "$PI_NPM_PACKAGE@latest" || warn "Pi install failed"
+  else
+    ok "Pi already installed"
+  fi
+  bash "$(dirname "$0")/grok-bot-pi-shim.sh"
 elif has "$PI_AGENT_BIN" || has "$PI_ALT_BIN"; then
   if [ "$UPGRADE" = 1 ]; then
     pi_bin="$(command -v "$PI_AGENT_BIN" || command -v "$PI_ALT_BIN")"
