@@ -20,10 +20,10 @@ Keep changes, commits, and releases scoped to their owning repository.
   [orchestration-rules/README.md](./orchestration-rules/README.md), then load the relevant machine,
   agent or dispatch reference. This is the only rules directory deployed under Work.
   Direct project development follows the project rules; it does not require creating a worker.
-- Scheduled project events follow Dagu → Computer Orchestrator at Work → registered Project
-  Orchestrator at repo root → project handlers/workers → Computer result acceptance → Dagu.
-  Each enabled repo has one primary Herdr workspace; runtime tab/pane IDs are not routing identity.
-  The selected private `projects.yaml`, linked at Computer home, owns the managed list, paths and project keys.
+- Scheduling and delivery follow the selected host policy. For SIBYL Cloud hosts,
+  Cloud → SIBYL daemon → project agent is the intended route. Check actual deployment readiness.
+  Runtime tab/pane IDs are not durable project identity; legacy projects.yaml is not an active registry
+  on retired dispatch hosts.
 - Host agent inventory and downstream management: enter the selected
   `orchestration-rules/README.md`, verify local identity, then read its `agents.md`.
   Use `<resolved idea>/private-config/computers/README.md` only to maintain cross-computer records.
@@ -42,66 +42,26 @@ the private idea repo. Credentials and runtime state stay local, outside both re
 Agent configuration templates are initial defaults; existing live configurations remain host-owned.
 Never put credentials in prompts, pane labels, messages, or notes.
 
-## Fixed local Herdr Orchestrator
+## Scheduling and agent lifecycle
 
-Every managed computer must maintain one fixed agent named `computer-orchestrator` with its cwd
-at the configured Work root. Routing identity is the local server, agent name, configured kind
-and canonical cwd; workspace labels, tab order and pane positions are runtime layout details. A local supervisor
-maintains its presence while the computer and user service are available; Dagu also checks
-presence. This agent coordinates that computer's authorized work and verifies results.
-Project implementation belongs in each project's dedicated workspace. Direct human or agent
-work inside a project does not require creating a second worker or routing through the Orchestrator.
-Do not rename, close, repurpose, interrupt, or replace the fixed agent for an unrelated task.
-A working, blocked, or unknown agent remains present; never restart it to clear an approval UI.
-Only recover a confirmed missing agent. Never infer task success from Herdr idle/done alone.
+There is no mandatory Computer Orchestrator role or Computer-to-Project forwarding hop.
+For hosts adopting SIBYL Cloud, the intended route is Cloud scheduling/task intake → SIBYL daemon
+→ `herdr agent` at the owning project checkout. Read the selected host's rules for deployment
+status; an intended route is not evidence that the daemon or Cloud scheduling is available.
+Project agents own implementation, workers, topic/release gates and artifact verification.
+Preserve existing agents, panes, worktrees and uncertain execution state. Never infer task success
+from idle/done or replay an uncertain task. Do not start services merely by reading instructions.
+Use the installed Herdr skill and verified caller context for interactive agent control; do not
+fabricate HERDR_ENV. No role name grants permission to publish, deploy or communicate externally.
+
+Retired dispatch hosts do not automatically recover missing agents. Keep legacy registries and
+receipts for rollback only; do not run broker startup, presence checks or callbacks on such hosts.
+The selected private host rules define any explicitly authorized legacy exception on other hosts.
 
 ## Resolve this computer's paths
 
-Home paths are defaults. `HERDR_COMPUTER_HOME` selects the existing Computer management
-root (unset: `~/Work`); routing uses `<Computer home>/projects.yaml` or explicit `--config` YAML.
-Relative project paths resolve from Computer home, even when the config is linked from private idea.
-Use `herdr-dispatch paths`, `check` and `projects list`; configured locations for dotfiles, idea,
-identity and DAGs are in YAML `binding`. Bound mode must match local identity and Work rules links.
-The old workspace.toml/Python resolver is for initial workspace provisioning only; it does not
-select the active dispatch root. Preserve existing checkouts instead of moving them to match defaults.
-Read the resolved dotfiles `config/workspace/orchestration-rules/identity.md`, then the selected
-private rules. Private host manifests and workflow definitions belong in idea; common lifecycle
-code and policy belong in dotfiles. DAG deployment links and runtime state remain local.
-External Dagu/supervisor processes use the allowlisted broker and never fake `HERDR_ENV`.
-Before business-event delivery, verify current instruction readiness. Presence or a submitted
-bootstrap prompt alone does not prove rules were loaded or an event accepted. Dagu delivery
-needs durable event identity, deduplication and an event-specific acknowledgment/result; never
-infer these from idle/done. Service startup belongs to the host's service manager, not to reading
-AGENTS.md. Presence maintains the role. Registered business events use the separate durable broker queue,
-explicit instruction readiness and a real Herdr callback shell; see the resolved dotfiles
-`docs/workspace-orchestrator.md`. Use configured role launchers; change permissions only under
-explicit host authorization.
-
-## Load the dispatch skill
-
-Before managed role startup, registered project dispatch, Dagu event inspection/delivery, or a supplied orchestrator
-callback, run `herdr-dispatch --skills` and read its complete stdout. This is the CLI's embedded
-agent skill; the command prints instructions without installing a global skill or submitting work.
-Do not assume `$herdr-dispatch` is registered with the current agent product.
-Then use `herdr-dispatch check` and `herdr-dispatch projects list` to resolve the destination and
-registered tasks. Follow the skill for submission, frozen-input retries, verification and callbacks.
-For a custom Computer home/config, explicitly supply `HERDR_COMPUTER_HOME` and `--config` on each
-invocation. Use broker-supplied callbacks verbatim, including project and nonce when supplied.
-Direct project development follows project rules; loading this file starts no service or task.
-For an operator-requested startup, `herdr-dispatch start --dry-run` previews the layout and
-`herdr-dispatch start` starts/reuses configured orchestrators and orders their workspaces.
-`start` reloads valid YAML in the running broker automatically; no service restart is needed.
-Wait for unfinished events before editing settings; identity or deployment-root changes require
-explicit migration. Dry-run never applies settings.
-Computer home is first with its Computer-Orchestrator tab first; enabled projects follow YAML
-`project_order`. Existing sessions are reused; launcher/model changes apply on their next start.
-
-## Registered project routing
-
-Dagu always submits to Computer-Orchestrator at Computer home. Computer forwards to the registered
-Project-Orchestrator `project-orchestrator-<key>` at that checkout's exact Git root. One enabled
-project owns one primary Herdr workspace; workers and episode worktrees remain project-owned.
-Discover tasks and scope from `herdr-dispatch projects list`, and usage from `herdr-dispatch --skills`.
-Only registered argv may execute. Each hop has its own acknowledgment and native generation check;
-Project results return through Computer before Dagu verifies artifacts. Retrying preserves event ID
-and frozen inputs. Never clear an execution claim or invent a new run ID to replay uncertain work.
+Read the local regular computer-id file and resolve the Work instructions/rules symlinks.
+Read the resolved dotfiles identity guide, then selected private host rules and OS profile.
+Use the existing workspace.toml and `lib/workspace-paths.py` for setup path discovery as needed.
+Never move checkouts, overwrite identity or rebind a machine to make a check pass.
+Credentials and runtime state remain local; private machine policy belongs in idea.

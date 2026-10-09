@@ -44,8 +44,8 @@ Report the chosen project and route without treating the update as a new approva
 
 Inside a Herdr-managed pane, verify `HERDR_ENV=1`, read the Herdr skill, and use installed CLI help
 for current syntax. Use explicit fresh IDs or a unique live agent name; preserve focus for background
-work. External services use the [external dispatch adapter](./external-dispatch.md), not a fabricated
-Herdr caller context. If the appropriate control surface is unavailable, report the limitation.
+work. External execution follows the selected host daemon policy; never fabricate
+Herdr caller context or revive the retired [legacy adapter](./external-dispatch.md). If the appropriate control surface is unavailable, report the limitation.
 
 After dispatch, report host/session, repository/cwd, workspace/tab/pane, worker, and task. Monitor
 actual output and verify deliverables and relevant checks; idle/done state alone is not success.
@@ -67,44 +67,18 @@ deployed agents from public templates. Actual agent rosters, deployment choices,
 relationships stay in private idea. Public dotfiles contains only this common mechanism; active
 tasks and session IDs remain machine-local runtime data.
 
-## Fixed agent lifecycle
+## Scheduling and agent lifecycle
 
-Each managed host maintains the unique live name `computer-orchestrator` in the selected local Herdr
-server with canonical Work cwd. Agent name, configured kind and actual cwd identify the role;
-workspace labels, tab order and pane positions do not. Read the resolved host `projects.yaml` and its workflow
-index. The supervisor calls the allowlisted broker's `ensure-orchestrator`; it reuses an existing
-agent only when kind/name/canonical cwd match, preserves working/blocked/unknown states, and
-starts a missing agent without stealing focus. A management tab is initial placement, not a routing
-requirement. Existing-agent lookup precedes layout discovery; the durable event contract is in `docs/workspace-orchestrator.md` in the resolved
-dotfiles checkout. Name/path conflicts fail closed.
-The selected broker socket identifies the local server; pane IDs are discovered at runtime,
-not copied between computers. Do not create another Orchestrator in a second session.
+There is no mandatory Computer Orchestrator role or Computer-to-Project forwarding hop.
+For hosts adopting SIBYL Cloud, the intended route is Cloud scheduling/task intake → SIBYL daemon
+→ `herdr agent` at the owning project checkout. Read the selected host's rules for deployment
+status; an intended route is not evidence that the daemon or Cloud scheduling is available.
+Project agents own implementation, workers, topic/release gates and artifact verification.
+Preserve existing agents, panes, worktrees and uncertain execution state. Never infer task success
+from idle/done or replay an uncertain task. Do not start services merely by reading instructions.
+Use the installed Herdr skill and verified caller context for interactive agent control; do not
+fabricate HERDR_ENV. No role name grants permission to publish, deploy or communicate externally.
 
-Availability means supervised recovery while the host is awake and the user service, Herdr,
-broker, authentication and CLI are available. Offline, sleeping and blocked conditions are
-reported; they do not justify bypassing approvals or silently replaying work. Health checks only
-maintain the role; they do not grant authority to execute unspecified business work. Concrete
-scheduled tasks require their own objectives, limits and artifact-based verification.
-
-## Computer → Project hierarchy
-
-Dagu business events always enter the local Computer role `computer-orchestrator` at canonical Work cwd.
-It reads Work AGENTS.md and the selected host rules, acknowledges the event and delegates through
-the broker to the registered Project role. It does not execute project entrypoints directly.
-Each enabled repository has one fixed `project-orchestrator-<key>` role at its canonical Git root and one primary
-Herdr workspace. Project and workspace are related concepts: a project is the repository/ownership
-boundary; a Herdr workspace is its terminal container. Episode/feature worktrees may have linked
-workspaces or tabs without becoming additional managed projects.
-
-The Project role reads its AGENTS.md/README, checks Git state, and owns producers, workers,
-project entrypoints and acceptance evidence. Project completion returns to Computer for correlated
-acceptance before Dagu completes and runs the project verifier. Internal Work-only health/probes
-are the explicit exception. Preserve project launchers and topic/release gates.
-
-The private selected host `projects.yaml` is the enabled-project inventory: canonical repo path,
-fixed role name/kind/launcher and registered task argv. Relative repo paths resolve under configured
-Work; absolute or home paths support other locations. Count enabled projects, not pane positions,
-worktrees or installed tools. Discover workspace/pane IDs at runtime. Reuse matching named roles
-before inspecting layout; initial workspace labels are presentation only. Existing unnamed editor
-adoption requires explicit migration selection, matching kind/cwd and idle status; normal supervision
-never renames unrelated conversations. Failed project recovery must not block other project routing.
+Retired dispatch hosts do not automatically recover missing agents. Keep legacy registries and
+receipts for rollback only; do not run broker startup, presence checks or callbacks on such hosts.
+The selected private host rules define any explicitly authorized legacy exception on other hosts.

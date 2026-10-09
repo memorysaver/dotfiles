@@ -1,3 +1,9 @@
+> Legacy reference: beelink-omarchy retired this broker and the mandatory Computer role on
+> 2026-10-09. Commands below are historical design/rollback material, not current operating
+> instructions. Do not install, start, callback or replay on a retired host. Other hosts require
+> their own explicit deployment authorization. The replacement Cloud → SIBYL daemon → Herdr
+> route is project-owned and must be verified before use.
+
 # OpenAB to Herdr dispatch
 
 An optional Discord-facing orchestrator can use this integration. It does not directly call

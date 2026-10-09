@@ -2,7 +2,7 @@
 
 Before machine-specific changes, local agent management or dispatch, check the destination itself:
 
-0. Resolve local paths with `herdr-dispatch paths` or the selected dotfiles
+0. Resolve local paths from the existing Work symlinks and selected dotfiles
    `lib/workspace-paths.py`. Defaults may be overridden in the local regular
    `~/.config/dotfiles/workspace.toml`; never infer identity from a path or hostname.
 1. Read the resolved identity file (default `~/.config/dotfiles/computer-id`) as a local regular file, not a symlink.

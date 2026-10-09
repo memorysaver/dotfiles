@@ -57,19 +57,18 @@ private repositories automatically. Generic public templates do not declare whic
 Already-bound computers receive rule-content updates by pulling both source repositories; existing
 symlinks expose the updated files. Existing sessions must reread the entrypoints or start a new session.
 
-## Fixed Orchestrator and configured locations
+## Scheduling and agent lifecycle
 
-Every managed computer keeps `computer-orchestrator` at its Computer home. Every enabled
-project has `project-orchestrator-<key>` at its canonical checkout root, in one primary workspace.
-Names, kinds, cwd and native generation identify roles; labels and layout do not select delivery.
-The supervisor maintains presence; Dagu submits registered events through Computer → Project →
-project handler → Computer result acceptance → project artifact verifier. Existing authorization
-and topic/release gates remain mandatory. Busy or blocked roles are preserved.
+There is no mandatory Computer Orchestrator role or Computer-to-Project forwarding hop.
+For hosts adopting SIBYL Cloud, the intended route is Cloud scheduling/task intake → SIBYL daemon
+→ `herdr agent` at the owning project checkout. Read the selected host's rules for deployment
+status; an intended route is not evidence that the daemon or Cloud scheduling is available.
+Project agents own implementation, workers, topic/release gates and artifact verification.
+Preserve existing agents, panes, worktrees and uncertain execution state. Never infer task success
+from idle/done or replay an uncertain task. Do not start services merely by reading instructions.
+Use the installed Herdr skill and verified caller context for interactive agent control; do not
+fabricate HERDR_ENV. No role name grants permission to publish, deploy or communicate externally.
 
-`HERDR_COMPUTER_HOME` defaults to `~/Work`. Active dispatch settings use `<Computer home>/projects.yaml`
-or an explicit YAML `--config`; relative repo paths are based on Computer home. Actual bound-host
-YAML belongs in private idea and is linked into Work. YAML `binding` can set dotfiles, idea,
-identity, hosts and DAG locations. Initial provisioning may still use workspace.toml/Python;
-those legacy settings do not select the dispatch root. Use `herdr-dispatch check`, `projects list`
-and `--skills`. Runtime receipts, credentials and native IDs stay outside repositories.
-See the resolved dotfiles `docs/workspace-orchestrator.md` for deployment.
+Retired dispatch hosts do not automatically recover missing agents. Keep legacy registries and
+receipts for rollback only; do not run broker startup, presence checks or callbacks on such hosts.
+The selected private host rules define any explicitly authorized legacy exception on other hosts.
