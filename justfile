@@ -64,7 +64,7 @@ runtimes:
 agents:
     @bash "{{ dotfiles }}"/install/agents.sh
 
-# Build and start the Rust same-user Herdr dispatch broker used by openab-omarchy.
+# Legacy broker installation; refused on hosts with a retirement marker.
 herdr-dispatch:
     @bash "{{ dotfiles }}"/install/herdr-dispatch.sh
 
@@ -519,9 +519,9 @@ check-agent-links:
 adopt-agents:
     @bash "{{ dotfiles }}"/tools/agent-links.sh adopt
 
-# Maintain the fixed local Herdr Orchestrator and register this host's Dagu workflow.
+# Legacy opt-in supervisor installation; no mandatory Computer role.
 workspace-orchestrator:
     @bash "{{ dotfiles }}"/install/workspace-orchestrator.sh
 
 workspace-paths:
-    @if command -v workspace-orchestrator >/dev/null 2>&1; then workspace-orchestrator paths; else python3 "{{ dotfiles }}"/lib/workspace-paths.py; fi
+    @python3 "{{ dotfiles }}"/lib/workspace-paths.py

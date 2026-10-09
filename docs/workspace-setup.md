@@ -71,15 +71,9 @@ It creates the unified `orchestration-rules` link, then removes only the exact o
 with a warning. Do not copy both old rule trees into the new one: private machine contents reference
 the public profiles and shared dispatch procedures. Existing agent sessions must reread the new entry.
 
-## Host path overrides and mandatory Orchestrator
+## Host path overrides and scheduling
 
-Home-directory paths in this guide are defaults. Use the local
-`~/.config/dotfiles/workspace.toml` (example in `config/workspace/workspace.toml.example`) to
-select existing dotfiles, idea, workspace and Dagu locations. Explicit environment overrides
-remain supported. `workspace-orchestrator paths` is the Rust resolver used by the supervisor
-and installed setup scripts. Before the CLI is installed, provisioning falls back to the compatible
-`lib/workspace-paths.py`. A non-default checkout is not a migration request.
-
-Every managed host must maintain the fixed Herdr Orchestrator. Deploy its private manifest,
-updated broker, user supervisor and presence workflow using [the deployment guide](workspace-orchestrator.md).
-Update policy and configuration separately from claiming live or reboot acceptance.
+Use the local workspace.toml and lib/workspace-paths.py to resolve setup paths without the
+retired dispatch service. Existing checkouts and symlinks remain authoritative. No fixed Computer
+Orchestrator is required. Scheduling and daemon deployment follow selected private host policy;
+workspace setup does not start services or recover agents.

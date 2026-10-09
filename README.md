@@ -91,8 +91,8 @@ just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just setup-grok-bot    # Require Grok Bot sandbox; Debian tools + link + doctor
 just grok-bot          # Write the Grok Bot recipe stamp (no desktop/mail)
 just workspace         # Create ~/Work categories and link its entry docs and rule directories
-just herdr-dispatch    # Install the local OpenAB-to-Herdr dispatch broker
-just workspace-orchestrator # Deploy the Rust CLI, broker and local role supervisors
+just herdr-dispatch    # Legacy opt-in; blocked on retired hosts
+just workspace-orchestrator # Legacy opt-in; blocked on retired hosts
 just link              # Create all config symlinks (idempotent)
 just link-dry-run      # Show creates/conflicts without writing anything
 just unlink            # Remove all symlinks
@@ -625,11 +625,18 @@ Run `just agent-skills` after pulling to refresh `herdr`, `show-me`, and `agent-
 for all supported agents and remove the retired `i-have-adhd` skill. This does not upgrade
 agent CLIs or replace their live configuration. Existing sessions must reload skills.
 
-### Fixed local Herdr Orchestrator
+## Scheduling and agent lifecycle
 
-Every managed host maintains one `orchestrator` in its canonical Work management workspace.
-The shared broker lifecycle, user supervisor, and private per-host Dagu presence workflow are
-covered by [the deployment guide](docs/workspace-orchestrator.md). Home locations are defaults;
-a host-local `~/.config/dotfiles/workspace.toml` selects different existing dotfiles, idea, Work,
-and DAGs locations. `just workspace-paths` shows the resolved locations. Host manifests and actual
-deployment receipts belong in private idea; credentials and runtime state remain local.
+There is no mandatory Computer Orchestrator role or Computer-to-Project forwarding hop.
+For hosts adopting SIBYL Cloud, the intended route is Cloud scheduling/task intake → SIBYL daemon
+→ `herdr agent` at the owning project checkout. Read the selected host's rules for deployment
+status; an intended route is not evidence that the daemon or Cloud scheduling is available.
+Project agents own implementation, workers, topic/release gates and artifact verification.
+Preserve existing agents, panes, worktrees and uncertain execution state. Never infer task success
+from idle/done or replay an uncertain task. Do not start services merely by reading instructions.
+Use the installed Herdr skill and verified caller context for interactive agent control; do not
+fabricate HERDR_ENV. No role name grants permission to publish, deploy or communicate externally.
+
+Retired dispatch hosts do not automatically recover missing agents. Keep legacy registries and
+receipts for rollback only; do not run broker startup, presence checks or callbacks on such hosts.
+The selected private host rules define any explicitly authorized legacy exception on other hosts.
