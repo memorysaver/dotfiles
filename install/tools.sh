@@ -37,11 +37,35 @@ if ! has_working glab; then
     omarchy) omarchy pkg add glab ;;
     arch) sudo pacman -S --needed --noconfirm glab ;;
     debian|grok-bot)
-      GLAB_VERSION=$(curl -s "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
-      ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
-      curl -Lo /tmp/glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/${GLAB_VERSION}/downloads/glab_${GLAB_VERSION#v}_linux_${ARCH}.tar.gz"
-      sudo tar xf /tmp/glab.tar.gz -C /usr/local/bin --strip-components=1 bin/glab
-      rm /tmp/glab.tar.gz
+      # GitLab publishes Go-style arch names (amd64/arm64), not uname -m's
+      # x86_64/aarch64. A wrong name returns a small HTML 404 page, so fetch
+      # with -f, verify the archive, and only warn on failure so the rest of
+      # tools.sh (yq, just, hyperframes, ...) still runs.
+      install_glab_tarball() {
+        local version arch tmp
+        case "$(uname -m)" in
+          x86_64|amd64) arch=amd64 ;;
+          aarch64|arm64) arch=arm64 ;;
+          *) warn "glab: unsupported architecture $(uname -m)"; return 1 ;;
+        esac
+        version=$(curl -fsSL "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases/permalink/latest" \
+          | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'])" 2>/dev/null) || version=""
+        [ -n "$version" ] || { warn "glab: could not resolve the latest release"; return 1; }
+        tmp=$(mktemp -d)
+        if retry 3 2 curl -fsSLo "$tmp/glab.tar.gz" \
+             "https://gitlab.com/gitlab-org/cli/-/releases/${version}/downloads/glab_${version#v}_linux_${arch}.tar.gz" \
+           && tar tzf "$tmp/glab.tar.gz" bin/glab >/dev/null 2>&1 \
+           && tar xzf "$tmp/glab.tar.gz" -C "$tmp" bin/glab \
+           && sudo install -m 755 "$tmp/bin/glab" /usr/local/bin/glab; then
+          rm -rf "$tmp"
+          ok "glab ${version#v} installed"
+        else
+          rm -rf "$tmp"
+          warn "glab ${version} download failed; skipping"
+          return 1
+        fi
+      }
+      install_glab_tarball || true
       ;;
   esac
 else
@@ -52,17 +76,40 @@ fi
 ensure_installed jq jq jq
 
 # --- yq ---
-if ! has yq; then
+if ! has_working yq; then
   info "Installing yq..."
   case "$DOTFILES_PLATFORM" in
     macos) brew install yq ;;
     omarchy) omarchy pkg add yq ;;
     arch) sudo pacman -S --needed --noconfirm yq ;;
     debian|grok-bot)
-      YQ_VERSION=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest" | grep -Po '"tag_name": "\K[^"]*')
-      ARCH=$(uname -m); [ "$ARCH" = "aarch64" ] && ARCH="arm64"
-      sudo curl -Lo /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${ARCH}"
-      sudo chmod +x /usr/local/bin/yq
+      # Same arch-name trap as glab: yq assets use amd64/arm64. Download to a
+      # temp file and only install a binary that actually runs, so a 404 page
+      # never lands in /usr/local/bin/yq.
+      install_yq_binary() {
+        local version arch tmp
+        case "$(uname -m)" in
+          x86_64|amd64) arch=amd64 ;;
+          aarch64|arm64) arch=arm64 ;;
+          *) warn "yq: unsupported architecture $(uname -m)"; return 1 ;;
+        esac
+        version=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" \
+          | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'])" 2>/dev/null) || version=""
+        [ -n "$version" ] || { warn "yq: could not resolve the latest release"; return 1; }
+        tmp=$(mktemp -d)
+        if retry 3 2 curl -fsSLo "$tmp/yq" \
+             "https://github.com/mikefarah/yq/releases/download/${version}/yq_linux_${arch}" \
+           && chmod +x "$tmp/yq" && "$tmp/yq" --version >/dev/null 2>&1 \
+           && sudo install -m 755 "$tmp/yq" /usr/local/bin/yq; then
+          rm -rf "$tmp"
+          ok "yq ${version} installed"
+        else
+          rm -rf "$tmp"
+          warn "yq ${version} download failed; skipping"
+          return 1
+        fi
+      }
+      install_yq_binary || true
       ;;
   esac
 else

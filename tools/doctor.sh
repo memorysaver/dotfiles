@@ -280,6 +280,33 @@ if [ "$DOTFILES_PLATFORM" = grok-bot ]; then
   else
     soft "hyperframes missing — run: just tools (needs Node >= 22 / nvm)"
   fi
+  if has ssh; then
+    pass "ssh (openssh-client)"
+  else
+    soft "ssh missing — run: just grok-bot (installs openssh-client)"
+  fi
+  if has tailscale; then
+    pass "tailscale ($(tailscale version 2>/dev/null | head -1))"
+    if pgrep -x tailscaled >/dev/null 2>&1; then
+      pass "tailscaled running"
+    else
+      soft "tailscaled not running — no systemd here; start it manually (see install/grok-bot.sh), then: sudo tailscale up"
+    fi
+  else
+    soft "tailscale missing — run: just grok-bot"
+  fi
+  if [ -x "$HOME/.local/bin/qmd" ]; then
+    pass "qmd (~/.local/bin/qmd → ~/.bun/bin/qmd)"
+  else
+    soft "qmd missing — run: just grok-bot (grok-bot only; see docs/removed-agent-clis.md)"
+  fi
+  if has pi; then
+    if pi --version >/dev/null 2>&1; then
+      pass "pi ($(pi --version 2>/dev/null | head -1))"
+    else
+      soft "pi installed but won't start (Node too old?) — run: just grok-bot (writes the Bun wrapper)"
+    fi
+  fi
 fi
 
 # --- Summary ---------------------------------------------------------------

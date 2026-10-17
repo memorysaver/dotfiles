@@ -46,7 +46,7 @@ installed without upgrading system packages.
 │   ├── workspace.sh         # Cross-platform ~/Work bootstrap and legacy notice
 │   ├── omarchy-apps.sh
 │   ├── omarchy-moonlight.sh
-│   ├── grok-bot.sh           # Grok Bot sandbox recipe stamp / scope
+│   ├── grok-bot.sh           # Grok Bot recipe stamp + ssh/Tailscale/QMD + Pi Bun wrapper
 │   └── infra.sh
 ├── config/               # App configs and host policy templates
 │   ├── zsh/
@@ -89,7 +89,7 @@ just macos-headless-caffeinate-off # Disable the managed headless helper
 just setup-arch        # Require Arch; use pacman + Mise
 just setup-debian      # Require Debian/Ubuntu; use apt and upstream installers
 just setup-grok-bot    # Require Grok Bot sandbox; Debian tools + link + doctor
-just grok-bot          # Write the Grok Bot recipe stamp (no desktop/mail)
+just grok-bot          # Grok Bot overlay: recipe stamp + ssh/Tailscale/QMD
 just workspace         # Create ~/Work categories and link its entry docs and rule directories
 just herdr-dispatch    # Legacy opt-in; blocked on retired hosts
 just workspace-orchestrator # Legacy opt-in; blocked on retired hosts
@@ -144,9 +144,12 @@ one exact `require("hypr.remote_desktop")` line in the existing
 
 `just setup-grok-bot` is the Omarchy-shaped setup path for the Cursor / Grok Bot
 agent host: shared `_setup` (workspace, core, runtimes, agents, tools,
-seed-agents), a small overlay that stamps the recipe scope, then `just link`
-and `just doctor`. It deliberately skips Hyprland, Moonlight, Himalaya/Ortie,
-Ghostty, and other desktop/mail pieces.
+seed-agents), a small overlay that stamps the recipe scope and adds the
+grok-bot-only packages (openssh-client, Tailscale, QMD), then `just link` and
+`just doctor`. It deliberately skips Hyprland, Moonlight, Himalaya/Ortie,
+Ghostty, and other desktop/mail pieces. The recipe does not install Dagu (it
+may already exist on the host); grok-bot scheduling uses Grok Bot routines
+(server-side saved prompts on cron or events).
 
 簡短說明：這條 recipe 用來追蹤 Grok Bot sandbox 實際套用了哪些設定；底層套件路徑跟
 Debian 一樣走 apt / upstream installer，但 platform id 是 `grok-bot`，不會跟一般
@@ -168,9 +171,13 @@ entry. Do not invent a private binding unless that record already exists.
 | --- | --- |
 | `platform-check.sh grok-bot` | Refuse to run on other platforms |
 | `just _setup` | workspace → core → runtimes → agents → tools → seed-agents |
-| `just grok-bot` | Write `~/.config/dotfiles/grok-bot-recipe` (includes/excludes) |
+| `just grok-bot` | Write `~/.config/dotfiles/grok-bot-recipe` (includes/excludes); install openssh-client, Tailscale (apt repo), build-essential + Bun + QMD (`~/.local/bin/qmd` → `~/.bun/bin/qmd`); on Node < 22.19 replace `~/.local/bin/pi` with a Bun wrapper (`install/grok-bot-pi-shim.sh`) |
 | `just link` | Non-Omarchy Linux links (zsh, tmux, git, nvim, starship, herdr, lazygit) |
 | `just doctor` | Read-only health gate |
+
+The sandbox has no systemd, so `tailscaled` is not started by the installer.
+Start it by hand (command in `install/grok-bot.sh`), then `sudo tailscale up`
+(and `tailscale set --ssh` if wanted). Auth stays machine-local.
 
 ## Terminal configuration by platform
 
