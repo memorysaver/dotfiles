@@ -41,7 +41,7 @@ hand, on the machines where you actually use that skill.
 | `opencli` | `npm install -g @jackwener/opencli` | `agents/skills/opencli` — pull structured data off public websites without login |
 | `podwise` | `brew install hardhackerlabs/podwise-tap/podwise` | `agents/skills/podwise` — podcast search, transcripts, summaries. macOS only; no Linux package |
 | `wavespeed` | `npm install -g ~/.dotfiles/tools/wavespeed-cli` | `agents/skills/wavespeed-cli` — AI image/video generation. Needs `WAVESPEED_API_KEY` |
-| `qmd` | `bun install -g @tobilu/qmd` | **nothing** — see below |
+| `qmd` | `bun install -g @tobilu/qmd` | **nothing** — see below. Restored on grok-bot only by `install/tools.sh` |
 
 ### `qmd` was already orphaned
 
